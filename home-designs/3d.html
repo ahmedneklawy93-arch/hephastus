@@ -60,7 +60,7 @@ button b{font-family:var(--mono);font-weight:500;margin-right:5px}
     <div class="grp" role="group" aria-label="Time of day"><span class="lbl">Light</span>
       <button id="m-day" aria-pressed="true">Day</button><button id="m-night" aria-pressed="false">Night</button></div>
   </div>
-  <div class="hint">Drag to orbit · scroll or pinch to zoom · right-drag or two-finger drag to pan. Existing: annex, palms, hedges, walls, gate, driveway, tank. Everything else is new.</div>
+  <div class="hint">Drag to orbit · scroll or pinch to zoom · right-drag or two-finger drag to pan. Existing: annex, driveway, gate, walls, hedges, palms, tank. New buildings sit on the annex’s right side as you face it from the gate. Everything else is new.</div>
 </div></div>
 <div id="err" hidden><p>The 3D viewer could not load its graphics library. Check your connection and reload the page.</p></div>
 
@@ -181,35 +181,41 @@ function palm(p,x,y,h){const g=new THREE.Group();const tr=new THREE.Mesh(new THR
   for(let i=0;i<4;i++){const a=i*1.6,c=new THREE.Mesh(new THREE.SphereGeometry(.28,8,6),M.date);c.scale.set(1,1.4,1);c.position.set(Math.cos(a)*.45,h-.55,Math.sin(a)*.45);g.add(c)}
   g.position.set(x-30,0,y-20);g.rotation.z=(rnd()-.5)*.06;p.add(g);return g}
 
-/* ---------- the existing site ---------- */
+/* arcade wall running north–south (along plan y) at plan x = xLine */
+function arcadeY(p,xLine,y,len,h,n,aw,ah,depth=.35){const m=arcade(p,0,0,len,h,n,aw,ah,depth);m.rotation.y=-Math.PI/2;m.position.set(xLine-30+depth/2,0,y-20);return m}
+
+/* ---------- the existing site ----------
+   Plan: 60 × 40 m. Gate in the east wall (y 34–39) faces the annex across the driveway.
+   Coming in, the south wall is on your left and the land is on your right.
+   The annex sits at the far (west) end, its arched door facing the gate. New buildings go
+   on the annex's right side as seen from the gate, i.e. north of it along the west wall. */
 const site=new THREE.Group();scene.add(site);
 const outside=new THREE.Mesh(new THREE.PlaneGeometry(260,260),M.outside);outside.rotation.x=-Math.PI/2;outside.position.y=-.03;outside.receiveShadow=true;site.add(outside);
 const lawn=new THREE.Mesh(new THREE.PlaneGeometry(60,40),M.grass);lawn.rotation.x=-Math.PI/2;lawn.receiveShadow=true;site.add(lawn);
-box(site,0,34,60,4.8,.03,M.drive,0,5);box(site,8,33,9,1,.03,M.drive,0,5);
-// south boundary wall with the entrance gate at the east end, low hedge along it
-box(site,-.35,40,54.35,.35,3,M.render);box(site,59,40,1.35,.35,3,M.render);box(site,53.6,39.9,.4,.55,3.3,M.pebble);box(site,59,39.9,.4,.55,3.3,M.pebble);box(site,54,40.05,5,.12,2.4,M.timber);
-for(const x of[20,30,40])lampBulb(site,x,39.6,2.3);
-// hedge (north + west), 5–6 m tall ficus
-box(site,.4,.4,59.2,2.2,4.6,M.hedgeCore);box(site,.4,2.6,2.2,31,4.6,M.hedgeCore);
-(()=>{const N=1420,geo=new THREE.IcosahedronGeometry(1,1),im=new THREE.InstancedMesh(geo,M.hedge,N),d=new THREE.Object3D(),col=new THREE.Color();
-  for(let i=0;i<N;i++){let x,y;if(i<760){x=rnd()*60;y=rnd()*3}else if(i<1100){x=rnd()*3;y=3+rnd()*31}else{x=rnd()*53;y=39+rnd()*.8}
-    const low=i>=1100,s=low?.55+rnd()*.4:.8+rnd()*.9;d.position.set(x-30,low?.4+rnd()*1.8:.6+rnd()*4.6+(i%7===0?.6:0),y-20);d.scale.set(s,s*(.8+rnd()*.4),s);d.rotation.set(rnd()*3,rnd()*3,0);d.updateMatrix();im.setMatrixAt(i,d.matrix);
+box(site,8.5,34,51.5,5,.03,M.drive,0,5);box(site,8.5,31.5,6,8,.03,M.drive,0,5);
+// boundary walls; the gate is in the east wall at the end of the driveway
+box(site,-.35,40,60.7,.35,3,M.render);box(site,-.35,-.35,60.7,.35,3,M.render);box(site,-.35,0,.35,40,3,M.render);
+box(site,60,0,.35,33.4,3,M.render);box(site,60,39.6,.35,.4,3,M.render);
+box(site,59.9,33.2,.6,.6,3.4,M.pebble);box(site,59.9,39.2,.6,.6,3.4,M.pebble);box(site,60.1,33.8,.12,5.4,2.4,M.timber);
+for(const y of[6,13,20,27])lampBulb(site,59.88,y,2.3);
+for(const x of[16,26,36,46,56])lampBulb(site,x,39.68,2.3);
+pointLight(site,58.5,17,2.3,0xffb45c,3,16);
+// hedges: tall ficus along the north wall, a strip along the west wall, a low hedge along the driveway wall
+box(site,.4,.4,59.2,2.2,4.6,M.hedgeCore);box(site,.3,2.6,2.2,21.4,4.2,M.hedgeCore);
+(()=>{const N=1450,geo=new THREE.IcosahedronGeometry(1,1),im=new THREE.InstancedMesh(geo,M.hedge,N),d=new THREE.Object3D(),col=new THREE.Color();
+  for(let i=0;i<N;i++){let x,y;const low=i>=1100;if(i<780){x=rnd()*60;y=rnd()*3}else if(!low){x=rnd()*2.6;y=3+rnd()*21}else{x=15+rnd()*44;y=39.1+rnd()*.7}
+    const s=low?.5+rnd()*.35:.8+rnd()*.9;d.position.set(x-30,low?.35+rnd()*1.3:.6+rnd()*4.4+(i%7===0?.6:0),y-20);d.scale.set(s,s*(.8+rnd()*.4),s);d.rotation.set(rnd()*3,rnd()*3,0);d.updateMatrix();im.setMatrixAt(i,d.matrix);
     col.setHSL(.24+rnd()*.06,.45+rnd()*.15,.16+rnd()*.12);im.setColorAt(i,col)}
   im.castShadow=im.receiveShadow=true;site.add(im)})();
-// boundary walls
-box(site,60,0,.35,34,3,M.render);box(site,-.35,-.35,60.7,.35,3,M.render);box(site,-.35,0,.35,34,3,M.render);
-for(const y of[6,13,20,27,32]){lampBulb(site,59.88,y,2.3)}
-pointLight(site,58.5,17,2.3,0xffb45c,3,16);
 // water tank, shed, neighbour villa
 const tank=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,2.6,20),M.white);tank.position.set(57-30,1.3,4.5-20);tank.castShadow=true;site.add(tank);
-box(site,22,24,2.4,1.8,1.4,M.timber);box(site,21.8,23.8,2.8,2.2,.12,M.timber,1.4);
+box(site,32,27,2.4,1.8,1.4,M.timber);box(site,31.8,26.8,2.8,2.2,.12,M.timber,1.4);
 box(site,62.5,3,13,18,7.2,M.villa);box(site,62,2.5,14,19,.3,M.white,7.2);box(site,62,8,1,8,.15,M.white,3.6);
 for(const [y,z] of[[6,1.4],[12,1.4],[6,4.8],[12,4.8],[17,4.8]])opening(site,'w',62.5,y,1.6,1.8,'glassrect',z);
-// existing annex: pebble walls, ochre fascia, clay tile edge, arched timber door
-block(site,4,27.5,15,5.5,3.2,{all:M.pebble,fascia:.55});
-opening(site,'n',27.5,8,1.1,1.3,'shutter',1.1);opening(site,'s',33,12.5,1.15,2.35,'arch');opening(site,'n',27.5,12.5,1.1,1.3,'shutter',1.1);opening(site,'s',33,7.5,1.1,1.3,'shutter',1.1);opening(site,'n',27.5,16,1.1,1.3,'shutter',1.1);
-opening(site,'e',19,30.2,1.1,1.3,'shutter',1.1);
-const flood=new THREE.SpotLight(0xfff1d6,0,30,.75,.6,1.5);flood.position.set(10.5-30,3,27.3-20);flood.target.position.set(10.5-30,0,18-20);flood.userData.night=6;site.add(flood,flood.target);
+// existing annex at the end of the driveway, arched door facing the gate
+block(site,3,24.5,5.5,15,3.2,{all:M.pebble,fascia:.55});
+opening(site,'e',8.5,36.5,1.15,2.35,'arch');opening(site,'e',8.5,32.5,1.1,1.3,'shutter',1.1);opening(site,'e',8.5,28,1.1,1.3,'shutter',1.1);
+const flood=new THREE.SpotLight(0xfff1d6,0,34,.7,.6,1.5);flood.position.set(8.8-30,3,36.5-20);flood.target.position.set(22-30,0,36.5-20);flood.userData.night=6;site.add(flood,flood.target);
 // date palms (keep)
 const PALMS=[[34,6,8.6],[40,6.5,9.6],[46,6,8.2],[52,7,9.2]];
 PALMS.forEach(([x,y,h])=>palm(site,x,y,h));
@@ -224,64 +230,64 @@ const stars=(()=>{const n=500,pos=new Float32Array(n*3);for(let i=0;i<n;i++){con
 scene.add(stars);
 const moon=new THREE.Mesh(new THREE.SphereGeometry(4,20,14),new THREE.MeshBasicMaterial({color:0xfff8e6}));moon.position.set(70,90,-120);scene.add(moon);
 
-/* ---------- the five options ---------- */
+/* ---------- the five options: all on the annex's right side (north of it, along the west wall) ---------- */
 const OPT={
-A:{name:'Pebble Line',figs:'≈ 168 m² new · lap pool 25 × 4 m',focus:[31,27],
- desc:'The house carries on from the annex in one line with the same pebble base, ochre render and tile edge. The middle section is raised and has four arched glass doors. A timber terrace and a lap pool run alongside.',
- build(p){deck(p,17,15.5,27,10.5);pool(p,18,17,25,4);
-  block(p,19,26,24,7,3.2);block(p,24,26,9,7,4.3,{plinth:0});box(p,23.94,25.94,9.12,7.12,.9,M.pebble);
-  opening(p,'n',26,20.6,1.1,1.3,'shutter',1.1);opening(p,'n',26,22.3,1.2,2.4,'arch');
-  for(let i=0;i<4;i++)opening(p,'n',26,25.3+i*2.15,1.5,3.2,'arch');
-  for(let i=0;i<5;i++)opening(p,'n',26,34.4+i*1.75,1.5,2.6,'glassrect');
-  pergola(p,33.5,23,9.5,3);
-  pointLight(p,28.5,24.6,2.6,0xffb45c,5);pointLight(p,38,24.6,2.4,0xffb45c,5)}},
-B:{name:'Riwaq Courtyard',figs:'≈ 262 m² new · pool 11 × 5 m',focus:[33.5,24],
- desc:'Three wings wrap a private courtyard pool that opens toward the palms. An arched riwaq (loggia) runs along the back wing. The solid pebble east wing faces the neighbour.',
- build(p){deck(p,25,16,17,8.5);pool(p,28,18,11,5);
-  block(p,20,27,27,6,3.4);block(p,20,16,5,11,3.9);block(p,42,16,5,11,3.9,{all:M.pebble,fascia:.55});
-  arcade(p,25,24.5,17,3.4,7,1.6,2.6);box(p,25,24.5,17,2.5,.25,M.render,3.2);box(p,24.8,24.3,17.4,.25,.24,M.tile,3.45,.5);
-  for(let i=0;i<7;i++)opening(p,'n',27,25+17/7*(i+.5),1.2,2.4,'arch');
-  for(const y of[18.5,22])opening(p,'e',25,y,1.3,2.5,'arch');for(const y of[18.5,22])opening(p,'w',42,y,1.3,2.5,'arch');
-  opening(p,'e',47,21.5,1.8,2,'lattice',.8);opening(p,'n',16,22.5,1.3,2.5,'arch');opening(p,'n',16,44.5,1.3,2.5,'arch');
-  pointLight(p,33.5,25.8,2.5,0xffb45c,6);pointLight(p,33.5,16.5,3,0xffb45c,3)}},
-C:{name:'Palm Pavilions',figs:'≈ 158 m² new · free-form pool ≈ 95 m²',focus:[38,22],
- desc:'Three small pavilions with clay-tile roofs, joined by a covered timber walkway. The pool curves in front of the existing palms and stays 3 m clear of their trunks. You can build one pavilion at a time.',
- build(p){const pav=(x,y,w,d,h)=>{block(p,x,y,w,d,h,{tile:false});for(const [cx,cy] of[[x,y],[x+w-.6,y],[x,y+d-.6],[x+w-.6,y+d-.6]])box(p,cx-.05,cy-.05,.7,.7,h,M.pebble);
+A:{name:'Pebble Line',figs:'≈ 130 m² new · lap pool 18 × 4 m',focus:[10,15],
+ desc:'The house continues straight on from the annex along the west wall, with the same pebble base, ochre render and tile edge. The middle section is raised and has four arched glass doors facing the lawn. A timber terrace and an 18 m lap pool run alongside.',
+ build(p){deck(p,10,5,9.5,19.5);pool(p,14,6,4,17.5);
+  block(p,3,6,7,18.5,3.2);block(p,3,11,7,8,4.3,{plinth:0});box(p,2.94,10.94,7.12,8.12,.9,M.pebble);
+  opening(p,'e',10,7.6,1.1,1.3,'shutter',1.1);opening(p,'e',10,9.4,1.2,2.4,'arch');
+  for(let i=0;i<4;i++)opening(p,'e',10,12+i*2,1.5,3.2,'arch');
+  for(let i=0;i<3;i++)opening(p,'e',10,20.2+i*1.5,1.3,2.6,'glassrect');
+  pergola(p,10,19.2,3,5,2.7,'y');
+  pointLight(p,11.2,15,2.6,0xffb45c,5);pointLight(p,11.5,21.7,2.4,0xffb45c,5)}},
+B:{name:'Riwaq Courtyard',figs:'≈ 227 m² new · pool 6 × 6.5 m',focus:[12,15],
+ desc:'Three wings wrap a courtyard pool that opens toward the lawn and the palms. The back wing runs along the west wall with an arched riwaq (loggia) in front of it. The solid pebble north wing shields the courtyard from the north wind.',
+ build(p){deck(p,11.5,10,9,9.5);pool(p,13,11.5,6,6.5);
+  block(p,3,5,6,19.5,3.4);block(p,9,5,11,5,3.9,{all:M.pebble,fascia:.55});block(p,9,19.5,11,5,3.9);
+  arcadeY(p,11.3,10,9.5,3.4,4,1.6,2.6);box(p,9,10,2.5,9.5,.25,M.render,3.2);box(p,11.2,9.8,.3,9.9,.24,M.tile,3.45,.5);
+  for(let i=0;i<4;i++)opening(p,'e',9,10+9.5/4*(i+.5),1.2,2.4,'arch');
+  for(const x of[13.5,17])opening(p,'s',10,x,1.3,2.5,'arch');for(const x of[13.5,17])opening(p,'n',19.5,x,1.3,2.5,'arch');
+  opening(p,'e',20,7.5,1.8,2,'lattice',.8);opening(p,'e',20,22,1.3,2.5,'arch');
+  pointLight(p,10.2,14.75,2.5,0xffb45c,6);pointLight(p,16,14.75,3,0xffb45c,3)}},
+C:{name:'Palm Pavilions',figs:'≈ 146 m² new · free-form pool ≈ 95 m²',focus:[16,14],
+ desc:'Three small pavilions with clay-tile roofs step north from the annex along the west wall, linked by a covered timber walkway. The free-form pool sits out on the lawn in front of the palms and stays 3 m clear of their trunks. You can build one pavilion at a time.',
+ build(p){const pav=(x,y,w,d,h,face)=>{block(p,x,y,w,d,h,{tile:false});for(const [cx,cy] of[[x,y],[x+w-.6,y],[x,y+d-.6],[x+w-.6,y+d-.6]])box(p,cx-.05,cy-.05,.7,.7,h,M.pebble);
     const r=new THREE.Mesh(new THREE.ConeGeometry(1,2.1,4,1),M.roof);r.rotation.y=Math.PI/4;r.scale.set((w+.9)/Math.SQRT2,1,(d+.9)/Math.SQRT2);r.position.set(x+w/2-30,h+1.05,y+d/2-20);r.castShadow=true;p.add(r);
-    opening(p,'n',y,x+w/2,w-2.4,h-.35,'arch');};
-  pav(21,27,9,6,3);pav(33,27,8,6,3);pav(45,26,9,7,3.2);
-  pergola(p,19,25.3,36,1.6,2.6,'x');
-  const pts=[[29,13],[31,10,35,10.5,37,11],[40,12,42,10.5,45,11],[48,11.5,53,11,55,13],[57,16,53,19,48,18.5],[43,18,39,20,34,19],[30,18.4,27,16,29,13]];
-  const cx=42,cy=15,sh=new THREE.Shape();sh.moveTo(pts[0][0]-cx,-(pts[0][1]-cy));
+    if(face==='e')opening(p,'e',x+w,y+d/2,d-2.4,h-.35,'arch');else opening(p,'s',y+d,x+w/2,w-2.4,h-.35,'arch')};
+  pav(3,16.5,7,7,3,'e');pav(3,6,7,7,3,'e');pav(12.5,3.5,8,6,3.1,'s');
+  pergola(p,10.2,4,1.6,20.5,2.6,'y');
+  const pts=[[17,13],[19,10,23,10.5,25,11],[28,12,30,10.5,33,11],[36,11.5,41,11,43,13],[45,16,41,19,36,18.5],[31,18,27,20,22,19],[18,18.4,15,16,17,13]];
+  const cx=30,cy=15,sh=new THREE.Shape();sh.moveTo(pts[0][0]-cx,-(pts[0][1]-cy));
   for(let i=1;i<pts.length;i++){const q=pts[i];sh.bezierCurveTo(q[0]-cx,-(q[1]-cy),q[2]-cx,-(q[3]-cy),q[4]-cx,-(q[5]-cy))}
   const geo=new THREE.ShapeGeometry(sh,40);const uv=geo.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)/4,uv.getY(i)/4);
   const cop=new THREE.Mesh(geo,M.coping);cop.rotation.x=-Math.PI/2;cop.scale.set(1.06,1.12,1);cop.position.set(cx-30,.06,cy-20);cop.receiveShadow=true;
   const wat=new THREE.Mesh(geo,M.water);wat.rotation.x=-Math.PI/2;wat.position.set(cx-30,.09,cy-20);wat.receiveShadow=true;p.add(cop,wat);
-  pointLight(p,42,15,.7,0x6ff5ea,7,20);pointLight(p,31.5,26,2.4,0xffb45c,5);pointLight(p,44,25.5,2.4,0xffb45c,5)}},
-D:{name:'Hedge-Edge Modern',figs:'≈ 147 m² new · mirror / lap pool 19 × 4 m',focus:[11,15],
- desc:'A flat-roofed glass house set against the west hedge. Pebble end walls tie it to the annex, and a timber screen covers the bedrooms. The whole lawn stays open, and the long pool reflects the house at night.',
- build(p){deck(p,11,5,8,21);pool(p,13,6,4,19);
-  box(p,4,5,7,1.2,3.3,M.pebble);box(p,4,24.8,7,1.2,3.3,M.pebble);box(p,4,6.2,6.1,18.6,3.3,M.render);
-  box(p,10.1,6.2,.12,18.6,3.3,M.glass);for(let y=6.2;y<=24.81;y+=2.07)box(p,10.15,y,.12,.08,3.3,M.frame);
-  for(let y=19;y<24.8;y+=.3)box(p,10.4,y,.1,.08,3.3,M.timber);
-  box(p,3.4,4.4,8.8,22.2,.32,M.slab,3.3);
-  for(const y of[9,14,19,23])lampBulb(p,11.2,y,3.22);
-  pointLight(p,11.6,10,2.6,0xffb45c,5);pointLight(p,11.6,20,2.6,0xffb45c,5)}},
-E:{name:'Vaulted Long House',figs:'≈ 196 m² new · birka pool 8 × 8 m + rill',focus:[34,24],
- desc:'Barrel-vaulted rooms in the Hassan Fathy tradition, with a domed sitting room (majlis) in the centre and a malqaf wind-catcher to cool the house. A square pool with a fountain sits on the dome’s axis, fed by a narrow rill.',
- build(p){deck(p,28,12,12,12);pool(p,30,14,8,8);box(p,33.6,22,.8,2,.05,M.water,0,4);
-  block(p,20,26,28,7,3,{tile:false,plinth:.8});
-  for(const [a,c] of[[20,24.5],[24.5,29],[37,41.5],[41.5,46]]){const r=(c-a)/2,inner=new THREE.Mesh(new THREE.CylinderGeometry(r,r,7,20,1,false,Math.PI/2,Math.PI),M.render);
-    inner.rotation.x=Math.PI/2;inner.castShadow=true;const g=new THREE.Group();g.add(inner);g.scale.y=1.4/r;g.position.set((a+c)/2-30,3,29.5-20);p.add(g)}
-  box(p,29,25.8,8,7.4,4,M.render);const dome=new THREE.Mesh(new THREE.SphereGeometry(3.6,28,14,0,Math.PI*2,0,Math.PI/2),M.render);dome.position.set(33-30,4,29.5-20);dome.castShadow=true;p.add(dome);
-  for(let i=0;i<6;i++){const a=i*Math.PI/3,w=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),M.glow);w.position.set(33-30+Math.cos(a)*3.45,4.6,29.5-20+Math.sin(a)*3.45);p.add(w)}
-  box(p,46,26.5,2,2,6.6,M.render);box(p,45.85,26.35,2.3,2.3,.25,M.render,6.6);opening(p,'n',26.5,47,1.2,1.4,'rect',5);
-  arcade(p,20,24,9,3,4,1.5,2.4);arcade(p,37,24,11,3,5,1.5,2.4);box(p,20,24,9,2,.2,M.render,3);box(p,37,24,11,2,.2,M.render,3);
-  opening(p,'n',25.8,33,2.2,3.4,'arch');
-  for(const x of[22.2,26.7,39.2,43.7])opening(p,'n',26,x,1.1,2.2,'arch');
-  const jet=new THREE.Mesh(new THREE.CylinderGeometry(.05,.12,1.6,8),M.water);jet.position.set(34-30,.85,18-20);p.add(jet);
-  const bowl=new THREE.Mesh(new THREE.CylinderGeometry(.8,.5,.35,20),M.coping);bowl.position.set(34-30,.2,18-20);p.add(bowl);
-  pointLight(p,34,25,2.5,0xffb45c,6);pointLight(p,24,25,2.4,0xffb45c,4)}}
+  pointLight(p,30,15,.7,0x6ff5ea,7,20);pointLight(p,11,20,2.4,0xffb45c,5);pointLight(p,11,9.5,2.4,0xffb45c,5)}},
+D:{name:'Hedge-Edge Modern',figs:'≈ 137 m² new · mirror / lap pool 17.5 × 4 m',focus:[10,14],
+ desc:'A flat-roofed glass house backed against the west wall and hedge, joined to the annex by a pebble end wall. The glass faces east across the lawn to the palms, and a timber screen covers the bedrooms. A long mirror pool reflects the house at night.',
+ build(p){deck(p,9.5,5,8.5,19.5);pool(p,12,6,4,17.5);
+  box(p,3,5,7,1.2,3.3,M.pebble);box(p,3,23.3,7,1.2,3.3,M.pebble);box(p,3,6.2,6.1,17.1,3.3,M.render);
+  box(p,9.1,6.2,.12,17.1,3.3,M.glass);for(let y=6.2;y<=23.31;y+=2.14)box(p,9.15,y,.12,.08,3.3,M.frame);
+  for(let y=18;y<23.3;y+=.3)box(p,9.4,y,.1,.08,3.3,M.timber);
+  box(p,2.4,4.4,8.8,20.4,.32,M.slab,3.3);
+  for(const y of[8,12,16,20])lampBulb(p,10.2,y,3.22);
+  pointLight(p,10.6,10,2.6,0xffb45c,5);pointLight(p,10.6,19,2.6,0xffb45c,5)}},
+E:{name:'Vaulted Long House',figs:'≈ 137 m² new + 30 m² riwaq · birka 8 × 8 m + rill',focus:[12,15],
+ desc:'Barrel-vaulted rooms in the Hassan Fathy tradition run north from the annex along the west wall, with a domed sitting room (majlis) in the middle and a malqaf wind-catcher at the far end. A square pool with a fountain sits on the dome’s axis, fed by a narrow rill.',
+ build(p){deck(p,12,11.5,13,10);pool(p,16,12.5,8,8);box(p,12,16.1,4,.8,.05,M.water,0,4);
+  block(p,3,5,7,19.5,3,{tile:false,plinth:.8});
+  for(const [a,c] of[[5,9.25],[9.25,13.5],[19.5,24.5]]){const r=(c-a)/2,inner=new THREE.Mesh(new THREE.CylinderGeometry(r,r,7,20,1,false,Math.PI,Math.PI),M.render);
+    inner.rotation.z=-Math.PI/2;inner.castShadow=true;const g=new THREE.Group();g.add(inner);g.scale.y=1.4/r;g.position.set(6.5-30,3,(a+c)/2-20);p.add(g)}
+  box(p,3,13.3,7,6.4,3.8,M.render);const dome=new THREE.Mesh(new THREE.SphereGeometry(3.2,28,14,0,Math.PI*2,0,Math.PI/2),M.render);dome.position.set(6.5-30,3.8,16.5-20);dome.castShadow=true;p.add(dome);
+  for(let i=0;i<6;i++){const a=i*Math.PI/3,w=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),M.glow);w.position.set(6.5-30+Math.cos(a)*3.05,4.4,16.5-20+Math.sin(a)*3.05);p.add(w)}
+  box(p,3.5,5.4,2,2,6.6,M.render);box(p,3.35,5.25,2.3,2.3,.25,M.render,6.6);opening(p,'e',5.5,6.4,1.2,1.4,'rect',5);
+  arcadeY(p,11.8,5,8.3,3,4,1.5,2.4);arcadeY(p,11.8,19.7,4.8,3,2,1.5,2.4);box(p,10,5,2,8.3,.2,M.render,3);box(p,10,19.7,2,4.8,.2,M.render,3);
+  opening(p,'e',10,16.5,2.2,3.4,'arch');
+  for(const y of[7.1,11.4,22])opening(p,'e',10,y,1.1,2.2,'arch');
+  const jet=new THREE.Mesh(new THREE.CylinderGeometry(.05,.12,1.6,8),M.water);jet.position.set(20-30,.85,16.5-20);p.add(jet);
+  const bowl=new THREE.Mesh(new THREE.CylinderGeometry(.8,.5,.35,20),M.coping);bowl.position.set(20-30,.2,16.5-20);p.add(bowl);
+  pointLight(p,11,9,2.5,0xffb45c,6);pointLight(p,11,22,2.4,0xffb45c,4)}}
 };
 
 /* ---------- UI + state ---------- */
@@ -305,9 +311,9 @@ function select(id,animate){if(current===id)return;current=id;
 /* camera views */
 let lastView='aerial',tween=null;
 function view(kind,animate=true){lastView=kind;const [fx,fy]=OPT[current].focus,t=new THREE.Vector3(fx-30,1.2,fy-20);let pos;
-  if(kind==='aerial')pos=new THREE.Vector3(fx-30+22,26,fy-20-34);
+  if(kind==='aerial')pos=new THREE.Vector3(fx-30+30,24,fy-20-16);
   if(kind==='palms'){pos=new THREE.Vector3(43-30,1.7,9.5-20);t.y=1.8}
-  if(kind==='drive'){pos=new THREE.Vector3(57-30,1.7,36.4-20);t.set(12.5-30,1.6,34-20)}
+  if(kind==='drive'){pos=new THREE.Vector3(57.5-30,1.7,36.5-20);t.set(8.5-30,1.8,33-20)}
   if(kind==='top'){pos=new THREE.Vector3(0.01,78,6);t.set(0,0,0)}
   for(const k of['aerial','palms','drive','top'])document.getElementById('v-'+k).setAttribute('aria-pressed',String(k===kind));
   if(!animate||reduceMotion){camera.position.copy(pos);controls.target.copy(t);controls.update();tween=null;return}

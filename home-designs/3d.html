@@ -1,0 +1,328 @@
+<title>Palm Garden 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-screen 3D site model; a top panel picks the option, a bottom panel
+   holds the description, camera views and the day/night switch. */
+:root{
+  --panel:rgba(248,249,245,.92);--fg:#1d2520;--muted:#58635b;--line:#cfd5cb;
+  --accent:#b8752a;--accent-ink:#fff;--chip:#ffffff;--bg:#9cc3e6;
+  --display:"Marcellus","Palatino Linotype",Palatino,Georgia,serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --panel:rgba(18,25,30,.9);--fg:#e7e5dc;--muted:#9aa49c;--line:#2e3a40;--accent:#e2a456;--accent-ink:#1a1206;--chip:#1c262c;--bg:#0b1430;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --panel:rgba(18,25,30,.9);--fg:#e7e5dc;--muted:#9aa49c;--line:#2e3a40;--accent:#e2a456;--accent-ink:#1a1206;--chip:#1c262c;--bg:#0b1430;color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.45;overflow:hidden}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+.panel{position:fixed;left:0;right:0;z-index:2;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.panel>div{pointer-events:auto;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:8px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:12px 14px;max-width:640px}
+.top{top:calc(env(safe-area-inset-top,0px) + 12px)}
+.bottom{bottom:calc(env(safe-area-inset-bottom,0px) + 12px)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-weight:400;font-size:22px;margin:2px 0 10px;text-wrap:balance}
+h2{font-family:var(--display);font-weight:400;font-size:19px;margin:0 0 4px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+button{font:inherit;color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:99px;padding:5px 12px;cursor:pointer;white-space:nowrap;flex:none}
+button:hover{border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button b{font-family:var(--mono);font-weight:500;margin-right:5px}
+#desc{color:var(--muted);margin:0 0 10px;max-width:68ch}
+.row{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lbl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hint{font-size:12px;color:var(--muted);margin-top:8px}
+.figs{font-family:var(--mono);font-size:12.5px;margin-bottom:8px;font-variant-numeric:tabular-nums}
+#err[hidden]{display:none}
+#err{position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;z-index:3}
+@media (max-width:560px){h1{font-size:19px;margin-bottom:8px}.panel>div{padding:10px 12px}#desc{font-size:13px}}
+</style>
+
+<canvas id="c" tabindex="0" aria-label="3D model of the garden site and the selected house option. Drag to orbit, scroll or pinch to zoom."></canvas>
+
+<div class="panel top"><div>
+  <div class="eyebrow">3D site model · 1 unit = 1 m</div>
+  <h1>Your land, with each house option built on it</h1>
+  <div class="chips" id="opts" role="group" aria-label="House option"></div>
+</div></div>
+
+<div class="panel bottom"><div>
+  <h2 id="oname"></h2>
+  <div class="figs" id="ofigs"></div>
+  <p id="desc"></p>
+  <div class="row">
+    <div class="grp" role="group" aria-label="Camera view"><span class="lbl">View</span>
+      <button id="v-aerial">Aerial</button><button id="v-palms">From the palms</button><button id="v-drive">From the driveway</button><button id="v-top">Top-down</button></div>
+    <div class="grp" role="group" aria-label="Time of day"><span class="lbl">Light</span>
+      <button id="m-day" aria-pressed="true">Day</button><button id="m-night" aria-pressed="false">Night</button></div>
+  </div>
+  <div class="hint">Drag to orbit · scroll or pinch to zoom · right-drag or two-finger drag to pan. Existing: annex, palms, hedge, wall, tank. Everything else is new.</div>
+</div></div>
+<div id="err" hidden><p>The 3D viewer could not load its graphics library. Check your connection and reload the page.</p></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+if(!window.THREE||!THREE.OrbitControls){document.getElementById('err').hidden=false;return}
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let seed=5;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
+
+/* ---------- renderer / scene ---------- */
+const canvas=document.getElementById('c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(45,1,.3,500);
+const controls=new THREE.OrbitControls(camera,canvas);
+controls.enableDamping=true;controls.maxPolarAngle=Math.PI*.495;controls.minDistance=4;controls.maxDistance=140;
+
+/* ---------- textures (drawn in canvas, no image downloads) ---------- */
+function ctex(size,draw){const c=document.createElement('canvas');c.width=c.height=size;draw(c.getContext('2d'),size);
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return t}
+const TX={
+ pebble:ctex(256,(g,s)=>{g.fillStyle='#4f483f';g.fillRect(0,0,s,s);const cols=['#9a8f7c','#7c7262','#b3a68e','#c0b49b','#6e6656','#8d826f','#a59a86'];
+   for(let i=0;i<520;i++){const x=rnd()*s,y=rnd()*s,rx=4+rnd()*8,ry=3+rnd()*5;g.fillStyle=cols[i%cols.length];for(const dx of[-s,0,s])for(const dy of[-s,0,s]){g.beginPath();g.ellipse(x+dx,y+dy,rx,ry,rnd()*3,0,7);g.fill()}}}),
+ render:ctex(128,(g,s)=>{g.fillStyle='#c99257';g.fillRect(0,0,s,s);for(let i=0;i<2600;i++){g.fillStyle=rnd()<.5?'rgba(255,230,190,.08)':'rgba(90,50,20,.08)';g.fillRect(rnd()*s,rnd()*s,2,2)}}),
+ grass:ctex(256,(g,s)=>{g.fillStyle='#5d7a33';g.fillRect(0,0,s,s);for(let i=0;i<9000;i++){g.fillStyle=['#4b6a28','#6f8c3a','#7d8f3c','#536f2c','#8a8a44'][i%5];g.fillRect(rnd()*s,rnd()*s,1.5,3)}}),
+ timber:ctex(128,(g,s)=>{for(let y=0;y<s;y+=4){g.fillStyle=['#6b4528','#5a3a20','#7a5230','#4e321c'][(y/4)%4];g.fillRect(0,y,s,4)}}),
+ water:ctex(256,(g,s)=>{g.fillStyle='#35bdb6';g.fillRect(0,0,s,s);g.strokeStyle='rgba(235,255,250,.35)';g.lineWidth=1.5;
+   for(let i=0;i<40;i++){const y=rnd()*s,x=rnd()*s;g.beginPath();g.moveTo(x,y);g.bezierCurveTo(x+20,y-6,x+40,y+6,x+60,y);g.stroke()}}),
+ tile:ctex(64,(g,s)=>{g.fillStyle='#7d3519';g.fillRect(0,0,s,s);for(let x=0;x<s;x+=16){g.fillStyle='#b8572c';g.fillRect(x+2,0,10,s);g.fillStyle='#d98352';g.fillRect(x+4,0,3,s)}})
+};
+function flagstone(base,crack){return ctex(256,(g,s)=>{const pts=[];for(let i=0;i<18;i++)pts.push([rnd()*s,rnd()*s]);
+  const img=g.createImageData(s,s);const b=parseInt(base.slice(1),16),c=parseInt(crack.slice(1),16);
+  for(let y=0;y<s;y++)for(let x=0;x<s;x++){let d1=1e9,d2=1e9,k=0;pts.forEach((p,i)=>{let dx=Math.abs(x-p[0]),dy=Math.abs(y-p[1]);dx=Math.min(dx,s-dx);dy=Math.min(dy,s-dy);const d=Math.sqrt(dx*dx+dy*dy);if(d<d1){d2=d1;d1=d;k=i}else if(d<d2)d2=d});
+    const edge=d2-d1<2.2,col=edge?c:b,v=edge?0:((k*37)%20)-10,o=(y*s+x)*4;
+    img.data[o]=Math.max(0,Math.min(255,((col>>16)&255)+v));img.data[o+1]=Math.max(0,Math.min(255,((col>>8)&255)+v));img.data[o+2]=Math.max(0,Math.min(255,(col&255)+v));img.data[o+3]=255}
+  g.putImageData(img,0,0)})}
+TX.drive=flagstone('#8f8574','#4d463c');TX.deck=flagstone('#d9ccb2','#a49779');
+TX.grass.repeat.set(15,10);
+
+/* ---------- materials ---------- */
+const std=o=>new THREE.MeshStandardMaterial(o);
+const M={
+ pebble:std({map:TX.pebble,roughness:.95}),render:std({map:TX.render,roughness:.9}),
+ tile:std({map:TX.tile,roughness:.7}),tileDark:std({color:0x5a2610,roughness:.9}),roof:std({map:TX.tile,roughness:.75}),
+ timber:std({map:TX.timber,roughness:.8}),slab:std({color:0xe9dcc4,roughness:.85}),
+ glow:std({color:0xffe0ad,emissive:0xffa24a,emissiveIntensity:.12,roughness:.5}),
+ glass:std({color:0x8fa6ae,emissive:0xff9f45,emissiveIntensity:.03,roughness:.12,metalness:.5}),
+ shutter:std({color:0x4a3220,roughness:.8}),frame:std({color:0x3a2716,roughness:.8}),
+ water:std({map:TX.water,color:0xbff5f0,emissive:0x22d3c8,emissiveIntensity:.04,roughness:.06,metalness:.25,transparent:true,opacity:.93}),
+ coping:std({color:0xe4dac6,roughness:.8}),deck:std({map:TX.deck,roughness:.9}),drive:std({map:TX.drive,roughness:.95}),
+ grass:std({map:TX.grass,roughness:1}),outside:std({color:0x9b8f73,roughness:1}),
+ hedge:std({color:0xffffff,roughness:1,flatShading:true}),hedgeCore:std({color:0x203517,roughness:1}),
+ trunk:std({color:0x8a6a45,roughness:1}),frond:std({color:0x4c5c24,roughness:.85,side:THREE.DoubleSide}),date:std({color:0xd8782c,roughness:.6}),
+ white:std({color:0xe8e4da,roughness:.8}),villa:std({color:0xd4cfc4,roughness:.9}),
+ lamp:std({color:0xfff0c8,emissive:0xffc070,emissiveIntensity:.3}),
+ lattice:std({color:0x6b4528,emissive:0xffa24a,emissiveIntensity:.05,roughness:.8})
+};
+const GLOWS=[[M.glow,.12,1.5],[M.glass,.03,.9],[M.water,.04,.75],[M.lamp,.3,2.2],[M.lattice,.05,.9]];
+
+/* ---------- geometry helpers (plan coords: x east 0–60, y south 0–40, metres) ---------- */
+function worldUV(g,w,h,d,s){const uv=g.attributes.uv,dims=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];
+  for(let f=0;f<6;f++)for(let i=0;i<4;i++){const k=f*4+i;uv.setXY(k,uv.getX(k)*dims[f][0]/s,uv.getY(k)*dims[f][1]/s)}uv.needsUpdate=true}
+function box(p,x,y,w,d,h,mat,y0=0,s=1.5){const g=new THREE.BoxGeometry(w,h,d);worldUV(g,w,h,d,s);const m=new THREE.Mesh(g,mat);
+  m.position.set(x+w/2-30,y0+h/2,y+d/2-20);m.castShadow=true;m.receiveShadow=true;p.add(m);return m}
+function archShape(w,h){const s=new THREE.Shape(),r=w/2;s.moveTo(-r,0);s.lineTo(-r,h-r);s.absarc(0,h-r,r,Math.PI,0,true);s.lineTo(r,0);s.lineTo(-r,0);return s}
+function rectShape(w,h){const s=new THREE.Shape();s.moveTo(-w/2,0);s.lineTo(w/2,0);s.lineTo(w/2,h);s.lineTo(-w/2,h);s.lineTo(-w/2,0);return s}
+/* opening on a face. face n/s: line = plan y of that face, c = plan x centre; face e/w: line = plan x, c = plan y centre */
+function opening(p,face,line,c,w,h,type='arch',y0=0){
+  const sh=(type==='rect'||type==='shutter'||type==='glassrect')?rectShape:archShape;
+  const mat=type==='shutter'?M.shutter:(type==='glass'||type==='glassrect')?M.glass:type==='lattice'?M.lattice:M.glow;
+  const g=new THREE.Group();
+  const fr=new THREE.Mesh(new THREE.ShapeGeometry(sh(w+.24,h+.12),24),M.frame);
+  const pn=new THREE.Mesh(new THREE.ShapeGeometry(sh(w,h),24),mat);pn.position.z=.015;g.add(fr,pn);
+  if(type!=='shutter'&&type!=='lattice'){const mu=new THREE.Mesh(new THREE.PlaneGeometry(.06,h),M.frame);mu.position.set(0,h/2,.025);g.add(mu)}
+  if(type==='shutter'){for(let yy=.12;yy<h;yy+=.14){const l=new THREE.Mesh(new THREE.PlaneGeometry(w-.06,.035),M.frame);l.position.set(0,yy,.02);g.add(l)}}
+  const o=.03;
+  if(face==='n'){g.position.set(c-30,y0,line-20-o);g.rotation.y=Math.PI}
+  if(face==='s'){g.position.set(c-30,y0,line-20+o)}
+  if(face==='e'){g.position.set(line-30+o,y0,c-20);g.rotation.y=Math.PI/2}
+  if(face==='w'){g.position.set(line-30-o,y0,c-20);g.rotation.y=-Math.PI/2}
+  p.add(g);return g}
+/* a rendered single-storey block with pebble plinth and clay tile edge, like the annex */
+function block(p,x,y,w,d,h,{plinth=.9,all=null,tile=true,fascia=0}={}){
+  box(p,x,y,w,d,h,all||M.render);
+  if(fascia)box(p,x-.02,y-.02,w+.04,d+.04,fascia,M.render,h-fascia);
+  if(plinth&&!all)box(p,x-.06,y-.06,w+.12,d+.12,plinth,M.pebble);
+  if(tile){const t=.55;box(p,x-.22,y-.22,w+.44,t,.26,M.tile,h,.5);box(p,x-.22,y+d+.22-t,w+.44,t,.26,M.tile,h,.5);box(p,x-.22,y-.22+t,t,d+.44-2*t,.26,M.tile,h,.5);box(p,x+w+.22-t,y-.22+t,t,d+.44-2*t,.26,M.tile,h,.5);box(p,x-.1,y-.1,w+.2,d+.2,.08,M.tileDark,h-.08);box(p,x+.3,y+.3,w-.6,d-.6,.05,M.slab,h)}}
+function pointLight(p,x,y,z,color,base,dist=14){const l=new THREE.PointLight(color,0,dist,2);l.position.set(x-30,z,y-20);l.userData.night=base;p.add(l);return l}
+function lampBulb(p,x,y,z){const m=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),M.lamp);m.position.set(x-30,z,y-20);p.add(m)}
+function pool(p,x,y,w,d,c=.45){box(p,x,y,w,d,.05,M.water,0,4);
+  box(p,x-c,y-c,w+2*c,c,.1,M.coping);box(p,x-c,y+d,w+2*c,c,.1,M.coping);box(p,x-c,y,c,d,.1,M.coping);box(p,x+w,y,c,d,.1,M.coping);
+  pointLight(p,x+w/2,y+d/2,.6,0x6ff5ea,6,Math.max(w,d)+6)}
+function deck(p,x,y,w,d){box(p,x,y,w,d,.04,M.deck,0,4)}
+function arcade(p,x,yLine,w,h,n,aw,ah,depth=.35){const s=new THREE.Shape();s.moveTo(0,0);s.lineTo(w,0);s.lineTo(w,h);s.lineTo(0,h);s.lineTo(0,0);
+  const step=w/n;for(let i=0;i<n;i++){const cx=step*(i+.5),r=aw/2,hole=new THREE.Path();hole.moveTo(cx-r,.06);hole.lineTo(cx+r,.06);hole.lineTo(cx+r,ah-r);hole.absarc(cx,ah-r,r,0,Math.PI,false);hole.lineTo(cx-r,.06);s.holes.push(hole)}
+  const g=new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:false,curveSegments:16});g.scale(1,1,1);
+  const m=new THREE.Mesh(g,M.render);m.position.set(x-30,0,yLine-20-depth/2);m.castShadow=m.receiveShadow=true;
+  const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)/1.5,uv.getY(i)/1.5);p.add(m);return m}
+function pergola(p,x,y,w,d,h=2.7,along='x'){for(const px of[x,x+w-.18])for(let py=y;py<=y+d-.18+.01;py+=Math.max(.01,(d-.18)/Math.max(1,Math.round((d-.18)/3.2))))box(p,px,py,.18,.18,h,M.timber);
+  if(along==='x'){for(let px=x;px<=x+w-.18;px+=3.2)for(const py of[y,y+d-.18])box(p,px,py,.18,.18,h,M.timber);
+    box(p,x,y,w,.2,.25,M.timber,h);box(p,x,y+d-.2,w,.2,.25,M.timber,h);for(let px=x;px<x+w;px+=.45)box(p,px,y,.08,d,.15,M.timber,h+.25)}
+  else{box(p,x,y,.2,d,.25,M.timber,h);box(p,x+w-.2,y,.2,d,.25,M.timber,h);for(let py=y;py<y+d;py+=.45)box(p,x,py,w,.08,.15,M.timber,h+.25)}}
+
+/* ---------- date palm ---------- */
+const FROND=(()=>{const L=3.6,g=new THREE.PlaneGeometry(L,1,14,2);g.translate(L/2,0,0);const pos=g.attributes.position;
+  for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i),t=x/L;const w=.15+.85*Math.sin(Math.PI*Math.min(1,t*1.15));pos.setXYZ(i,x,-1.1*t*t,y*w*.9)}
+  g.computeVertexNormals();return g})();
+function palm(p,x,y,h){const g=new THREE.Group();const tr=new THREE.Mesh(new THREE.CylinderGeometry(.24,.42,h,9),M.trunk);tr.position.y=h/2;tr.castShadow=true;g.add(tr);
+  for(let yy=.4;yy<h-.3;yy+=.35){const ring=new THREE.Mesh(new THREE.TorusGeometry(.42-.18*yy/h,.05,4,10),M.trunk);ring.rotation.x=Math.PI/2;ring.position.y=yy;g.add(ring)}
+  for(let i=0;i<22;i++){const f=new THREE.Mesh(FROND,M.frond);f.position.y=h;const upper=i<10;
+    f.rotation.order='YZX';f.rotation.y=i*2.4+rnd()*.3;f.rotation.z=upper?.55+rnd()*.35:-.05+rnd()*.3;f.scale.setScalar(upper?.85:1.05);f.castShadow=true;g.add(f)}
+  for(let i=0;i<4;i++){const a=i*1.6,c=new THREE.Mesh(new THREE.SphereGeometry(.28,8,6),M.date);c.scale.set(1,1.4,1);c.position.set(Math.cos(a)*.45,h-.55,Math.sin(a)*.45);g.add(c)}
+  g.position.set(x-30,0,y-20);g.rotation.z=(rnd()-.5)*.06;p.add(g);return g}
+
+/* ---------- the existing site ---------- */
+const site=new THREE.Group();scene.add(site);
+const outside=new THREE.Mesh(new THREE.PlaneGeometry(260,260),M.outside);outside.rotation.x=-Math.PI/2;outside.position.y=-.03;outside.receiveShadow=true;site.add(outside);
+const lawn=new THREE.Mesh(new THREE.PlaneGeometry(60,40),M.grass);lawn.rotation.x=-Math.PI/2;lawn.receiveShadow=true;site.add(lawn);
+box(site,0,34,60,6,.03,M.drive,0,5);
+// hedge (north + west), 5–6 m tall ficus
+box(site,.4,.4,59.2,2.2,4.6,M.hedgeCore);box(site,.4,2.6,2.2,31,4.6,M.hedgeCore);
+(()=>{const N=1100,geo=new THREE.IcosahedronGeometry(1,1),im=new THREE.InstancedMesh(geo,M.hedge,N),d=new THREE.Object3D(),col=new THREE.Color();
+  for(let i=0;i<N;i++){let x,y;if(i<760){x=rnd()*60;y=rnd()*3}else{x=rnd()*3;y=3+rnd()*31}
+    const s=.8+rnd()*.9;d.position.set(x-30,.6+rnd()*4.6+(i%7===0?.6:0),y-20);d.scale.set(s,s*(.8+rnd()*.4),s);d.rotation.set(rnd()*3,rnd()*3,0);d.updateMatrix();im.setMatrixAt(i,d.matrix);
+    col.setHSL(.24+rnd()*.06,.45+rnd()*.15,.16+rnd()*.12);im.setColorAt(i,col)}
+  im.castShadow=im.receiveShadow=true;site.add(im)})();
+// boundary walls
+box(site,60,0,.35,34,3,M.render);box(site,-.35,-.35,60.7,.35,3,M.render);box(site,-.35,0,.35,34,3,M.render);
+for(const y of[6,13,20,27,32]){lampBulb(site,59.88,y,2.3)}
+pointLight(site,58.5,17,2.3,0xffb45c,3,16);
+// water tank, shed, neighbour villa
+const tank=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,2.6,20),M.white);tank.position.set(57-30,1.3,4.5-20);tank.castShadow=true;site.add(tank);
+box(site,22,24,2.4,1.8,1.4,M.timber);box(site,21.8,23.8,2.8,2.2,.12,M.timber,1.4);
+box(site,62.5,3,13,18,7.2,M.villa);box(site,62,2.5,14,19,.3,M.white,7.2);box(site,62,8,1,8,.15,M.white,3.6);
+for(const [y,z] of[[6,1.4],[12,1.4],[6,4.8],[12,4.8],[17,4.8]])opening(site,'w',62.5,y,1.6,1.8,'glassrect',z);
+// existing annex: pebble walls, ochre fascia, clay tile edge, arched timber door
+block(site,4,27.5,15,5.5,3.2,{all:M.pebble,fascia:.55});
+opening(site,'n',27.5,8,1.1,1.3,'shutter',1.1);opening(site,'n',27.5,12.5,1.15,2.35,'arch');opening(site,'n',27.5,16,1.1,1.3,'shutter',1.1);
+opening(site,'e',19,30.2,1.1,1.3,'shutter',1.1);
+const flood=new THREE.SpotLight(0xfff1d6,0,30,.75,.6,1.5);flood.position.set(10.5-30,3,27.3-20);flood.target.position.set(10.5-30,0,18-20);flood.userData.night=6;site.add(flood,flood.target);
+// date palms (keep)
+const PALMS=[[34,6,8.6],[40,6.5,9.6],[46,6,8.2],[52,7,9.2]];
+PALMS.forEach(([x,y,h])=>palm(site,x,y,h));
+for(const [x,y] of[[37,8.5],[49,9]]){const s=new THREE.SpotLight(0xffb25a,0,16,.6,.5,1.2);s.position.set(x-30,.3,y-20);s.target.position.set(x-30,9,y-1-20);s.userData.night=10;site.add(s,s.target)}
+
+/* ---------- lights ---------- */
+const hemi=new THREE.HemisphereLight(0xdfeeff,0x4a5a2a,.6);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff2dc,2.2);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-48,right:48,top:48,bottom:-48,near:1,far:200});sun.shadow.bias=-.0004;scene.add(sun,sun.target);
+const stars=(()=>{const n=500,pos=new Float32Array(n*3);for(let i=0;i<n;i++){const a=rnd()*Math.PI*2,e=.15+rnd()*1.3,r=200;pos.set([Math.cos(a)*Math.cos(e)*r,Math.sin(e)*r,Math.sin(a)*Math.cos(e)*r],i*3)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));return new THREE.Points(g,new THREE.PointsMaterial({color:0xffffff,size:1.1,sizeAttenuation:false}))})();
+scene.add(stars);
+const moon=new THREE.Mesh(new THREE.SphereGeometry(4,20,14),new THREE.MeshBasicMaterial({color:0xfff8e6}));moon.position.set(70,90,-120);scene.add(moon);
+
+/* ---------- the five options ---------- */
+const OPT={
+A:{name:'Pebble Line',figs:'≈ 168 m² new · lap pool 25 × 4 m',focus:[31,27],
+ desc:'The house carries on from the annex in one line with the same pebble base, ochre render and tile edge. The middle section is raised and has four arched glass doors. A timber terrace and a lap pool run alongside.',
+ build(p){deck(p,17,15.5,27,10.5);pool(p,18,17,25,4);
+  block(p,19,26,24,7,3.2);block(p,24,26,9,7,4.3,{plinth:0});box(p,23.94,25.94,9.12,7.12,.9,M.pebble);
+  opening(p,'n',26,20.6,1.1,1.3,'shutter',1.1);opening(p,'n',26,22.3,1.2,2.4,'arch');
+  for(let i=0;i<4;i++)opening(p,'n',26,25.3+i*2.15,1.5,3.2,'arch');
+  for(let i=0;i<5;i++)opening(p,'n',26,34.4+i*1.75,1.5,2.6,'glassrect');
+  pergola(p,33.5,23,9.5,3);
+  pointLight(p,28.5,24.6,2.6,0xffb45c,5);pointLight(p,38,24.6,2.4,0xffb45c,5)}},
+B:{name:'Riwaq Courtyard',figs:'≈ 262 m² new · pool 11 × 5 m',focus:[33.5,24],
+ desc:'Three wings wrap a private courtyard pool that opens toward the palms. An arched riwaq (loggia) runs along the back wing. The solid pebble east wing faces the neighbour.',
+ build(p){deck(p,25,16,17,8.5);pool(p,28,18,11,5);
+  block(p,20,27,27,6,3.4);block(p,20,16,5,11,3.9);block(p,42,16,5,11,3.9,{all:M.pebble,fascia:.55});
+  arcade(p,25,24.5,17,3.4,7,1.6,2.6);box(p,25,24.5,17,2.5,.25,M.render,3.2);box(p,24.8,24.3,17.4,.25,.24,M.tile,3.45,.5);
+  for(let i=0;i<7;i++)opening(p,'n',27,25+17/7*(i+.5),1.2,2.4,'arch');
+  for(const y of[18.5,22])opening(p,'e',25,y,1.3,2.5,'arch');for(const y of[18.5,22])opening(p,'w',42,y,1.3,2.5,'arch');
+  opening(p,'e',47,21.5,1.8,2,'lattice',.8);opening(p,'n',16,22.5,1.3,2.5,'arch');opening(p,'n',16,44.5,1.3,2.5,'arch');
+  pointLight(p,33.5,25.8,2.5,0xffb45c,6);pointLight(p,33.5,16.5,3,0xffb45c,3)}},
+C:{name:'Palm Pavilions',figs:'≈ 158 m² new · free-form pool ≈ 95 m²',focus:[38,22],
+ desc:'Three small pavilions with clay-tile roofs, joined by a covered timber walkway. The pool curves in front of the existing palms and stays 3 m clear of their trunks. You can build one pavilion at a time.',
+ build(p){const pav=(x,y,w,d,h)=>{block(p,x,y,w,d,h,{tile:false});for(const [cx,cy] of[[x,y],[x+w-.6,y],[x,y+d-.6],[x+w-.6,y+d-.6]])box(p,cx-.05,cy-.05,.7,.7,h,M.pebble);
+    const r=new THREE.Mesh(new THREE.ConeGeometry(1,2.1,4,1),M.roof);r.rotation.y=Math.PI/4;r.scale.set((w+.9)/Math.SQRT2,1,(d+.9)/Math.SQRT2);r.position.set(x+w/2-30,h+1.05,y+d/2-20);r.castShadow=true;p.add(r);
+    opening(p,'n',y,x+w/2,w-2.4,h-.35,'arch');};
+  pav(21,27,9,6,3);pav(33,27,8,6,3);pav(45,26,9,7,3.2);
+  pergola(p,19,25.3,36,1.6,2.6,'x');
+  const pts=[[29,13],[31,10,35,10.5,37,11],[40,12,42,10.5,45,11],[48,11.5,53,11,55,13],[57,16,53,19,48,18.5],[43,18,39,20,34,19],[30,18.4,27,16,29,13]];
+  const cx=42,cy=15,sh=new THREE.Shape();sh.moveTo(pts[0][0]-cx,-(pts[0][1]-cy));
+  for(let i=1;i<pts.length;i++){const q=pts[i];sh.bezierCurveTo(q[0]-cx,-(q[1]-cy),q[2]-cx,-(q[3]-cy),q[4]-cx,-(q[5]-cy))}
+  const geo=new THREE.ShapeGeometry(sh,40);const uv=geo.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)/4,uv.getY(i)/4);
+  const cop=new THREE.Mesh(geo,M.coping);cop.rotation.x=-Math.PI/2;cop.scale.set(1.06,1.12,1);cop.position.set(cx-30,.06,cy-20);cop.receiveShadow=true;
+  const wat=new THREE.Mesh(geo,M.water);wat.rotation.x=-Math.PI/2;wat.position.set(cx-30,.09,cy-20);wat.receiveShadow=true;p.add(cop,wat);
+  pointLight(p,42,15,.7,0x6ff5ea,7,20);pointLight(p,31.5,26,2.4,0xffb45c,5);pointLight(p,44,25.5,2.4,0xffb45c,5)}},
+D:{name:'Hedge-Edge Modern',figs:'≈ 147 m² new · mirror / lap pool 19 × 4 m',focus:[11,15],
+ desc:'A flat-roofed glass house set against the west hedge. Pebble end walls tie it to the annex, and a timber screen covers the bedrooms. The whole lawn stays open, and the long pool reflects the house at night.',
+ build(p){deck(p,11,5,8,21);pool(p,13,6,4,19);
+  box(p,4,5,7,1.2,3.3,M.pebble);box(p,4,24.8,7,1.2,3.3,M.pebble);box(p,4,6.2,6.1,18.6,3.3,M.render);
+  box(p,10.1,6.2,.12,18.6,3.3,M.glass);for(let y=6.2;y<=24.81;y+=2.07)box(p,10.15,y,.12,.08,3.3,M.frame);
+  for(let y=19;y<24.8;y+=.3)box(p,10.4,y,.1,.08,3.3,M.timber);
+  box(p,3.4,4.4,8.8,22.2,.32,M.slab,3.3);
+  for(const y of[9,14,19,23])lampBulb(p,11.2,y,3.22);
+  pointLight(p,11.6,10,2.6,0xffb45c,5);pointLight(p,11.6,20,2.6,0xffb45c,5)}},
+E:{name:'Vaulted Long House',figs:'≈ 196 m² new · birka pool 8 × 8 m + rill',focus:[34,24],
+ desc:'Barrel-vaulted rooms in the Hassan Fathy tradition, with a domed sitting room (majlis) in the centre and a malqaf wind-catcher to cool the house. A square pool with a fountain sits on the dome’s axis, fed by a narrow rill.',
+ build(p){deck(p,28,12,12,12);pool(p,30,14,8,8);box(p,33.6,22,.8,2,.05,M.water,0,4);
+  block(p,20,26,28,7,3,{tile:false,plinth:.8});
+  for(const [a,c] of[[20,24.5],[24.5,29],[37,41.5],[41.5,46]]){const r=(c-a)/2,inner=new THREE.Mesh(new THREE.CylinderGeometry(r,r,7,20,1,false,Math.PI/2,Math.PI),M.render);
+    inner.rotation.x=Math.PI/2;inner.castShadow=true;const g=new THREE.Group();g.add(inner);g.scale.y=1.4/r;g.position.set((a+c)/2-30,3,29.5-20);p.add(g)}
+  box(p,29,25.8,8,7.4,4,M.render);const dome=new THREE.Mesh(new THREE.SphereGeometry(3.6,28,14,0,Math.PI*2,0,Math.PI/2),M.render);dome.position.set(33-30,4,29.5-20);dome.castShadow=true;p.add(dome);
+  for(let i=0;i<6;i++){const a=i*Math.PI/3,w=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),M.glow);w.position.set(33-30+Math.cos(a)*3.45,4.6,29.5-20+Math.sin(a)*3.45);p.add(w)}
+  box(p,46,26.5,2,2,6.6,M.render);box(p,45.85,26.35,2.3,2.3,.25,M.render,6.6);opening(p,'n',26.5,47,1.2,1.4,'rect',5);
+  arcade(p,20,24,9,3,4,1.5,2.4);arcade(p,37,24,11,3,5,1.5,2.4);box(p,20,24,9,2,.2,M.render,3);box(p,37,24,11,2,.2,M.render,3);
+  opening(p,'n',25.8,33,2.2,3.4,'arch');
+  for(const x of[22.2,26.7,39.2,43.7])opening(p,'n',26,x,1.1,2.2,'arch');
+  const jet=new THREE.Mesh(new THREE.CylinderGeometry(.05,.12,1.6,8),M.water);jet.position.set(34-30,.85,18-20);p.add(jet);
+  const bowl=new THREE.Mesh(new THREE.CylinderGeometry(.8,.5,.35,20),M.coping);bowl.position.set(34-30,.2,18-20);p.add(bowl);
+  pointLight(p,34,25,2.5,0xffb45c,6);pointLight(p,24,25,2.4,0xffb45c,4)}}
+};
+
+/* ---------- UI + state ---------- */
+let current=null,night=false,optGroup=null;
+const optsEl=document.getElementById('opts');
+for(const id of Object.keys(OPT)){const b=document.createElement('button');b.id='o-'+id;b.innerHTML=`<b>${id}</b>${OPT[id].name}`;b.setAttribute('aria-pressed','false');b.onclick=()=>select(id,true);optsEl.appendChild(b)}
+function applyMode(){
+  for(const [m,d,n] of GLOWS)m.emissiveIntensity=night?n:d;
+  scene.traverse(o=>{if(o.isLight&&o.userData.night!==undefined)o.intensity=night?o.userData.night:0});
+  if(night){scene.background=new THREE.Color(0x0b1430);scene.fog=new THREE.Fog(0x0b1430,90,260);hemi.color.set(0x6b84c4);hemi.groundColor.set(0x101808);hemi.intensity=.12;
+    sun.color.set(0xb8c8ff);sun.intensity=.22;sun.position.set(40,70,-90);renderer.toneMappingExposure=1.15;stars.visible=moon.visible=true}
+  else{scene.background=new THREE.Color(0x9cc3e6);scene.fog=new THREE.Fog(0xb9d3ea,120,300);hemi.color.set(0xdfeeff);hemi.groundColor.set(0x4a5a2a);hemi.intensity=.6;
+    sun.color.set(0xfff2dc);sun.intensity=2.2;sun.position.set(-35,60,-45);renderer.toneMappingExposure=1;stars.visible=moon.visible=false}
+  document.getElementById('m-day').setAttribute('aria-pressed',String(!night));document.getElementById('m-night').setAttribute('aria-pressed',String(night))}
+function select(id,animate){if(current===id)return;current=id;
+  if(optGroup){scene.remove(optGroup);optGroup.traverse(o=>{if(o.geometry&&o.geometry!==FROND)o.geometry.dispose()})}
+  seed=99;optGroup=new THREE.Group();OPT[id].build(optGroup);scene.add(optGroup);
+  for(const k of Object.keys(OPT))document.getElementById('o-'+k).setAttribute('aria-pressed',String(k===id));
+  document.getElementById('oname').textContent=`Option ${id} · ${OPT[id].name}`;document.getElementById('ofigs').textContent=OPT[id].figs;document.getElementById('desc').textContent=OPT[id].desc;
+  applyMode();view(lastView,animate)}
+/* camera views */
+let lastView='aerial',tween=null;
+function view(kind,animate=true){lastView=kind;const [fx,fy]=OPT[current].focus,t=new THREE.Vector3(fx-30,1.2,fy-20);let pos;
+  if(kind==='aerial')pos=new THREE.Vector3(fx-30+22,26,fy-20-34);
+  if(kind==='palms'){pos=new THREE.Vector3(43-30,1.7,9.5-20);t.y=1.8}
+  if(kind==='drive'){pos=new THREE.Vector3(fx-30-6,1.7,38-20);t.set(fx-30,2,fy-20-8)}
+  if(kind==='top'){pos=new THREE.Vector3(0.01,78,6);t.set(0,0,0)}
+  for(const k of['aerial','palms','drive','top'])document.getElementById('v-'+k).setAttribute('aria-pressed',String(k===kind));
+  if(!animate||reduceMotion){camera.position.copy(pos);controls.target.copy(t);controls.update();tween=null;return}
+  tween={p0:camera.position.clone(),t0:controls.target.clone(),p1:pos,t1:t,s:performance.now(),d:1100}}
+document.getElementById('v-aerial').onclick=()=>view('aerial');document.getElementById('v-palms').onclick=()=>view('palms');
+document.getElementById('v-drive').onclick=()=>view('drive');document.getElementById('v-top').onclick=()=>view('top');
+document.getElementById('m-day').onclick=()=>{night=false;applyMode()};document.getElementById('m-night').onclick=()=>{night=true;applyMode()};
+controls.addEventListener('start',()=>{tween=null});
+
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<600?60:45;camera.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+select('A',false);
+
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(tween){let k=Math.min(1,(now-tween.s)/tween.d);k=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;camera.position.lerpVectors(tween.p0,tween.p1,k);controls.target.lerpVectors(tween.t0,tween.t1,k);if(k>=1)tween=null}
+  if(!reduceMotion){TX.water.offset.x+=dt*.03;TX.water.offset.y+=dt*.012}
+  controls.update();renderer.render(scene,camera);requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+})();
+</script>

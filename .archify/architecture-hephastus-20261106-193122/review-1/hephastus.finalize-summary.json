@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/candidate.json",
+    "sha256": "3b1734f5707de08c42db71cae6c91588527193ad131d11ff2914cc5c671109d2",
+    "bytes": 3105
+  },
+  "artifact": {
+    "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
+    "sha256": "ce86b794443a749293df0a45a5d45fc9ed066c85338551cbbfbb5ce62eb42b1e",
+    "bytes": 844973
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/review-1/hephastus.finalize.json",
+    "summaryReceipt": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/review-1/hephastus.finalize-summary.json",
+    "browserCheckReceipt": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/review-1/hephastus.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 15121,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

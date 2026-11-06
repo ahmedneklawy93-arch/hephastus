@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Hephastus — Personal AI Assistant (Proposed Design)",
+    "output": ".archify/architecture-hephastus-20261106-193122/hephastus.html",
+    "quality_profile": "showcase",
+    "locale": "en"
+  },
+  "components": [
+    { "id": "you", "type": "external", "label": "You", "sublabel": "the only user", "icon": "person", "pos": [40, 220], "size": [110, 64] },
+    { "id": "chat", "type": "frontend", "label": "Messaging apps", "sublabel": "Telegram · WhatsApp · Slack", "pos": [230, 220], "size": [160, 64] },
+    { "id": "gateway", "type": "backend", "label": "Bot gateway", "sublabel": "receives & sends messages", "pos": [470, 220], "size": [150, 64], "tag": "only your account" },
+    { "id": "core", "type": "backend", "label": "Hephastus core", "sublabel": "plans, uses tools, replies", "pos": [700, 216], "size": [170, 72] },
+    { "id": "claude", "type": "cloud", "label": "Claude", "sublabel": "AI model: thinks & writes", "pos": [980, 220], "size": [160, 64] },
+    { "id": "web", "type": "external", "label": "Web search", "sublabel": "look things up", "pos": [590, 50], "size": [150, 60] },
+    { "id": "accounts", "type": "security", "label": "Your accounts", "sublabel": "email · calendar · files", "pos": [800, 50], "size": [180, 60], "tag": "secure sign-in" },
+    { "id": "memory", "type": "database", "label": "Memory", "sublabel": "you, preferences, past chats", "pos": [570, 410], "size": [170, 64] },
+    { "id": "docs", "type": "database", "label": "Your documents", "sublabel": "searchable index", "pos": [800, 410], "size": [180, 64] }
+  ],
+  "connections": [
+    { "id": "you-chat", "from": "you", "to": "chat", "label": "chat", "variant": "emphasis" },
+    { "id": "chat-gateway", "from": "chat", "to": "gateway", "label": "forwards", "variant": "emphasis" },
+    { "id": "gateway-core", "from": "gateway", "to": "core", "label": "request", "variant": "emphasis" },
+    { "id": "core-claude", "from": "core", "to": "claude", "label": "ask & answer", "variant": "emphasis" },
+    { "id": "core-web", "from": "core", "to": "web", "label": "search" },
+    { "id": "core-accounts", "from": "core", "to": "accounts", "label": "read & send", "variant": "security" },
+    { "id": "core-memory", "from": "core", "to": "memory", "label": "remember" },
+    { "id": "core-docs", "from": "core", "to": "docs", "label": "find answers" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "How a message flows", "items": ["You text Hephastus in a messaging app", "The gateway passes it to the core", "The core asks Claude, using tools as needed", "The reply goes back the same way"] },
+    { "dot": "emerald", "title": "What it can do", "items": ["Remember you and past conversations", "Read and send email, check your calendar, open files", "Search the web", "Answer from your own documents"] },
+    { "dot": "rose", "title": "Keeping it private", "items": ["Gateway only answers your own account", "Account access uses secure sign-in, never stored passwords", "Sending email can require your OK first"] }
+  ]
+}

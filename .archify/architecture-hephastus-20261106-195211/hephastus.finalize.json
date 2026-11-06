@@ -5,16 +5,16 @@
   "status": "pass",
   "type": "architecture",
   "quality": "showcase",
-  "startedAt": "2026-11-06T19:31:34.681Z",
+  "startedAt": "2026-11-06T19:52:11.978Z",
   "specification": {
-    "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/candidate.json",
-    "sha256": "3b1734f5707de08c42db71cae6c91588527193ad131d11ff2914cc5c671109d2",
-    "bytes": 3105
+    "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/candidate.json",
+    "sha256": "0608e105da389738d218b74869ab082d78a6df2f47e1cd0545e31921797c3336",
+    "bytes": 3339
   },
   "artifact": {
-    "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
-    "sha256": "ce86b794443a749293df0a45a5d45fc9ed066c85338551cbbfbb5ce62eb42b1e",
-    "bytes": 844973
+    "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
+    "sha256": "5d50f7da945bfc7ba5c3abcf8f08e2ba3f06b0fd7640df0833b7d83b6802b807",
+    "bytes": 845959
   },
   "stages": {
     "validate": {
@@ -27,8 +27,8 @@
         "/home/user/hephastus/.claude/skills/archify/bin/archify.mjs",
         "deliver",
         "architecture",
-        "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/candidate.json",
-        "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
+        "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/candidate.json",
+        "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
         "--quality",
         "showcase",
         "--json"
@@ -38,8 +38,8 @@
         "ok": true,
         "command": "validate",
         "specification": {
-          "sha256": "3b1734f5707de08c42db71cae6c91588527193ad131d11ff2914cc5c671109d2",
-          "bytes": 3105
+          "sha256": "0608e105da389738d218b74869ab082d78a6df2f47e1cd0545e31921797c3336",
+          "bytes": 3339
         },
         "validation": {
           "checksPassed": 9,
@@ -54,33 +54,33 @@
     "deliver": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 458,
+      "durationMs": 669,
       "command": [
         "/opt/node22/bin/node",
         "/home/user/hephastus/.claude/skills/archify/bin/archify.mjs",
         "deliver",
         "architecture",
-        "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/candidate.json",
-        "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
+        "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/candidate.json",
+        "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
         "--quality",
         "showcase",
         "--json"
       ],
       "receipt": {
         "schemaVersion": 1,
-        "receiptId": "548cf7c7-89a8-47a3-ba35-83e13f191e0c",
+        "receiptId": "ed3de389-3ae9-4664-a09f-b5caa8b965f1",
         "ok": true,
         "command": "deliver",
         "type": "architecture",
-        "input": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/candidate.json",
-        "output": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
+        "input": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/candidate.json",
+        "output": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
         "specification": {
-          "sha256": "3b1734f5707de08c42db71cae6c91588527193ad131d11ff2914cc5c671109d2",
-          "bytes": 3105
+          "sha256": "0608e105da389738d218b74869ab082d78a6df2f47e1cd0545e31921797c3336",
+          "bytes": 3339
         },
         "artifact": {
-          "sha256": "ce86b794443a749293df0a45a5d45fc9ed066c85338551cbbfbb5ce62eb42b1e",
-          "bytes": 844973
+          "sha256": "5d50f7da945bfc7ba5c3abcf8f08e2ba3f06b0fd7640df0833b7d83b6802b807",
+          "bytes": 845959
         },
         "validation": {
           "checksPassed": 9,
@@ -106,20 +106,20 @@
     "check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 168,
+      "durationMs": 222,
       "command": [
         "/opt/node22/bin/node",
         "/home/user/hephastus/.claude/skills/archify/bin/archify.mjs",
         "check",
-        "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
+        "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
         "--require-provenance"
       ],
       "receipt": {
         "ok": true,
-        "file": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
+        "file": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
         "artifact": {
-          "sha256": "ce86b794443a749293df0a45a5d45fc9ed066c85338551cbbfbb5ce62eb42b1e",
-          "bytes": 844973
+          "sha256": "5d50f7da945bfc7ba5c3abcf8f08e2ba3f06b0fd7640df0833b7d83b6802b807",
+          "bytes": 845959
         },
         "checks": [
           {
@@ -186,7 +186,7 @@
             "containerBorderRuns": 0,
             "labelRouteClearanceIssues": 0,
             "labelCanvasOverflowIssues": 0,
-            "minLabelRouteClearance": 18.4,
+            "minLabelRouteClearance": 12.8,
             "desktopReadabilityIssues": 0,
             "viewportHeightIssues": 0,
             "minProjectedNodeTextPx": 7.5,
@@ -194,7 +194,7 @@
             "routesOverSuggestedBends": 0,
             "maxStretch": 1,
             "routesOverSuggestedStretch": 0,
-            "minSegmentPx": 80,
+            "minSegmentPx": 70,
             "minInteriorSegmentPx": null,
             "shortSegmentCount": 0,
             "shortEndpointSegmentCount": 0,
@@ -224,10 +224,10 @@
           "desktopReadability": {
             "budgetBasis": "recognized-declared-wide",
             "readerContract": "declared-wide-v1",
-            "availableDiagramWidth": 1106.25,
-            "actualBudgetPx": 1106.25,
-            "actualReaderWidth": 1136.25,
-            "desiredReaderWidth": 1136.25,
+            "availableDiagramWidth": 1125,
+            "actualBudgetPx": 1125,
+            "actualReaderWidth": 1155,
+            "desiredReaderWidth": 1155,
             "viewportCap": 1376,
             "limit": "source-size",
             "requestedTargetPx": 7.5,
@@ -236,33 +236,31 @@
             "hardFloorMet": true,
             "minimumOwner": {
               "kind": "edge",
-              "id": "you-chat",
+              "id": "you-browser",
               "from": "you",
-              "to": "chat"
+              "to": "browser"
             },
             "minimumSourceTextPx": 8,
             "minimumProjectedTextPx": 7.5,
-            "semanticTextCount": 26
+            "semanticTextCount": 27
           },
           "issues": []
         },
         "provenance": "current",
-        "deliveryReceiptId": "548cf7c7-89a8-47a3-ba35-83e13f191e0c"
+        "deliveryReceiptId": "ed3de389-3ae9-4664-a09f-b5caa8b965f1"
       }
     },
     "browser-check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 14390,
+      "durationMs": 4310,
       "command": [
         "/opt/node22/bin/node",
         "/home/user/hephastus/.claude/skills/archify/bin/archify.mjs",
         "browser-check",
-        "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
+        "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
         "--json",
-        "--require-provenance",
-        "--out-dir",
-        "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/review-1"
+        "--require-provenance"
       ],
       "execution": "in-process",
       "receipt": {
@@ -273,11 +271,11 @@
         "status": "pass",
         "visualReview": "not-requested",
         "provenance": "current",
-        "deliveryReceiptId": "548cf7c7-89a8-47a3-ba35-83e13f191e0c",
+        "deliveryReceiptId": "ed3de389-3ae9-4664-a09f-b5caa8b965f1",
         "artifact": {
-          "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
-          "sha256": "ce86b794443a749293df0a45a5d45fc9ed066c85338551cbbfbb5ce62eb42b1e",
-          "bytes": 844973
+          "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
+          "sha256": "5d50f7da945bfc7ba5c3abcf8f08e2ba3f06b0fd7640df0833b7d83b6802b807",
+          "bytes": 845959
         },
         "state": {
           "detail": "read",
@@ -314,21 +312,21 @@
                 "bodyPaddingPx": 12,
                 "headerPx": 52,
                 "diagramChromePx": 78,
-                "svgPx": 618,
+                "svgPx": 608,
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -366,21 +364,21 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 60,
                 "diagramChromePx": 84,
-                "svgPx": 692,
+                "svgPx": 680,
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -413,7 +411,7 @@
               "readerFit": "intrinsic-height",
               "ok": true,
               "readerWidth": 1856,
-              "diagramWidth": 1770,
+              "diagramWidth": 1800,
               "pageComposition": {
                 "bodyPaddingPx": 64,
                 "headerPx": 60,
@@ -422,17 +420,17 @@
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -465,7 +463,7 @@
               "readerFit": "intrinsic-height",
               "ok": true,
               "readerWidth": 1920,
-              "diagramWidth": 1770,
+              "diagramWidth": 1800,
               "pageComposition": {
                 "bodyPaddingPx": 64,
                 "headerPx": 68,
@@ -474,17 +472,17 @@
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -575,21 +573,21 @@
                 "bodyPaddingPx": 12,
                 "headerPx": 52,
                 "diagramChromePx": 78,
-                "svgPx": 618,
+                "svgPx": 608,
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -627,21 +625,21 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 60,
                 "diagramChromePx": 84,
-                "svgPx": 692,
+                "svgPx": 680,
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -674,7 +672,7 @@
               "readerFit": "intrinsic-height",
               "ok": true,
               "readerWidth": 1856,
-              "diagramWidth": 1770,
+              "diagramWidth": 1800,
               "pageComposition": {
                 "bodyPaddingPx": 64,
                 "headerPx": 60,
@@ -683,17 +681,17 @@
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -726,7 +724,7 @@
               "readerFit": "intrinsic-height",
               "ok": true,
               "readerWidth": 1920,
-              "diagramWidth": 1770,
+              "diagramWidth": 1800,
               "pageComposition": {
                 "bodyPaddingPx": 64,
                 "headerPx": 68,
@@ -735,17 +733,17 @@
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -788,21 +786,21 @@
                 "bodyPaddingPx": 12,
                 "headerPx": 52,
                 "diagramChromePx": 78,
-                "svgPx": 618,
+                "svgPx": 608,
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -840,21 +838,21 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 60,
                 "diagramChromePx": 84,
-                "svgPx": 692,
+                "svgPx": 680,
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -887,7 +885,7 @@
               "readerFit": "intrinsic-height",
               "ok": true,
               "readerWidth": 1856,
-              "diagramWidth": 1770,
+              "diagramWidth": 1800,
               "pageComposition": {
                 "bodyPaddingPx": 64,
                 "headerPx": 60,
@@ -896,17 +894,17 @@
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -939,7 +937,7 @@
               "readerFit": "intrinsic-height",
               "ok": true,
               "readerWidth": 1920,
-              "diagramWidth": 1770,
+              "diagramWidth": 1800,
               "pageComposition": {
                 "bodyPaddingPx": 64,
                 "headerPx": 68,
@@ -948,17 +946,17 @@
                 "cardsPx": 0,
                 "viewBoxHeight": 542
               },
-              "viewBoxWidth": 1180,
+              "viewBoxWidth": 1200,
               "minimumProjectedNodeTextPx": 8,
               "minimumProjectedNonEdgeTextPx": 9,
               "minimumProjectedEdgeTextPx": 8,
-              "minimumProjectedNodeText": "chat",
+              "minimumProjectedNodeText": "type",
               "minimumProjectedNodeTextDetail": "edge",
               "minimumProjectedNodeTextOwner": {
                 "kind": "edge",
-                "id": "you-chat",
+                "id": "you-browser",
                 "from": "you",
-                "to": "chat"
+                "to": "browser"
               },
               "minimumRequiredNodeTextPx": 6,
               "readabilityOk": true,
@@ -982,7 +980,6 @@
           "contactSheet": null
         },
         "sidecars": {
-          "directory": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/review-1",
           "receipt": "hephastus.browser-check.json",
           "files": []
         }
@@ -995,13 +992,13 @@
   },
   "diagnostics": [],
   "evidence": {
-    "receipt": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/review-1/hephastus.finalize.json",
-    "summaryReceipt": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/review-1/hephastus.finalize-summary.json",
-    "browserCheckReceipt": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/review-1/hephastus.browser-check.json"
+    "receipt": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.finalize.json",
+    "summaryReceipt": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.finalize-summary.json",
+    "browserCheckReceipt": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.browser-check.json"
   },
   "visualReview": "not-requested",
-  "finishedAt": "2026-11-06T19:31:49.802Z",
-  "durationMs": 15121,
+  "finishedAt": "2026-11-06T19:52:17.297Z",
+  "durationMs": 5318,
   "update": {
     "status": "unavailable",
     "installedVersion": null,

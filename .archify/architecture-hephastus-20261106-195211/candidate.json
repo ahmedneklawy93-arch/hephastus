@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Hephastus — Personal AI Assistant in the Browser",
+    "output": ".archify/architecture-hephastus-20261106-195211/hephastus.html",
+    "quality_profile": "showcase",
+    "locale": "en"
+  },
+  "components": [
+    { "id": "you", "type": "external", "label": "You", "sublabel": "the only user", "icon": "person", "pos": [40, 220], "size": [110, 64] },
+    { "id": "browser", "type": "frontend", "label": "Chat page", "sublabel": "browser · phone or computer", "pos": [230, 220], "size": [170, 64] },
+    { "id": "server", "type": "security", "label": "Login & chat API", "sublabel": "password, 30-day session", "pos": [490, 216], "size": [170, 72] },
+    { "id": "core", "type": "backend", "label": "Hephastus core", "sublabel": "plans, uses tools, replies", "pos": [730, 216], "size": [170, 72] },
+    { "id": "claude", "type": "cloud", "label": "Claude", "sublabel": "AI model: thinks & writes", "pos": [1000, 220], "size": [160, 64] },
+    { "id": "web", "type": "external", "label": "Web search", "sublabel": "built into Claude", "pos": [620, 50], "size": [150, 60] },
+    { "id": "accounts", "type": "external", "label": "Your accounts", "sublabel": "email · calendar · files", "pos": [830, 50], "size": [180, 60], "tag": "planned" },
+    { "id": "memory", "type": "database", "label": "Memory", "sublabel": "Upstash: facts & chat history", "pos": [610, 410], "size": [190, 64] },
+    { "id": "docs", "type": "database", "label": "Your documents", "sublabel": "searchable index", "pos": [840, 410], "size": [180, 64], "tag": "planned" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Render · free plan", "wraps": ["server", "core"] }
+  ],
+  "connections": [
+    { "id": "you-browser", "from": "you", "to": "browser", "label": "type", "variant": "emphasis" },
+    { "id": "browser-server", "from": "browser", "to": "server", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "server-core", "from": "server", "to": "core", "label": "message", "variant": "emphasis" },
+    { "id": "core-claude", "from": "core", "to": "claude", "label": "ask & answer", "variant": "emphasis" },
+    { "id": "core-web", "from": "core", "to": "web", "label": "search" },
+    { "id": "core-accounts", "from": "core", "to": "accounts", "label": "next step", "variant": "dashed" },
+    { "id": "core-memory", "from": "core", "to": "memory", "label": "remember" },
+    { "id": "core-docs", "from": "core", "to": "docs", "label": "next step", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "How a message flows", "items": ["You type on your private Hephastus page", "The server checks you're logged in", "The core asks Claude, searching the web if needed", "The reply appears in the chat"] },
+    { "dot": "emerald", "title": "What it does today", "items": ["Chat on phone or computer", "Remembers facts you share; see and forget them under Memory", "Searches the web for current information"] },
+    { "dot": "amber", "title": "Next steps (dashed)", "items": ["Connect email, calendar and files", "Answer questions from your own documents"] },
+    { "dot": "rose", "title": "Keeping it private", "items": ["Only your password opens it", "Logins pause after 10 wrong tries", "Keys live in Render settings, never in the code"] }
+  ]
+}

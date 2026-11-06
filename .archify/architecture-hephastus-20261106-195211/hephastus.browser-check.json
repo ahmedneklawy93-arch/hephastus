@@ -6,11 +6,11 @@
   "status": "pass",
   "visualReview": "not-requested",
   "provenance": "current",
-  "deliveryReceiptId": "548cf7c7-89a8-47a3-ba35-83e13f191e0c",
+  "deliveryReceiptId": "ed3de389-3ae9-4664-a09f-b5caa8b965f1",
   "artifact": {
-    "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/hephastus.html",
-    "sha256": "ce86b794443a749293df0a45a5d45fc9ed066c85338551cbbfbb5ce62eb42b1e",
-    "bytes": 844973
+    "path": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
+    "sha256": "5d50f7da945bfc7ba5c3abcf8f08e2ba3f06b0fd7640df0833b7d83b6802b807",
+    "bytes": 845959
   },
   "state": {
     "detail": "read",
@@ -47,21 +47,21 @@
           "bodyPaddingPx": 12,
           "headerPx": 52,
           "diagramChromePx": 78,
-          "svgPx": 618,
+          "svgPx": 608,
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -99,21 +99,21 @@
           "bodyPaddingPx": 64,
           "headerPx": 60,
           "diagramChromePx": 84,
-          "svgPx": 692,
+          "svgPx": 680,
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -146,7 +146,7 @@
         "readerFit": "intrinsic-height",
         "ok": true,
         "readerWidth": 1856,
-        "diagramWidth": 1770,
+        "diagramWidth": 1800,
         "pageComposition": {
           "bodyPaddingPx": 64,
           "headerPx": 60,
@@ -155,17 +155,17 @@
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -198,7 +198,7 @@
         "readerFit": "intrinsic-height",
         "ok": true,
         "readerWidth": 1920,
-        "diagramWidth": 1770,
+        "diagramWidth": 1800,
         "pageComposition": {
           "bodyPaddingPx": 64,
           "headerPx": 68,
@@ -207,17 +207,17 @@
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -308,21 +308,21 @@
           "bodyPaddingPx": 12,
           "headerPx": 52,
           "diagramChromePx": 78,
-          "svgPx": 618,
+          "svgPx": 608,
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -360,21 +360,21 @@
           "bodyPaddingPx": 64,
           "headerPx": 60,
           "diagramChromePx": 84,
-          "svgPx": 692,
+          "svgPx": 680,
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -407,7 +407,7 @@
         "readerFit": "intrinsic-height",
         "ok": true,
         "readerWidth": 1856,
-        "diagramWidth": 1770,
+        "diagramWidth": 1800,
         "pageComposition": {
           "bodyPaddingPx": 64,
           "headerPx": 60,
@@ -416,17 +416,17 @@
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -459,7 +459,7 @@
         "readerFit": "intrinsic-height",
         "ok": true,
         "readerWidth": 1920,
-        "diagramWidth": 1770,
+        "diagramWidth": 1800,
         "pageComposition": {
           "bodyPaddingPx": 64,
           "headerPx": 68,
@@ -468,17 +468,17 @@
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -521,21 +521,21 @@
           "bodyPaddingPx": 12,
           "headerPx": 52,
           "diagramChromePx": 78,
-          "svgPx": 618,
+          "svgPx": 608,
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -573,21 +573,21 @@
           "bodyPaddingPx": 64,
           "headerPx": 60,
           "diagramChromePx": 84,
-          "svgPx": 692,
+          "svgPx": 680,
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -620,7 +620,7 @@
         "readerFit": "intrinsic-height",
         "ok": true,
         "readerWidth": 1856,
-        "diagramWidth": 1770,
+        "diagramWidth": 1800,
         "pageComposition": {
           "bodyPaddingPx": 64,
           "headerPx": 60,
@@ -629,17 +629,17 @@
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -672,7 +672,7 @@
         "readerFit": "intrinsic-height",
         "ok": true,
         "readerWidth": 1920,
-        "diagramWidth": 1770,
+        "diagramWidth": 1800,
         "pageComposition": {
           "bodyPaddingPx": 64,
           "headerPx": 68,
@@ -681,17 +681,17 @@
           "cardsPx": 0,
           "viewBoxHeight": 542
         },
-        "viewBoxWidth": 1180,
+        "viewBoxWidth": 1200,
         "minimumProjectedNodeTextPx": 8,
         "minimumProjectedNonEdgeTextPx": 9,
         "minimumProjectedEdgeTextPx": 8,
-        "minimumProjectedNodeText": "chat",
+        "minimumProjectedNodeText": "type",
         "minimumProjectedNodeTextDetail": "edge",
         "minimumProjectedNodeTextOwner": {
           "kind": "edge",
-          "id": "you-chat",
+          "id": "you-browser",
           "from": "you",
-          "to": "chat"
+          "to": "browser"
         },
         "minimumRequiredNodeTextPx": 6,
         "readabilityOk": true,
@@ -715,7 +715,6 @@
     "contactSheet": null
   },
   "sidecars": {
-    "directory": "/home/user/hephastus/.archify/architecture-hephastus-20261106-193122/review-1",
     "receipt": "hephastus.browser-check.json",
     "files": []
   }

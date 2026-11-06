@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "ed3de389-3ae9-4664-a09f-b5caa8b965f1",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/candidate.json",
+  "output": "/home/user/hephastus/.archify/architecture-hephastus-20261106-195211/hephastus.html",
+  "specification": {
+    "sha256": "0608e105da389738d218b74869ab082d78a6df2f47e1cd0545e31921797c3336",
+    "bytes": 3339
+  },
+  "artifact": {
+    "sha256": "5d50f7da945bfc7ba5c3abcf8f08e2ba3f06b0fd7640df0833b7d83b6802b807",
+    "bytes": 845959
+  }
+}

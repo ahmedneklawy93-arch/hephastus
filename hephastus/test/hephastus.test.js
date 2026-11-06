@@ -7,23 +7,18 @@ import path from "node:path";
 import { loadConfig } from "../src/config.js";
 import { createFileStore, createUpstashStore } from "../src/store.js";
 import { buildRequest, createAssistant, trimHistory } from "../src/assistant.js";
-import { createHandler } from "../src/handler.js";
-import { createServer } from "../src/server.js";
-import { createWhatsAppClient, extractMessages, isValidSignature, splitText } from "../src/whatsapp.js";
+import { createServer, createSessionToken, isValidSession } from "../src/server.js";
 
-const OWNER = "201000000000";
-const SECRET = "app-secret";
+const SECRET = "session-secret";
 
 function memoryStore() {
   let history = [];
   let facts = [];
-  const seen = new Set();
   return {
     getHistory: async () => structuredClone(history),
     setHistory: async (h) => { history = structuredClone(h); },
     getFacts: async () => [...facts],
     setFacts: async (f) => { facts = [...f]; },
-    markSeen: async (id) => (seen.has(id) ? false : (seen.add(id), true)),
   };
 }
 
@@ -43,77 +38,10 @@ function fakeClaude(responses) {
   };
 }
 
-function fakeWhatsApp() {
-  const sent = [];
-  return { sent, sendText: async (to, text) => sent.push({ to, text }), markReadAndTyping: async () => {} };
-}
-
 const quietLog = { warn() {}, error() {} };
 
-function textMessage(id, text, from = OWNER) {
-  return { id, from, type: "text", text };
-}
-
 test("loadConfig lists every missing setting", () => {
-  assert.throws(() => loadConfig({}), /ANTHROPIC_API_KEY.*WHATSAPP_TOKEN.*OWNER_WHATSAPP_NUMBER/);
-});
-
-test("loadConfig keeps only the digits of the owner number", () => {
-  const config = loadConfig({
-    ANTHROPIC_API_KEY: "k", WHATSAPP_TOKEN: "t", WHATSAPP_PHONE_NUMBER_ID: "1",
-    WHATSAPP_VERIFY_TOKEN: "v", WHATSAPP_APP_SECRET: "s", OWNER_WHATSAPP_NUMBER: "+20 100-000-0000",
-  });
-  assert.equal(config.ownerNumber, "201000000000");
-  assert.equal(config.model, "claude-opus-5-5");
-  assert.equal(config.upstash, null);
-});
-
-test("signature check accepts Meta's signature and rejects anything else", () => {
-  const body = Buffer.from('{"a":1}');
-  const good = "sha256=" + crypto.createHmac("sha256", SECRET).update(body).digest("hex");
-  assert.equal(isValidSignature(body, good, SECRET), true);
-  assert.equal(isValidSignature(body, good, "other-secret"), false);
-  assert.equal(isValidSignature(body, undefined, SECRET), false);
-  assert.equal(isValidSignature(body, "sha256=abc", SECRET), false);
-});
-
-test("extractMessages reads text messages and skips status updates", () => {
-  const payload = {
-    entry: [{ changes: [
-      { value: { messages: [{ id: "m1", from: OWNER, type: "text", text: { body: "hi" } }] } },
-      { value: { statuses: [{ id: "m0", status: "read" }] } },
-      { value: { messages: [{ id: "m2", from: OWNER, type: "image", image: {} }] } },
-    ] }],
-  };
-  assert.deepEqual(extractMessages(payload), [
-    { id: "m1", from: OWNER, type: "text", text: "hi" },
-    { id: "m2", from: OWNER, type: "image", text: null },
-  ]);
-  assert.deepEqual(extractMessages({}), []);
-});
-
-test("splitText keeps every part within WhatsApp's limit without losing words", () => {
-  const text = Array.from({ length: 2000 }, (_, i) => `word${i}`).join(" ");
-  const parts = splitText(text, 1000);
-  assert.ok(parts.length > 1);
-  assert.ok(parts.every((part) => part.length <= 1000));
-  assert.equal(parts.join(" "), text);
-  assert.deepEqual(splitText("short"), ["short"]);
-});
-
-test("WhatsApp client sends text to the Cloud API", async () => {
-  const calls = [];
-  const fetchImpl = async (url, init) => {
-    calls.push({ url, init });
-    return { ok: true, json: async () => ({}) };
-  };
-  const client = createWhatsAppClient({ token: "tok", phoneNumberId: "123", graphVersion: "v23.0" }, fetchImpl);
-  await client.sendText(OWNER, "hello");
-  assert.equal(calls[0].url, "https://graph.facebook.com/v23.0/123/messages");
-  assert.equal(calls[0].init.headers.Authorization, "Bearer tok");
-  assert.deepEqual(JSON.parse(calls[0].init.body), {
-    messaging_product: "whatsapp", to: OWNER, type: "text", text: { body: "hello" },
-  });
+  assert.throws(() => loadConfig({}), /ANTHROPIC_API_KEY, APP_PASSWORD, SESSION_SECRET/);
 });
 
 test("buildRequest uses web search, fallbacks and caching on Opus 5.5", () => {
@@ -198,42 +126,6 @@ test("trimHistory keeps the newest turns and starts with the owner", () => {
   assert.deepEqual(trimHistory(history, 10), history);
 });
 
-test("handler ignores strangers and repeat deliveries", async () => {
-  const store = memoryStore();
-  const whatsapp = fakeWhatsApp();
-  let calls = 0;
-  const assistant = { reply: async () => { calls++; return "hi"; } };
-  const handler = createHandler({ ownerNumber: OWNER, assistant, store, whatsapp, log: quietLog });
-
-  await handler.enqueue(textMessage("m1", "hello", "19999999999"));
-  await handler.enqueue(textMessage("m2", "hello"));
-  await handler.enqueue(textMessage("m2", "hello"));
-  assert.equal(calls, 1);
-  assert.deepEqual(whatsapp.sent, [{ to: OWNER, text: "hi" }]);
-});
-
-test("handler supports /memory and /reset", async () => {
-  const store = memoryStore();
-  await store.setFacts(["Likes tea"]);
-  await store.setHistory([{ role: "user", content: "x" }]);
-  const whatsapp = fakeWhatsApp();
-  const handler = createHandler({ ownerNumber: OWNER, assistant: {}, store, whatsapp, log: quietLog });
-
-  await handler.enqueue(textMessage("m1", "/memory"));
-  await handler.enqueue(textMessage("m2", "/reset"));
-  assert.match(whatsapp.sent[0].text, /1\. Likes tea/);
-  assert.deepEqual(await store.getHistory(), []);
-  assert.deepEqual(await store.getFacts(), ["Likes tea"]);
-});
-
-test("handler tells the owner when something fails", async () => {
-  const whatsapp = fakeWhatsApp();
-  const assistant = { reply: async () => { throw new Error("boom"); } };
-  const handler = createHandler({ ownerNumber: OWNER, assistant, store: memoryStore(), whatsapp, log: quietLog });
-  await handler.enqueue(textMessage("m1", "hi"));
-  assert.match(whatsapp.sent[0].text, /Something went wrong/);
-});
-
 test("file store saves history and facts to disk", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "hephastus-"));
   const store = createFileStore(dir);
@@ -242,54 +134,132 @@ test("file store saves history and facts to disk", async () => {
   const reopened = createFileStore(dir);
   assert.deepEqual(await reopened.getHistory(), [{ role: "user", content: "hi" }]);
   assert.deepEqual(await reopened.getFacts(), ["A"]);
-  assert.equal(await store.markSeen("x"), true);
-  assert.equal(await store.markSeen("x"), false);
 });
 
 test("Upstash store sends Redis commands over REST", async () => {
   const data = new Map();
   const fetchImpl = async (url, init) => {
-    const [cmd, key, value, ...rest] = JSON.parse(init.body);
+    const [cmd, key, value] = JSON.parse(init.body);
     let result = null;
     if (cmd === "GET") result = data.get(key) ?? null;
-    if (cmd === "SET") {
-      if (rest.includes("NX") && data.has(key)) result = null;
-      else { data.set(key, value); result = "OK"; }
-    }
+    if (cmd === "SET") { data.set(key, value); result = "OK"; }
     return { ok: true, json: async () => ({ result }) };
   };
   const store = createUpstashStore({ url: "https://example.upstash.io", token: "t" }, fetchImpl);
   assert.deepEqual(await store.getFacts(), []);
   await store.setFacts(["A"]);
   assert.deepEqual(await store.getFacts(), ["A"]);
-  assert.equal(await store.markSeen("m1"), true);
-  assert.equal(await store.markSeen("m1"), false);
 });
 
-test("server verifies the webhook and passes signed messages to the handler", async () => {
-  const received = [];
-  const server = createServer({
-    verifyToken: "verify-me", appSecret: SECRET,
-    handler: { enqueue: (message) => received.push(message) }, log: quietLog,
-  });
+test("session tokens expire and can't be forged", () => {
+  const now = Date.now();
+  const token = createSessionToken(SECRET, now);
+  assert.equal(isValidSession(token, SECRET, now), true);
+  assert.equal(isValidSession(token, "other-secret", now), false);
+  assert.equal(isValidSession(token, SECRET, now + 31 * 24 * 60 * 60 * 1000), false);
+  assert.equal(isValidSession(token.replace(/^\d/, "9"), SECRET, now), false);
+  assert.equal(isValidSession(null, SECRET, now), false);
+  assert.equal(isValidSession("garbage", SECRET, now), false);
+});
+
+async function withServer(options, fn) {
+  const server = createServer({ password: "pw", sessionSecret: SECRET, log: quietLog, ...options });
   await new Promise((resolve) => server.listen(0, resolve));
   const base = `http://localhost:${server.address().port}`;
   try {
-    const verify = await fetch(`${base}/webhook?hub.mode=subscribe&hub.verify_token=verify-me&hub.challenge=42`);
-    assert.equal(await verify.text(), "42");
-    const wrong = await fetch(`${base}/webhook?hub.mode=subscribe&hub.verify_token=nope&hub.challenge=42`);
-    assert.equal(wrong.status, 403);
-
-    const body = JSON.stringify({ entry: [{ changes: [{ value: { messages: [
-      { id: "m1", from: OWNER, type: "text", text: { body: "hi" } },
-    ] } }] }] });
-    const signature = "sha256=" + crypto.createHmac("sha256", SECRET).update(body).digest("hex");
-    const unsigned = await fetch(`${base}/webhook`, { method: "POST", body });
-    assert.equal(unsigned.status, 401);
-    const signed = await fetch(`${base}/webhook`, { method: "POST", body, headers: { "x-hub-signature-256": signature } });
-    assert.equal(signed.status, 200);
-    assert.deepEqual(received, [{ id: "m1", from: OWNER, type: "text", text: "hi" }]);
+    await fn(base);
   } finally {
     server.close();
   }
+}
+
+const json = (body, cookie) => ({
+  method: "POST",
+  headers: { "Content-Type": "application/json", ...(cookie ? { Cookie: cookie } : {}) },
+  body: JSON.stringify(body),
+});
+
+async function login(base) {
+  const response = await fetch(`${base}/api/login`, json({ password: "pw" }));
+  assert.equal(response.status, 200);
+  return response.headers.get("set-cookie").split(";")[0];
+}
+
+test("server serves the chat page and keeps the API behind the password", async () => {
+  await withServer({ store: memoryStore(), assistant: {} }, async (base) => {
+    const page = await fetch(base);
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /<title>Hephastus<\/title>/);
+    assert.match(page.headers.get("content-security-policy"), /default-src 'self'/);
+
+    assert.equal((await fetch(`${base}/api/state`)).status, 401);
+    assert.equal((await fetch(`${base}/api/chat`, json({ message: "hi" }))).status, 401);
+    assert.equal((await fetch(`${base}/api/state`, { headers: { Cookie: "session=1.abc" } })).status, 401);
+    assert.equal((await fetch(`${base}/api/login`, json({ password: "nope" }))).status, 401);
+
+    const cookie = await login(base);
+    const state = await fetch(`${base}/api/state`, { headers: { Cookie: cookie } });
+    assert.deepEqual(await state.json(), { messages: [], facts: [] });
+  });
+});
+
+test("login cookie is HttpOnly, SameSite=Strict, and Secure behind HTTPS", async () => {
+  await withServer({ store: memoryStore(), assistant: {} }, async (base) => {
+    const response = await fetch(`${base}/api/login`, {
+      ...json({ password: "pw" }),
+      headers: { "Content-Type": "application/json", "X-Forwarded-Proto": "https" },
+    });
+    const cookie = response.headers.get("set-cookie");
+    assert.match(cookie, /HttpOnly/);
+    assert.match(cookie, /SameSite=Strict/);
+    assert.match(cookie, /Secure/);
+  });
+});
+
+test("server blocks password guessing after 10 wrong tries", async () => {
+  await withServer({ store: memoryStore(), assistant: {} }, async (base) => {
+    for (let i = 0; i < 10; i++) {
+      assert.equal((await fetch(`${base}/api/login`, json({ password: "x" }))).status, 401);
+    }
+    assert.equal((await fetch(`${base}/api/login`, json({ password: "pw" }))).status, 429);
+  });
+});
+
+test("chat, reset and forget work for a logged-in owner", async () => {
+  const store = memoryStore();
+  await store.setFacts(["A", "B"]);
+  const assistant = {
+    reply: async (text) => {
+      const history = await store.getHistory();
+      await store.setHistory([...history, { role: "user", content: text }, { role: "assistant", content: "pong" }]);
+      return "pong";
+    },
+  };
+  await withServer({ store, assistant }, async (base) => {
+    const cookie = await login(base);
+    const chat = await fetch(`${base}/api/chat`, json({ message: "  ping  " }, cookie));
+    assert.deepEqual(await chat.json(), { reply: "pong" });
+    assert.equal((await store.getHistory())[0].content, "ping");
+
+    assert.equal((await fetch(`${base}/api/chat`, json({ message: "   " }, cookie))).status, 400);
+    const plain = await fetch(`${base}/api/chat`, { method: "POST", headers: { Cookie: cookie }, body: "hi" });
+    assert.equal(plain.status, 415);
+
+    const forget = await fetch(`${base}/api/facts/0`, { method: "DELETE", headers: { Cookie: cookie } });
+    assert.deepEqual(await forget.json(), { facts: ["B"] });
+    assert.equal((await fetch(`${base}/api/facts/5`, { method: "DELETE", headers: { Cookie: cookie } })).status, 404);
+
+    await fetch(`${base}/api/reset`, json({}, cookie));
+    assert.deepEqual(await store.getHistory(), []);
+  });
+});
+
+test("chat failures return a friendly error instead of crashing", async () => {
+  const assistant = { reply: async () => { throw new Error("boom"); } };
+  await withServer({ store: memoryStore(), assistant }, async (base) => {
+    const cookie = await login(base);
+    const response = await fetch(`${base}/api/chat`, json({ message: "hi" }, cookie));
+    assert.equal(response.status, 500);
+    assert.match((await response.json()).error, /Something went wrong/);
+  });
 });

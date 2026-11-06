@@ -1,4 +1,4 @@
-# Render Blueprint for Hephastus (the WhatsApp assistant in ./hephastus).
+# Render Blueprint for Hephastus (the browser chat assistant in ./hephastus).
 # In Render: New > Blueprint > pick this repository. Render asks for each
 # value marked "sync: false"; see hephastus/README.md for where to find them.
 services:
@@ -9,20 +9,14 @@ services:
     rootDir: hephastus
     buildCommand: npm install
     startCommand: npm start
-    healthCheckPath: /
+    healthCheckPath: /health
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false
-      - key: WHATSAPP_TOKEN
+      - key: APP_PASSWORD
         sync: false
-      - key: WHATSAPP_PHONE_NUMBER_ID
-        sync: false
-      - key: WHATSAPP_APP_SECRET
-        sync: false
-      - key: WHATSAPP_VERIFY_TOKEN
+      - key: SESSION_SECRET
         generateValue: true
-      - key: OWNER_WHATSAPP_NUMBER
-        sync: false
       - key: UPSTASH_REDIS_REST_URL
         sync: false
       - key: UPSTASH_REDIS_REST_TOKEN

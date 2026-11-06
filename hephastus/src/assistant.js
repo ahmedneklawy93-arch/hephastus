@@ -12,9 +12,9 @@ const DYNAMIC_SEARCH_MODELS = [
 // retry a declined request on Anthropic's recommended fallback model.
 const FALLBACK_MODELS = ["claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "claude-sonnet-5-5"];
 
-const SYSTEM_PROMPT = `You are Hephastus, a personal AI assistant. You talk with one person, your owner, over WhatsApp.
+const SYSTEM_PROMPT = `You are Hephastus, a personal AI assistant. You talk with one person, your owner, in a private chat page in their web browser.
 
-Write like a helpful friend texting: short, clear replies. Use WhatsApp formatting only: *bold*, _italic_, ~strikethrough~, and simple "- " lists. Never use Markdown headings, tables, or **double asterisks**.
+Reply clearly and to the point, like a helpful friend. You can use simple Markdown: **bold**, *italic*, \`code\`, links, and "- " or "1. " lists. Avoid tables and headings.
 
 Search the web when a question depends on current or specific facts you aren't sure of, and mention where the information came from.
 
@@ -148,7 +148,7 @@ export function createAssistant({ model, effort, historyLimit }, store, client =
           continue;
         }
         answer = textOf(response.content);
-        if (response.stop_reason === "max_tokens") answer += "\n\n_(I ran out of space; ask me to continue.)_";
+        if (response.stop_reason === "max_tokens") answer += "\n\n*(I ran out of space; ask me to continue.)*";
         break;
       }
 

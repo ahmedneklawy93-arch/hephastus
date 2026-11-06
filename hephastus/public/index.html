@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Hephastus</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c2410c'/%3E%3Cpath d='M10 8v16M22 8v16M10 16h12' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --panel: #ffffff;
+    --text: #1f1d1a;
+    --muted: #6b6760;
+    --border: #e4e1da;
+    --accent: #c2410c;
+    --accent-text: #ffffff;
+    --mine: #fbe9df;
+    --error: #b42318;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 4px 16px rgba(0, 0, 0, .04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161513;
+      --panel: #201f1c;
+      --text: #ecebe7;
+      --muted: #a29e96;
+      --border: #34322d;
+      --accent: #ea6a35;
+      --accent-text: #1a0d06;
+      --mine: #3a261b;
+      --error: #f97066;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  button, textarea, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  [hidden] { display: none !important; }
+
+  /* Login */
+  .login {
+    min-height: 100%;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px;
+  }
+  .login form {
+    width: 100%;
+    max-width: 360px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+  }
+  .logo {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--accent); color: var(--accent-text);
+    display: grid; place-items: center; font-weight: 700; font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .login h1 { margin: 0 0 4px; font-size: 22px; }
+  .login p { margin: 0 0 20px; color: var(--muted); }
+  .login input {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg);
+  }
+  .login input:focus, .composer textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .primary {
+    width: 100%; margin-top: 12px; padding: 12px; border: 0; border-radius: 10px;
+    background: var(--accent); color: var(--accent-text); font-weight: 600;
+  }
+  .primary:disabled { opacity: .6; cursor: default; }
+  .error { color: var(--error); font-size: 14px; margin-top: 10px; min-height: 1.2em; }
+
+  /* Chat */
+  .app { height: 100%; display: flex; flex-direction: column; }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--panel);
+  }
+  header .logo { width: 32px; height: 32px; border-radius: 9px; font-size: 15px; margin: 0; }
+  header h1 { font-size: 17px; margin: 0; flex: 1; }
+  .ghost {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; color: var(--muted);
+  }
+  .ghost:hover { color: var(--text); border-color: var(--muted); }
+  header .ghost { white-space: nowrap; }
+  @media (max-width: 480px) {
+    header { gap: 6px; padding: 10px 12px; }
+    header h1 { font-size: 16px; }
+    header .ghost { padding: 5px 8px; font-size: 13px; }
+  }
+  main { flex: 1; overflow-y: auto; }
+  .thread { max-width: 760px; margin: 0 auto; padding: 20px 16px 8px; }
+  .empty { text-align: center; color: var(--muted); margin-top: 18vh; }
+  .empty strong { display: block; color: var(--text); font-size: 20px; margin-bottom: 6px; }
+  .msg { display: flex; margin: 10px 0; }
+  .msg.user { justify-content: flex-end; }
+  .bubble {
+    max-width: 85%; padding: 10px 14px; border-radius: 14px;
+    overflow-wrap: anywhere;
+  }
+  .user .bubble { background: var(--mine); border-bottom-right-radius: 4px; white-space: pre-wrap; }
+  .assistant .bubble { background: var(--panel); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .bubble p { margin: 0 0 .6em; }
+  .bubble p:last-child, .bubble ul:last-child, .bubble ol:last-child, .bubble pre:last-child { margin-bottom: 0; }
+  .bubble ul, .bubble ol { margin: 0 0 .6em; padding-left: 1.3em; }
+  .bubble a { color: var(--accent); }
+  .bubble code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; background: var(--bg); padding: 1px 5px; border-radius: 5px; }
+  .bubble pre { background: var(--bg); padding: 10px 12px; border-radius: 8px; overflow-x: auto; margin: 0 0 .6em; }
+  .bubble pre code { background: none; padding: 0; }
+  .bubble.failed { border-color: var(--error); color: var(--error); }
+  .typing { display: inline-flex; gap: 4px; padding: 4px 0; }
+  .typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: .2s; }
+  .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .typing span { animation: none; opacity: .6; } }
+
+  .composer-wrap { border-top: 1px solid var(--border); background: var(--panel); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .composer { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
+  .composer textarea {
+    flex: 1; resize: none; max-height: 200px; padding: 11px 14px;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
+  }
+  .send {
+    flex: none; width: 44px; height: 44px; border: 0; border-radius: 12px;
+    background: var(--accent); color: var(--accent-text); display: grid; place-items: center;
+  }
+  .send:disabled { opacity: .5; cursor: default; }
+
+  /* Memory panel */
+  dialog {
+    width: min(520px, calc(100% - 32px)); border: 1px solid var(--border); border-radius: 16px;
+    background: var(--panel); color: var(--text); padding: 20px; box-shadow: var(--shadow);
+  }
+  dialog::backdrop { background: rgba(0, 0, 0, .35); }
+  dialog h2 { margin: 0 0 4px; font-size: 18px; }
+  dialog .hint { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
+  .facts { list-style: none; margin: 0 0 16px; padding: 0; max-height: 50vh; overflow-y: auto; }
+  .facts li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .facts li span { flex: 1; }
+  .facts li button { flex: none; }
+</style>
+</head>
+<body>
+
+<section class="login" id="login" hidden>
+  <form id="login-form">
+    <div class="logo" aria-hidden="true">H</div>
+    <h1>Hephastus</h1>
+    <p>Your personal assistant. Enter your password to continue.</p>
+    <label for="password" hidden>Password</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Password" required autofocus>
+    <button class="primary" type="submit">Log in</button>
+    <div class="error" id="login-error" role="alert"></div>
+  </form>
+</section>
+
+<section class="app" id="app" hidden>
+  <header>
+    <div class="logo" aria-hidden="true">H</div>
+    <h1>Hephastus</h1>
+    <button class="ghost" id="memory-btn" type="button">Memory</button>
+    <button class="ghost" id="reset-btn" type="button">New chat</button>
+    <button class="ghost" id="logout-btn" type="button">Log out</button>
+  </header>
+  <main id="scroller">
+    <div class="thread" id="thread" aria-live="polite"></div>
+  </main>
+  <div class="composer-wrap">
+    <form class="composer" id="composer">
+      <label for="input" hidden>Message</label>
+      <textarea id="input" rows="1" placeholder="Message Hephastus…" autocomplete="off"></textarea>
+      <button class="send" id="send" type="submit" aria-label="Send">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </form>
+  </div>
+</section>
+
+<dialog id="memory">
+  <h2>What Hephastus remembers</h2>
+  <p class="hint">Tell it "remember that…" in the chat to add something.</p>
+  <ul class="facts" id="facts"></ul>
+  <button class="ghost" type="button" id="memory-close">Close</button>
+</dialog>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let facts = [];
+let busy = false;
+
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    ...options,
+    headers: options.body ? { "Content-Type": "application/json" } : {},
+  });
+  const body = await response.json().catch(() => ({}));
+  if (response.status === 401 && path !== "/api/login") {
+    showLogin();
+    throw new Error("Please log in.");
+  }
+  if (!response.ok) throw new Error(body.error || "Something went wrong.");
+  return body;
+}
+
+// Small, safe Markdown renderer: everything is HTML-escaped first, then a few
+// formats are turned back on. Links are only allowed to http(s) addresses.
+function escapeHtml(text) {
+  return text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function inline(text) {
+  const codes = [];
+  let html = escapeHtml(text).replace(/`([^`]+)`/g, (_, code) => `\u0000${codes.push(code) - 1}\u0000`);
+  html = html
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+  return html.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[i]}</code>`);
+}
+function renderMarkdown(text) {
+  const out = [];
+  const parts = text.split(/```[^\n]*\n?/);
+  parts.forEach((part, i) => {
+    if (i % 2 === 1) {
+      out.push(`<pre><code>${escapeHtml(part.replace(/\n$/, ""))}</code></pre>`);
+      return;
+    }
+    let list = null;
+    let paragraph = [];
+    const flush = () => {
+      if (paragraph.length) out.push(`<p>${paragraph.map(inline).join("<br>")}</p>`);
+      paragraph = [];
+      if (list) out.push(`<${list.type}>${list.items.map((item) => `<li>${inline(item)}</li>`).join("")}</${list.type}>`);
+      list = null;
+    };
+    for (const line of part.split("\n")) {
+      const bullet = line.match(/^\s*[-*•]\s+(.*)$/);
+      const numbered = line.match(/^\s*\d+[.)]\s+(.*)$/);
+      const item = bullet || numbered;
+      if (item) {
+        const type = bullet ? "ul" : "ol";
+        if (paragraph.length || (list && list.type !== type)) flush();
+        if (!list) list = { type, items: [] };
+        list.items.push(item[1]);
+      } else if (!line.trim()) {
+        flush();
+      } else {
+        if (list) flush();
+        paragraph.push(line.replace(/^#+\s*/, ""));
+      }
+    }
+    flush();
+  });
+  return out.join("");
+}
+
+function scrollDown() {
+  const scroller = $("scroller");
+  scroller.scrollTop = scroller.scrollHeight;
+}
+
+function addMessage(role, text, { failed = false } = {}) {
+  $("thread").querySelector(".empty")?.remove();
+  const row = document.createElement("div");
+  row.className = `msg ${role}`;
+  const bubble = document.createElement("div");
+  bubble.className = "bubble" + (failed ? " failed" : "");
+  if (role === "assistant" && !failed) bubble.innerHTML = renderMarkdown(text);
+  else bubble.textContent = text;
+  row.appendChild(bubble);
+  $("thread").appendChild(row);
+  scrollDown();
+  return row;
+}
+
+function renderThread(messages) {
+  $("thread").innerHTML = "";
+  if (!messages.length) {
+    $("thread").innerHTML = '<div class="empty"><strong>Hi, I\'m Hephastus.</strong>Ask me anything, or tell me something to remember.</div>';
+    return;
+  }
+  for (const message of messages) addMessage(message.role, message.content);
+}
+
+function renderFacts() {
+  const list = $("facts");
+  list.innerHTML = "";
+  if (!facts.length) {
+    list.innerHTML = '<li><span>Nothing yet.</span></li>';
+    return;
+  }
+  facts.forEach((fact, index) => {
+    const item = document.createElement("li");
+    const text = document.createElement("span");
+    text.textContent = fact;
+    const remove = document.createElement("button");
+    remove.className = "ghost";
+    remove.type = "button";
+    remove.textContent = "Forget";
+    remove.onclick = async () => {
+      facts = (await api(`/api/facts/${index}`, { method: "DELETE" })).facts;
+      renderFacts();
+    };
+    item.append(text, remove);
+    list.appendChild(item);
+  });
+}
+
+function showLogin() {
+  $("app").hidden = true;
+  $("login").hidden = false;
+  $("password").focus();
+}
+
+async function showApp() {
+  const state = await api("/api/state");
+  facts = state.facts;
+  renderThread(state.messages);
+  $("login").hidden = true;
+  $("app").hidden = false;
+  $("input").focus();
+}
+
+function setBusy(value) {
+  busy = value;
+  $("send").disabled = value;
+}
+
+$("login-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = event.target.querySelector("button");
+  button.disabled = true;
+  $("login-error").textContent = "";
+  try {
+    await api("/api/login", { method: "POST", body: JSON.stringify({ password: $("password").value }) });
+    $("password").value = "";
+    await showApp();
+  } catch (error) {
+    $("login-error").textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$("composer").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const text = $("input").value.trim();
+  if (!text || busy) return;
+  $("input").value = "";
+  autosize();
+  addMessage("user", text);
+  const thinking = addMessage("assistant", "");
+  thinking.querySelector(".bubble").innerHTML = '<span class="typing" aria-label="Thinking"><span></span><span></span><span></span></span>';
+  setBusy(true);
+  try {
+    const { reply } = await api("/api/chat", { method: "POST", body: JSON.stringify({ message: text }) });
+    thinking.remove();
+    addMessage("assistant", reply);
+    facts = (await api("/api/state")).facts;
+  } catch (error) {
+    thinking.remove();
+    addMessage("assistant", error.message, { failed: true });
+  } finally {
+    setBusy(false);
+    $("input").focus();
+  }
+});
+
+function autosize() {
+  const input = $("input");
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 200) + "px";
+}
+$("input").addEventListener("input", autosize);
+$("input").addEventListener("keydown", (event) => {
+  // Enter sends; Shift+Enter adds a new line. On phones, the send button is used.
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing && matchMedia("(pointer: fine)").matches) {
+    event.preventDefault();
+    $("composer").requestSubmit();
+  }
+});
+
+$("reset-btn").onclick = async () => {
+  if (busy || !confirm("Start a new chat? Hephastus keeps its memory.")) return;
+  await api("/api/reset", { method: "POST", body: "{}" });
+  renderThread([]);
+};
+$("memory-btn").onclick = () => { renderFacts(); $("memory").showModal(); };
+$("memory-close").onclick = () => $("memory").close();
+$("logout-btn").onclick = async () => {
+  await api("/api/logout", { method: "POST", body: "{}" }).catch(() => {});
+  showLogin();
+};
+
+showApp().catch(showLogin);
+</script>
+</body>
+</html>

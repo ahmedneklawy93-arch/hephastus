@@ -1,0 +1,15 @@
+{
+  "name": "hephastus",
+  "version": "0.1.0",
+  "description": "Hephastus: a personal AI assistant on WhatsApp, powered by Claude",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0"
+  }
+}

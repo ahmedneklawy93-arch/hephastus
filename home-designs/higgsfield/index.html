@@ -1,0 +1,101 @@
+<title>Higgsfield Remaster Pack</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working sheet. Settings strip, then one card per option: reference render beside its prompts. */
+:root{--bg:#eef0ea;--surface:#f8f9f5;--fg:#1d2520;--muted:#5b665e;--line:#cfd5cb;--accent:#b8752a;--accent-soft:#f0dcc0;--code:#f1efe8;
+  --display:"Marcellus","Palatino Linotype",Palatino,Georgia,serif;--body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1519;--surface:#161e23;--fg:#e7e5dc;--muted:#9aa49c;--line:#2a353b;--accent:#e2a456;--accent-soft:#3d2e1c;--code:#11181c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1519;--surface:#161e23;--fg:#e7e5dc;--muted:#9aa49c;--line:#2a353b;--accent:#e2a456;--accent-soft:#3d2e1c;--code:#11181c;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px;display:grid;gap:28px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,4.5vw,44px);line-height:1.1}h2{font-size:24px}h3{font-size:21px}
+p{margin:0;max-width:70ch}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.lede{color:var(--muted);font-size:16px;margin-top:10px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 24px}
+.step{border-top:2px solid var(--accent);padding-top:8px;display:grid;gap:4px}
+.step b{font-weight:600}.step span{color:var(--muted);font-size:14px}
+.settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}
+.settings div{display:grid;gap:2px}.settings .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.settings .v{font-size:14.5px}
+.card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;padding-top:24px;border-top:1px solid var(--line);scroll-margin-top:60px}
+@media (max-width:860px){.card{grid-template-columns:1fr}}
+.card img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;background:var(--code)}
+.meta{display:grid;gap:6px;align-content:start}
+.fam{font-size:13px;color:var(--muted)}
+.prompts{display:grid;gap:12px;min-width:0}
+.pblock{display:grid;gap:6px;min-width:0}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
+button{font:inherit;font-size:12.5px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.done{background:var(--accent);border-color:var(--accent);color:#fff}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;padding:8px 0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+nav a{flex:none;font-size:13px;color:var(--fg);text-decoration:none;border:1px solid var(--line);border-radius:99px;padding:4px 11px;background:var(--surface)}
+nav a b{font-family:var(--mono);font-weight:500;color:var(--accent);margin-right:5px}
+.note{font-size:13.5px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Remaster pack · Higgsfield</div>
+  <h1>Turn the ten 3D massing renders into photoreal images and fly-throughs</h1>
+  <p class="lede">Each render below is the reference image. Its prompt tells the model to keep the layout, camera and existing site exactly, and to replace the blocky shapes with real materials, planting and light. Upload the render, paste the prompt, generate.</p>
+</header>
+
+<section class="steps" aria-label="How to use">
+  <div class="step"><b>Upload the render</b><span>Save the image from a card and add it as the image reference.</span></div>
+  <div class="step"><b>Paste the still prompt</b><span>Use Nano Banana Pro at 16:9 and 2K. Generate 2–4 and keep the one that best respects the layout.</span></div>
+  <div class="step"><b>Optional: night and motion</b><span>Run the night prompt on your best still, then use that still as the start image with the video prompt.</span></div>
+</section>
+
+<section class="settings" aria-label="Recommended settings">
+  <div><span class="k">Still model</span><span class="v">Nano Banana Pro (image reference)</span></div>
+  <div><span class="k">Alternative</span><span class="v">Seedream 4.5 for a 4K final</span></div>
+  <div><span class="k">Aspect · size</span><span class="v">16:9 · 2K</span></div>
+  <div><span class="k">Video model</span><span class="v">Cinema Studio Video 3.0, start image = best still, 5–8 s</span></div>
+  <div><span class="k">Your account</span><span class="v">Free plan, 10 credits, so start with one or two favourites</span></div>
+</section>
+
+<nav id="nav" aria-label="Options"></nav>
+<main id="cards" style="display:grid;gap:28px"></main>
+<p class="note">The renders are massing studies with sizes estimated from site photos. AI renders can drift, so check that the annex, driveway, hedge and palms stay where they are before sharing an image.</p>
+</div>
+
+<script>
+const BASE=`Photorealistic architectural visualization of a private walled garden plot on the outskirts of Cairo, Egypt. Use the reference image for layout, massing, camera angle and the position of every element, and keep them exactly. Keep the existing single-storey annex on the left: river-pebble stone cladding, a thin ochre plaster band, a terracotta Roman-tile roof edge and an arched dark-timber door. Keep the stamped flagstone-pattern concrete driveway along the left boundary wall, the ochre-rendered boundary walls with small round brass wall lights, the tall dense ficus hedge behind, and the open green lawn. Replace the low-poly trees with real clipped ficus hedges and real date palms (Phoenix dactylifera) with orange date clusters.`;
+const TAIL=`Late golden hour, warm low sun from the left, long soft shadows, light dust haze, clear sky. Real materials with fine texture and weathering, correct scale, natural landscaping at the edges. Shot on a full-frame camera with a 24 mm lens at the same viewpoint as the reference. No people, no cars, no text, no watermark, no fisheye distortion.`;
+const NIGHT=`Same image at blue hour turning to night: warm 2700 K interior light glowing through every opening, uplights on the date palms and hedge, small brass wall lights along the boundary walls, the pool lit from underwater in soft turquoise, a full moon low in a deep-blue sky with a few stars. Keep the composition, architecture and materials identical. No people, no text.`;
+const VIDEO=`Slow cinematic drone move starting exactly on this frame: gentle forward push and slight rise toward the pool, steady and smooth with no cuts. Date palm fronds move a little in a light breeze, the pool surface ripples, sunlight flickers through the hedge. Keep the architecture rigid and unchanged. No people, no text.`;
+const O=[
+['gate','Arrival','From the gate down the driveway to the annex door, with option A on the right','The new single-storey house on the right of the annex is in the same pebble, ochre render and terracotta-tile style, set back behind the lawn.'],
+['A','Pebble Line','Egyptian & Mediterranean · Annex extension','The new single-storey house continues the annex in one straight line with the same river-pebble plinth, ochre lime render and terracotta Roman-tile edge; a raised central room with four tall arched glass doors in dark timber frames; a timber pergola terrace; a long lap pool with honed travertine coping and a travertine deck.'],
+['B','Riwaq Courtyard','Egyptian & Mediterranean · Courtyard house','A U-shaped single-storey house of ochre lime render with a pebble-clad east wing; an arcade of round arches (riwaq) with deep shade along the back wing; a private courtyard pool with travertine coping; terracotta-tile parapet edges; a carved timber mashrabiya screen window.'],
+['C','Palm Pavilions','Egyptian & Mediterranean · Pavilions','Three small pavilions with pyramid roofs of handmade terracotta tile, ochre render walls and river-pebble corner piers, joined by a covered dark-timber walkway; tall arched glazed doors; a free-form pool with travertine edges curving across the lawn.'],
+['D','Hedge-Edge Modern','Egyptian & Mediterranean · Modern','A long low modern house with a thin cantilevered off-white concrete roof slab, floor-to-ceiling glass in slim bronze frames, river-pebble end walls, a vertical teak slat screen over the bedroom glass, and a long still lap pool reflecting the house.'],
+['E','Vaulted Long House','Egyptian & Mediterranean · Egyptian vernacular','An Egyptian vernacular house in the tradition of Hassan Fathy: mud-tone lime-plastered barrel vaults, a central dome with small round skylights, a tall malqaf wind-catcher tower, an arcade of round arches, a river-pebble base, and a square stone-edged birka pool with a central fountain fed by a narrow rill.'],
+['F','Engawa House','Asian · Japanese traditional (sukiya)','A traditional Japanese single-storey house on a raised hinoki timber floor; a deep engawa veranda along the front under wide hipped eaves of dark grey kawara clay tile; walls of charred cedar (yakisugi); sliding shoji paper screens; a raked white gravel garden with stepping stones, moss, a stone toro lantern, cloud-pruned pines and a natural pond pool edged with rocks.'],
+['G','Concrete Water Court','Asian · Japanese contemporary','A minimalist Japanese contemporary house in smooth fair-faced concrete with a regular grid of form-tie holes; a long cantilevered concrete roof plane; full-height glass and one dark charred-timber entrance panel; a still black-bottom lap pool along the whole front crossed by a slim timber bridge; raked gravel, free-standing concrete walls and one sculptural pine.'],
+['H','Balinese Bale Pavilions','Asian · Balinese tropical','A Balinese compound of separate pavilions (bale): an open living bale on a dark volcanic-stone plinth with carved teak posts, an enclosed teak sleeping bale and a small pool bale, all under steep, thick alang-alang grass thatch roofs; a green Sukabumi-stone swimming pool; frangipani trees with white flowers; stone lanterns and lush tropical planting.'],
+['I','Moroccan Riad','Other styles · Moroccan riad','A Moroccan riad: plain blush-pink tadelakt plaster walls with few small carved-wood lattice windows and a crenellated parapet; a tall horseshoe-arch entrance framed in green and white zellige tile; inside, a courtyard with carved plaster arches, zellige floor, a marble fountain and four orange trees; a long zellige-edged swimming basin in the garden in front.'],
+['J','Palm Springs Modern','Other styles · Desert modern (Palm Springs)','A mid-century Palm Springs desert-modern house: a white butterfly roof with thin edges, a floor-to-ceiling glass wall to the terrace, a white pierced breeze-block screen at the bedroom end, a river-pebble stone chimney wall, a kidney-shaped pool with a terrazzo-and-flagstone deck, agaves and white lounge chairs.']];
+const nav=document.getElementById('nav'),main=document.getElementById('cards');
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+for(const [id,name,fam,style] of O){
+  const still=`${BASE} ${style} ${TAIL}`;
+  const tag=id==='gate'?'':`<b>${id}</b>`;
+  nav.insertAdjacentHTML('beforeend',`<a href="#opt-${id.toLowerCase()}">${tag}${name}</a>`);
+  const blocks=[['Still prompt',still],['Night variant (run on your best still)',NIGHT],['Video prompt (start image = best still)',VIDEO]];
+  main.insertAdjacentHTML('beforeend',`<section class="card" id="opt-${id.toLowerCase()}">
+    <div class="meta"><div class="eyebrow">${id==='gate'?'Hero view':'Option '+id}</div><h3>${name}</h3><div class="fam">${fam}</div>
+      <img src="renders/${id}.jpg" alt="3D massing render used as the reference image for ${name}" loading="lazy"><span class="note">Reference image: renders/${id}.jpg</span></div>
+    <div class="prompts">${blocks.map(([l,t],i)=>`<div class="pblock"><div class="phead"><span class="lbl">${l}</span><button type="button" data-t="${i}">Copy</button></div><pre>${esc(t)}</pre></div>`).join('')}</div></section>`);
+}
+main.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;const pre=b.closest('.pblock').querySelector('pre');
+  try{await navigator.clipboard.writeText(pre.textContent);b.textContent='Copied';b.classList.add('done')}catch(err){const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected, press Ctrl+C'}
+  setTimeout(()=>{b.textContent='Copy';b.classList.remove('done')},1800)});
+</script>

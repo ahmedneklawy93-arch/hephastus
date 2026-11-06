@@ -1,0 +1,479 @@
+<title>Palm Garden Long House</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one long scroll; a sticky chip bar jumps between five design studies.
+   Each study = night elevation (matches the owner's photos) + site plan + notes. */
+:root{
+  --bg:#eef0ea;          /* hedge-shade grey-green */
+  --surface:#f8f9f5;
+  --fg:#1d2520;
+  --muted:#5b665e;
+  --line:#cfd5cb;
+  --accent:#b8752a;      /* sconce amber */
+  --accent-soft:#f0dcc0;
+  --pool:#2e9e98;
+  --pool-soft:#bfe6e2;
+  --lawn:#d5e0c4;
+  --hedge:#7f9a6a;
+  --exist:#d9d2c4;
+  --drive:#cfc8bb;
+  --display:"Marcellus", "Palatino Linotype", Palatino, Georgia, serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1519;--surface:#161e23;--fg:#e7e5dc;--muted:#9aa49c;--line:#2a353b;
+  --accent:#e2a456;--accent-soft:#3d2e1c;--pool:#47c4bc;--pool-soft:#173b3a;
+  --lawn:#1f2b1c;--hedge:#3c5233;--exist:#3a3630;--drive:#2c2a27;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1519;--surface:#161e23;--fg:#e7e5dc;--muted:#9aa49c;--line:#2a353b;
+  --accent:#e2a456;--accent-soft:#3d2e1c;--pool:#47c4bc;--pool-soft:#173b3a;
+  --lawn:#1f2b1c;--hedge:#3c5233;--exist:#3a3630;--drive:#2c2a27;color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,5vw,48px);line-height:1.08}
+h2{font-size:clamp(24px,3.4vw,32px);line-height:1.15}
+h3{font-size:19px}
+p{margin:0;max-width:68ch}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.lede{color:var(--muted);font-size:16.5px;margin-top:12px}
+header{display:grid;gap:10px;margin-bottom:26px}
+
+.photos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:6px}
+.photos figure{margin:0;display:grid;gap:4px;min-width:0}
+.photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;display:block}
+.photos figcaption{font-size:12px;color:var(--muted);line-height:1.35}
+@media (max-width:760px){.photos{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.inventory{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.chip{font-size:12.5px;padding:3px 10px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
+
+nav.jump{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-4px;padding:10px 4px;display:flex;gap:6px;overflow-x:auto}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+nav.jump a{flex:none;font-size:13px;text-decoration:none;color:var(--fg);padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);white-space:nowrap}
+nav.jump a:hover,nav.jump a:focus-visible{border-color:var(--accent);outline:none;color:var(--accent)}
+nav.jump b{font-family:var(--mono);font-weight:500;color:var(--accent);margin-right:6px}
+
+section.study{padding-top:42px;display:grid;gap:16px;scroll-margin-top:60px}
+.study-head{display:grid;gap:6px}
+.scene{border-radius:6px;overflow:hidden;background:#0b1430;line-height:0}
+.scene svg{width:100%;height:auto;display:block}
+.cols{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:1fr}}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px}
+.plan svg{width:100%;height:auto;display:block}
+.notes{display:grid;gap:14px;min-width:0}
+.figs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fig{border-top:2px solid var(--accent);padding-top:6px}
+.fig .n{font-family:var(--mono);font-size:18px;font-variant-numeric:tabular-nums}
+.fig .l{font-size:12px;color:var(--muted)}
+.notes h4{margin:0 0 4px;font-size:12px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.notes ul{margin:0;padding-left:18px;display:grid;gap:3px}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:3px;background:var(--accent-soft);color:var(--fg);margin-right:4px}
+
+.rules{margin-top:48px;display:grid;gap:14px}
+.rule-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px 22px}
+.rule{display:grid;gap:3px;padding-top:10px;border-top:1px solid var(--line)}
+.rule strong{font-weight:600}
+.rule span{color:var(--muted);font-size:14px}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.caveat{font-size:13px;color:var(--muted);margin-top:8px}
+
+/* plan drawing classes (theme-aware) */
+.p-site{fill:var(--lawn);stroke:var(--fg);stroke-width:1.5}
+.p-hedge{fill:var(--hedge)}
+.p-drive{fill:var(--drive)}
+.p-exist{fill:var(--exist);stroke:var(--fg);stroke-width:1}
+.p-new{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.p-deck{fill:var(--surface);stroke:var(--line);stroke-width:1}
+.p-pergola{fill:none;stroke:var(--accent);stroke-width:1;stroke-dasharray:3 3}
+.p-pool{fill:var(--pool-soft);stroke:var(--pool);stroke-width:2}
+.p-palm{fill:none;stroke:var(--fg);stroke-width:1.1}
+.p-palmc{fill:var(--accent)}
+.p-wall{stroke:var(--fg);stroke-width:4}
+.p-lamp{fill:var(--accent)}
+.p-txt{fill:var(--fg);font-family:var(--body);font-size:10.5px}
+.p-txt.s{font-size:9px;fill:var(--muted)}
+.p-txt.b{font-weight:600}
+.p-txt.n{fill:var(--accent);font-weight:600}
+.p-txt.w{fill:var(--pool);font-weight:600}
+.p-ink{stroke:var(--fg);fill:none;stroke-width:1}
+.p-mute{stroke:var(--muted);fill:none;stroke-width:1}
+@media (prefers-reduced-motion:no-preference){.ripple{animation:rip 6s ease-in-out infinite alternate}}
+@keyframes rip{from{transform:translateX(-6px)}to{transform:translateX(6px)}}
+</style>
+
+<!-- shared SVG defs for the night elevations -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#070d22"/><stop offset=".55" stop-color="#14254e"/><stop offset="1" stop-color="#2b3d63"/>
+    </linearGradient>
+    <radialGradient id="moonGlow"><stop offset="0" stop-color="#fff8e6" stop-opacity=".85"/><stop offset=".25" stop-color="#d9e1f5" stop-opacity=".3"/><stop offset="1" stop-color="#9fb2dd" stop-opacity="0"/></radialGradient>
+    <linearGradient id="hedgeG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14240f"/><stop offset=".6" stop-color="#26401a"/><stop offset="1" stop-color="#3e5a22"/></linearGradient>
+    <linearGradient id="hedgeLit" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e7b456" stop-opacity=".45"/><stop offset=".55" stop-color="#c9a24a" stop-opacity="0"/></linearGradient>
+    <linearGradient id="lawnG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5c6a26"/><stop offset=".35" stop-color="#3a4a1c"/><stop offset="1" stop-color="#141c0c"/></linearGradient>
+    <linearGradient id="render" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9783f"/><stop offset="1" stop-color="#d8a868"/></linearGradient>
+    <linearGradient id="renderDim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c4f2d"/><stop offset="1" stop-color="#a77d4b"/></linearGradient>
+    <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe2a3"/><stop offset="1" stop-color="#c47a2c"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7c879"/><stop offset=".7" stop-color="#b26a26"/><stop offset="1" stop-color="#5d3414"/></linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ff0e4"/><stop offset=".5" stop-color="#25b3ad"/><stop offset="1" stop-color="#0c5f68"/></linearGradient>
+    <linearGradient id="trunk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4a3420"/><stop offset=".5" stop-color="#b9824a"/><stop offset="1" stop-color="#4a3420"/></linearGradient>
+    <linearGradient id="slab" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efe3cb"/><stop offset="1" stop-color="#b9a988"/></linearGradient>
+    <linearGradient id="timber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a5230"/><stop offset="1" stop-color="#3e2716"/></linearGradient>
+    <radialGradient id="lamp"><stop offset="0" stop-color="#ffd38a" stop-opacity=".9"/><stop offset=".35" stop-color="#ffb04a" stop-opacity=".35"/><stop offset="1" stop-color="#ff9a2e" stop-opacity="0"/></radialGradient>
+    <radialGradient id="poolLamp"><stop offset="0" stop-color="#e9fffb" stop-opacity=".9"/><stop offset="1" stop-color="#7ff0e4" stop-opacity="0"/></radialGradient>
+    <linearGradient id="cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff1cf" stop-opacity=".55"/><stop offset="1" stop-color="#fff1cf" stop-opacity="0"/></linearGradient>
+    <pattern id="pebble" width="16" height="11" patternUnits="userSpaceOnUse">
+      <rect width="16" height="11" fill="#5b544a"/>
+      <ellipse cx="3.5" cy="3" rx="3" ry="2.1" fill="#9a8f7c"/><ellipse cx="10" cy="2.6" rx="3.4" ry="2" fill="#7c7262"/>
+      <ellipse cx="14.6" cy="6" rx="1.8" ry="1.5" fill="#b3a68e"/><ellipse cx="6.8" cy="7.6" rx="3.2" ry="2.2" fill="#c0b49b"/>
+      <ellipse cx="1.4" cy="8.6" rx="1.6" ry="1.5" fill="#6e6656"/><ellipse cx="12" cy="9" rx="2.5" ry="1.6" fill="#8d826f"/>
+    </pattern>
+    <pattern id="tiles" width="10" height="8" patternUnits="userSpaceOnUse">
+      <rect width="10" height="8" fill="#7d3519"/><path d="M0 8 V4 A5 4 0 0 1 10 4 V8Z" fill="#b8572c"/><path d="M2 3.5 A3 2.5 0 0 1 8 3.5" stroke="#d98352" stroke-width="1" fill="none"/>
+    </pattern>
+    <pattern id="roofTiles" width="10" height="9" patternUnits="userSpaceOnUse">
+      <rect width="10" height="9" fill="#6e2e15"/><rect x="1" width="4" height="9" fill="#b0522a"/><rect x="6" width="3" height="9" fill="#93421f"/><line x1="0" y1="8.5" x2="10" y2="8.5" stroke="#4a1e0d"/>
+    </pattern>
+    <pattern id="lattice" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f2b45c"/><path d="M0 0 L8 8 M8 0 L0 8" stroke="#3b2414" stroke-width="2.2"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Design studies · single-storey house + pool</div>
+  <h1>Five ways to build one long, low house on your land</h1>
+  <p class="lede">Every option keeps what is already there: the pebble-stone annex with its clay tile edge and arched door, the row of date palms, the tall ficus hedge, the lawn and the stamped-stone driveway. The new house reads as a continuation of the annex, not a new object dropped on the lawn.</p>
+</header>
+
+<div class="eyebrow" style="margin-top:6px">What's on the land today</div>
+<div class="photos">
+  <figure><img src="img/cd3e173b.jpg" alt="Ochre rendered annex wall with pebble-clad corner, louvred shutters and yuccas"><figcaption>Annex side: ochre render, pebble corner, wooden shutters</figcaption></figure>
+  <figure><img src="img/df12bf79.jpg" alt="Lawn with ficus hedge on the left and date palms on the right, lit amber"><figcaption>Hedge meets the palm row</figcaption></figure>
+  <figure><img src="img/97a1ec99.jpg" alt="Three date palms with ripening dates behind a lawn"><figcaption>Date palms (keep, build around)</figcaption></figure>
+  <figure><img src="img/53891621.jpg" alt="Open lawn toward the boundary wall with sconces and the neighbour's villa beyond"><figcaption>Boundary wall, tank, neighbour's villa</figcaption></figure>
+  <figure><img src="img/ed888777.jpg" alt="Stamped flagstone-pattern driveway under moonlight"><figcaption>Stamped-stone driveway</figcaption></figure>
+</div>
+<div class="inventory">
+  <span class="chip">River-pebble cladding</span><span class="chip">Ochre render</span><span class="chip">Terracotta Roman-tile edge</span><span class="chip">Arched timber door</span><span class="chip">Louvred timber shutters</span><span class="chip">4+ date palms</span><span class="chip">5–6 m ficus hedge</span><span class="chip">Open lawn</span><span class="chip">Stamped flagstone paving</span><span class="chip">Rendered boundary wall + sconces</span><span class="chip">Water tank</span><span class="chip">Neighbour overlooks one side</span>
+</div>
+
+<nav class="jump" id="jump" aria-label="Design options"></nav>
+<main id="studies"></main>
+
+<section class="rules" id="rules">
+  <div class="eyebrow">Applies to every option</div>
+  <h2>Rules that keep the new house continuous with the old</h2>
+  <div class="rule-grid">
+    <div class="rule"><strong>Match the eave line</strong><span>Measure the annex's tile-edge height (it looks like about 3.2 m) and run the new roof edge at the same height, so the two read as one building.</span></div>
+    <div class="rule"><strong>Reuse the pebble, but only low or at corners</strong><span>The annex uses river pebble as a full wall. On a long house, keep it to a plinth band or corner piers, or it gets heavy.</span></div>
+    <div class="rule"><strong>One ochre, sampled from the annex</strong><span>Take a paint sample from the annex render. A slightly different ochre on a long wall shows more than a different colour would.</span></div>
+    <div class="rule"><strong>Arches as the family resemblance</strong><span>The arched timber door is the strongest detail you have. Repeat its proportion in doors, a loggia or the pool-house openings.</span></div>
+    <div class="rule"><strong>Keep the pool 3 m clear of palm trunks</strong><span>Date-palm roots are shallow and wide. Excavating closer risks the trees and cracks the pool shell later.</span></div>
+    <div class="rule"><strong>One warm light colour</strong><span>Today the garden mixes cool-white floodlights with amber sconces. Use 2700 K everywhere and add uplights on the palms; the pool light is the only cool tone.</span></div>
+    <div class="rule"><strong>Screen the neighbour's side</strong><span>The neighbour's upper floor looks over the boundary wall. Put solid walls, a wing, or a pergola with planting on that side, and keep the pool out of their line of sight.</span></div>
+    <div class="rule"><strong>Hedge and palms are the walls of the garden</strong><span>Build in front of them, never on top of them. They already give you privacy and shade that would take 15 years to regrow.</span></div>
+  </div>
+</section>
+
+<section class="rules">
+  <div class="eyebrow">Side by side</div>
+  <h2>Comparing the five</h2>
+  <div class="tablewrap"><table id="compare"><thead><tr><th>Option</th><th>New built area</th><th>Pool</th><th>How it ties to the annex</th><th>Best if you want…</th><th>Relative cost</th></tr></thead><tbody></tbody></table></div>
+  <p class="caveat">Site layout, orientation (north arrow) and dimensions are read from your photos and are approximate. Before any of these go further you need a measured site survey, the setback and height rules for your plot or compound, and a soil test for the pool.</p>
+</section>
+</div>
+
+<script>
+/* ---------- helpers ---------- */
+let seed=7;function rnd(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646}
+const G=330; // ground line in elevations
+const f=n=>Math.round(n*10)/10;
+
+function sky(){let s=`<rect width="1200" height="440" fill="url(#sky)"/>`;
+  for(let i=0;i<60;i++){s+=`<circle cx="${f(rnd()*1200)}" cy="${f(rnd()*150)}" r="${f(rnd()*0.9+0.3)}" fill="#fff" opacity="${f(rnd()*0.6+0.2)}"/>`}
+  return s}
+function moon(x,y){return `<circle cx="${x}" cy="${y}" r="110" fill="url(#moonGlow)"/>
+  <g stroke="#e8eeff" stroke-linecap="round" opacity=".5"><line x1="${x-70}" y1="${y+40}" x2="${x+70}" y2="${y-40}" stroke-width="1.4"/><line x1="${x-60}" y1="${y-30}" x2="${x+60}" y2="${y+30}" stroke-width="1"/></g>
+  <circle cx="${x}" cy="${y}" r="9" fill="#fffaf0"/>`}
+function hedge(x1,x2,top){let pts=[],x=x1;while(x<=x2+16){pts.push([x,top+(rnd()-.5)*26+Math.sin(x/95)*12]);x+=16+rnd()*10}
+  let d=`M${x1},${G} L${pts[0][0]},${f(pts[0][1])}`;
+  for(let i=1;i<pts.length;i++){const p=pts[i-1],q=pts[i];d+=` Q${f((p[0]+q[0])/2)},${f(Math.min(p[1],q[1])-10-rnd()*10)} ${f(q[0])},${f(q[1])}`}
+  d+=` L${x2+16},${G}Z`;
+  let s=`<path d="${d}" fill="url(#hedgeG)"/>`;
+  for(let i=0;i<260;i++){const cx=x1+rnd()*(x2-x1),cy=top+10+rnd()*(G-top-10);
+    s+=`<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(2+rnd()*4)}" fill="${rnd()<.5?'#1b3013':'#4b6a2a'}" opacity="${f(.35+rnd()*.4)}"/>`}
+  return s+`<path d="${d}" fill="url(#hedgeLit)"/>`}
+function palm(x,h,lean=0,sc=1){const base=G+4,tx=x+lean,ty=base-h;let s='';
+  s+=`<path d="M${x-8*sc},${base} Q${x+lean*.3-6*sc},${base-h*.5} ${tx-4*sc},${ty} L${tx+4*sc},${ty} Q${x+lean*.3+6*sc},${base-h*.5} ${x+8*sc},${base}Z" fill="url(#trunk)"/>`;
+  for(let y=base-8;y>ty+6;y-=8){const t=(base-y)/h,xx=x+lean*t*t;const w=(8-4*t)*sc;s+=`<path d="M${f(xx-w)},${f(y)} q${f(w)},4 ${f(2*w)},0" stroke="#3a2614" stroke-width="1.2" fill="none" opacity=".7"/>`}
+  const angs=[-182,-170,-158,-145,-132,-118,-104,-92,-80,-66,-52,-38,-24,-10,2];
+  for(const a0 of angs){const a=(a0+(rnd()-.5)*8)*Math.PI/180;const L=(62+rnd()*24)*sc;const off=Math.abs(a0+90)/95;
+    const dro=L*.75*Math.pow(off,1.7);const ex=tx+L*Math.cos(a),ey=ty+L*Math.sin(a)+dro;const cx=tx+.55*L*Math.cos(a),cy=ty+.55*L*Math.sin(a)-L*.14;
+    s+=`<path d="M${tx},${ty} Q${f(cx)},${f(cy)} ${f(ex)},${f(ey)}" stroke="#7d7036" stroke-width="${f(2*sc)}" fill="none"/>`;
+    for(let t=.15;t<.98;t+=.075){const px=(1-t)*(1-t)*tx+2*(1-t)*t*cx+t*t*ex,py=(1-t)*(1-t)*ty+2*(1-t)*t*cy+t*t*ey;
+      let dx=2*(1-t)*(cx-tx)+2*t*(ex-cx),dy=2*(1-t)*(cy-ty)+2*t*(ey-cy);const m=Math.hypot(dx,dy);dx/=m;dy/=m;const ll=(15-8*t)*sc;
+      for(const sg of[1,-1]){const nx=-dy*sg,ny=dx*sg;const lx=px+(nx*.75+dx*.55)*ll,ly=py+(ny*.75+dy*.55+.45)*ll;
+        s+=`<line x1="${f(px)}" y1="${f(py)}" x2="${f(lx)}" y2="${f(ly)}" stroke="${rnd()<.4?'#b39350':'#4f5a27'}" stroke-width="${f(1.1*sc)}" stroke-linecap="round"/>`}}}
+  for(let i=0;i<5;i++)s+=`<ellipse cx="${f(tx+(rnd()-.5)*22*sc)}" cy="${f(ty+8+rnd()*12)}" rx="${f(5*sc)}" ry="${f(7*sc)}" fill="#d8782c" opacity=".85"/>`;
+  return `<g>${s}</g>`}
+function lamp(x,y,r=24){return `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#lamp)"/><circle cx="${x}" cy="${y}" r="2.6" fill="#fff0c8"/>`}
+function tileEdge(x,y,w){return `<rect x="${x-4}" y="${y-8}" width="${w+8}" height="8" fill="url(#tiles)"/><rect x="${x-4}" y="${y}" width="${w+8}" height="2" fill="#3b1a0b" opacity=".6"/>`}
+function shutter(x,y,w,h){let s=`<rect x="${x-3}" y="${y-3}" width="${w+6}" height="${h+6}" fill="#e2c08a"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#4a3220"/>`;
+  for(let yy=y+4;yy<y+h;yy+=4)s+=`<line x1="${x+2}" y1="${yy}" x2="${x+w-2}" y2="${yy}" stroke="#2a1a0e" stroke-width="1.4"/>`;
+  return s+`<line x1="${x+w/2}" y1="${y}" x2="${x+w/2}" y2="${y+h}" stroke="#2a1a0e" stroke-width="1.5"/>`}
+function arch(x,y,w,h,fill='url(#warm)',frame='#3a2716',mull=true){const r=w/2;
+  let s=`<path d="M${x},${y+h} V${y+r} A${r},${r} 0 0 1 ${x+w},${y+r} V${y+h}Z" fill="${fill}" stroke="${frame}" stroke-width="3"/>`;
+  if(mull)s+=`<line x1="${x+r}" y1="${y}" x2="${x+r}" y2="${y+h}" stroke="${frame}" stroke-width="2"/><line x1="${x}" y1="${y+r}" x2="${x+w}" y2="${y+r}" stroke="${frame}" stroke-width="1.5"/>`;
+  return s}
+function glassWall(x,y,w,h,step=46){let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#glass)"/>`;
+  for(let xx=x;xx<=x+w+.1;xx+=step)s+=`<line x1="${f(xx)}" y1="${y}" x2="${f(xx)}" y2="${y+h}" stroke="#2b1c10" stroke-width="2.5"/>`;
+  return s+`<rect x="${x}" y="${y+h-3}" width="${w}" height="3" fill="#2b1c10"/>`}
+function flood(x,y){return `<polygon points="${x-4},${y+6} ${x+4},${y+6} ${x+70},${G} ${x-70},${G}" fill="url(#cone)" opacity=".35"/><rect x="${x-7}" y="${y}" width="14" height="8" rx="1.5" fill="#1b1b1b" stroke="#777" stroke-width=".6"/>`}
+
+/* existing annex, drawn identically in every scene */
+function annex(x,w,h=90,label=true){const t=G-h;let s='';
+  s+=`<rect x="${x}" y="${t+16}" width="${w}" height="${h-16}" fill="url(#pebble)"/>`;
+  s+=`<rect x="${x}" y="${t}" width="${w}" height="16" fill="url(#render)"/><rect x="${x}" y="${t+15}" width="${w}" height="2" fill="#5a3d20"/>`;
+  s+=tileEdge(x,t,w);
+  s+=shutter(x+w*.2,t+30,30,40);
+  const dw=30,dx=x+w*.55;s+=`<path d="M${dx-4},${G} V${t+40} A${dw/2+4},${dw/2+4} 0 0 1 ${dx+dw+4},${t+40} V${G}Z" fill="#3e2a18"/>`+arch(dx,t+40-dw/2+2,dw,G-(t+40-dw/2+2),'url(#warm)','#5b3a1f',false);
+  s+=`<line x1="${dx+dw/2}" y1="${t+40}" x2="${dx+dw/2}" y2="${G}" stroke="#7a4f28" stroke-width="2"/>`;
+  s+=flood(x+w*.42,t+4);
+  if(label)s+=callout(x+w/2,t-12,'existing annex (kept)',-30);
+  return s}
+function callout(x,y,text,dy=-26,anchor='middle'){return `<line x1="${x}" y1="${y}" x2="${x}" y2="${y+dy}" stroke="#f3e7cf" stroke-width=".8" opacity=".7"/>
+  <text x="${x}" y="${y+dy-5}" fill="#f6ecd6" font-family="IBM Plex Mono,monospace" font-size="12" letter-spacing=".5" text-anchor="${anchor}">${text}</text>`}
+function ground(){return `<rect y="${G}" width="1200" height="${440-G}" fill="url(#lawnG)"/>`}
+function deck(x,w,y2=346){return `<rect x="${x}" y="${G}" width="${w}" height="${y2-G}" fill="#8f826b"/><rect x="${x}" y="${G}" width="${w}" height="2" fill="#5c5243"/>`}
+function pool(id,x,y,w,h,shape){const clip=`clip-${id}`;const path=shape||`M${x},${y} h${w} v${h} h${-w}Z`;
+  let s=`<clipPath id="${clip}"><path d="${path}"/></clipPath>`;
+  s+=`<path d="${path}" fill="none" stroke="#d5c8ad" stroke-width="12" stroke-linejoin="round"/>`;
+  s+=`<path d="${path}" fill="url(#water)"/>`;
+  s+=`<g clip-path="url(#${clip})"><g opacity=".38"><use href="#b-${id}" transform="translate(0 ${2*G}) scale(1 -1)"/></g>`;
+  s+=`<g class="ripple">`;for(let i=0;i<26;i++){const yy=y+4+rnd()*(h-6),xx=x+rnd()*w;s+=`<line x1="${f(xx)}" y1="${f(yy)}" x2="${f(xx+20+rnd()*50)}" y2="${f(yy)}" stroke="#e9fffb" stroke-width="1" opacity="${f(.25+rnd()*.35)}"/>`}
+  s+=`</g>`;for(let xx=x+60;xx<x+w-30;xx+=150)s+=`<ellipse cx="${xx}" cy="${y+4}" rx="40" ry="14" fill="url(#poolLamp)"/>`;
+  return s+`</g>`}
+function sconceRow(x1,x2,y,step=90){let s='';for(let x=x1;x<=x2;x+=step)s+=lamp(x,y,22);return s}
+function boundaryWall(x1,x2,top){let s=`<rect x="${x1}" y="${top}" width="${x2-x1}" height="${G-top}" fill="url(#renderDim)"/>`;
+  for(let x=x1+40;x<x2;x+=110)s+=lamp(x,top+38,26);return s}
+function neighbour(x,w){return `<g opacity=".8"><rect x="${x}" y="150" width="${w}" height="110" fill="#c9c4b8"/><rect x="${x-6}" y="146" width="${w+12}" height="6" fill="#e6e2d8"/>
+  <rect x="${x+20}" y="170" width="34" height="40" fill="#fbe3ad"/><rect x="${x+w-60}" y="170" width="34" height="40" fill="#3a3f4a"/><rect x="${x+20}" y="220" width="${w-40}" height="4" fill="#e6e2d8"/>${lamp(x+10,200,30)}${lamp(x+w-10,200,30)}</g>`}
+function tank(x){return `<g><rect x="${x}" y="${G-48}" width="38" height="48" rx="4" fill="#d9d4c7"/>${[8,16,24,32,40].map(d=>`<line x1="${x}" y1="${G-d}" x2="${x+38}" y2="${G-d}" stroke="#a9a397"/>`).join('')}</g>`}
+function yucca(x,y=G){let s='';for(let i=0;i<11;i++){const a=(-160+i*14)*Math.PI/180;s+=`<line x1="${x}" y1="${y}" x2="${f(x+Math.cos(a)*26)}" y2="${f(y+Math.sin(a)*30)}" stroke="#5f7a3a" stroke-width="2.4" stroke-linecap="round"/>`}return s}
+function pots(x){return `<path d="M${x},${G} q-9,-10 -4,-22 h8 q5,12 -4,22Z" fill="#c4683a"/><path d="M${x+22},${G} q-8,-9 -4,-19 h7 q5,10 -3,19Z" fill="#b65c33"/>`}
+
+function frame(id,inner){return `<svg viewBox="0 0 1200 440" role="img" aria-labelledby="t-${id}"><title id="t-${id}">Night elevation, option ${id}</title>${inner}</svg>`}
+
+/* ---------- the five elevations ---------- */
+const scenes={
+A(){seed=11;let s=sky()+moon(1010,70)+hedge(-20,1220,165);
+  s+=palm(985,250,-8)+palm(1075,280,6)+palm(1160,230,12);
+  s+=ground();
+  let b=annex(40,220);
+  const t=G-92;
+  b+=`<rect x="260" y="${t}" width="660" height="92" fill="url(#render)"/>`;
+  b+=`<rect x="260" y="${G-30}" width="660" height="30" fill="url(#pebble)"/><rect x="260" y="${G-31}" width="660" height="2" fill="#5a3d20"/>`;
+  b+=`<rect x="470" y="${G-120}" width="250" height="120" fill="url(#render)"/><rect x="470" y="${G-30}" width="250" height="30" fill="url(#pebble)"/>`;
+  b+=`<rect x="260" y="${t}" width="210" height="16" fill="url(#render)"/><rect x="260" y="${t+15}" width="660" height="2" fill="#5a3d20" opacity=".7"/>`;
+  b+=tileEdge(260,t,210)+tileEdge(720,t,200)+tileEdge(470,G-120,250);
+  b+=shutter(290,t+34,30,40)+arch(345,t+26,40,G-30-(t+26))+shutter(410,t+34,30,40);
+  for(let i=0;i<4;i++)b+=arch(490+i*58,G-100,44,70);
+  b+=`<rect x="720" y="${t+18}" width="200" height="${G-30-(t+18)}" fill="#2a1a0e"/>`+glassWall(728,t+22,184,G-30-(t+22)-1,46);
+  b+=`<rect x="716" y="${t+10}" width="212" height="9" fill="url(#timber)"/>`;
+  for(const x of[722,790,858,918])b+=`<rect x="${x}" y="${t+18}" width="7" height="${G-(t+18)}" fill="url(#timber)"/>`;
+  b+=sconceRow(300,900,t+24,150)+flood(595,G-118);
+  s+=`<g id="b-A">${b}</g>`;
+  s+=deck(180,780)+pool('A',200,356,740,26)+yucca(170)+pots(960)+yucca(1110);
+  s+=callout(600,G-128,'new wing: same plinth, render and tile edge',-40)+callout(820,t-12,'shaded terrace',-14)+callout(570,404,'25 m lap pool along the house',22);
+  return frame('A',s)},
+
+B(){seed=23;let s=sky()+moon(150,60)+hedge(-20,1220,170);
+  s+=neighbour(1010,170)+boundaryWall(990,1200,250);
+  s+=palm(420,255,-4)+palm(620,285,5)+palm(820,250,8);
+  s+=ground();
+  let b=annex(10,170,90,false);
+  b+=`<rect x="330" y="${G-104}" width="540" height="104" fill="url(#render)"/>`+tileEdge(330,G-104,540);
+  b+=`<rect x="330" y="${G-86}" width="540" height="86" fill="#21160d"/>`;
+  for(let i=0;i<7;i++){const x=346+i*74;b+=`<rect x="${x-16}" y="${G-86}" width="16" height="86" fill="url(#pebble)"/>`;b+=arch(x+8,G-70,36,70,'url(#warm)','#5b3a1f');}
+  b+=`<rect x="854" y="${G-86}" width="16" height="86" fill="url(#pebble)"/>`;
+  for(let i=0;i<7;i++){const x=346+i*74;b+=`<path d="M${x},${G-86} h58 v${-0} M${x},${G-60} A29,29 0 0 1 ${x+58},${G-60}" stroke="#d9a868" stroke-width="7" fill="none"/>`}
+  b+=`<rect x="330" y="${G-90}" width="540" height="6" fill="url(#render)"/>`;
+  b+=`<rect x="210" y="${G-124}" width="120" height="124" fill="url(#pebble)"/><rect x="210" y="${G-124}" width="120" height="16" fill="url(#render)"/>`+tileEdge(210,G-124,120)+arch(250,G-90,40,62);
+  b+=`<rect x="870" y="${G-124}" width="120" height="124" fill="url(#pebble)"/><rect x="870" y="${G-124}" width="120" height="16" fill="url(#render)"/>`+tileEdge(870,G-124,120);
+  b+=`<rect x="904" y="${G-96}" width="52" height="64" fill="url(#lattice)" stroke="#3b2414" stroke-width="3"/>`;
+  b+=lamp(270,G-114)+lamp(930,G-114)+sconceRow(380,820,G-96,110);
+  s+=`<g id="b-B">${b}</g>`;
+  s+=deck(200,800,350)+pool('B',360,358,480,30)+yucca(330,G+18)+yucca(870,G+18);
+  s+=callout(600,G-110,'riwaq: arched loggia repeats the annex door',-60)+callout(930,G-130,'east wing blinds the neighbour’s view',-20,'middle')+callout(95,G-100,'annex',-14)+callout(600,400,'courtyard pool, sheltered on three sides',24);
+  return frame('B',s)},
+
+C(){seed=37;let s=sky()+moon(1050,55)+hedge(-20,1220,160);
+  s+=ground();
+  let b=annex(20,180,90,false);
+  b+=`<rect x="200" y="${G-74}" width="820" height="7" fill="url(#timber)"/>`;
+  for(let x=210;x<1020;x+=22)b+=`<rect x="${x}" y="${G-80}" width="5" height="6" fill="#5a3a20"/>`;
+  for(const x of[205,440,480,720,760,1012])b+=`<rect x="${x}" y="${G-74}" width="6" height="74" fill="url(#timber)"/>`;
+  function pav(x,w,h){let p=`<rect x="${x}" y="${G-h}" width="${w}" height="${h}" fill="url(#render)"/>`;
+    p+=`<rect x="${x}" y="${G-h}" width="14" height="${h}" fill="url(#pebble)"/><rect x="${x+w-14}" y="${G-h}" width="14" height="${h}" fill="url(#pebble)"/>`;
+    p+=`<polygon points="${x-10},${G-h} ${x+w+10},${G-h} ${x+w-30},${G-h-46} ${x+30},${G-h-46}" fill="url(#roofTiles)"/><rect x="${x-10}" y="${G-h-2}" width="${w+20}" height="4" fill="#3b1a0b"/>`;
+    p+=arch(x+24,G-h+18,w-48,h-18,'url(#glass)','#3a2716');
+    return p+lamp(x+7,G-h+14,18)+lamp(x+w-7,G-h+14,18)}
+  b+=pav(240,180,88)+pav(520,170,84)+pav(800,190,92);
+  s+=`<g id="b-C">${b}</g>`;
+  const shape='M230,356 C300,346 380,350 440,360 C480,368 520,350 580,354 C650,358 690,372 760,362 C820,352 900,350 1000,360 C1030,370 1010,392 960,392 C860,396 760,388 700,392 C600,398 480,384 400,392 C320,398 240,392 222,380 C214,372 214,360 230,356Z';
+  s+=pool('C',214,346,800,52,shape);
+  s+=palm(460,280,-10,1.05)+palm(742,262,8)+palm(1080,290,-6,1.1);
+  s+=callout(330,G-150,'living pavilion',-16)+callout(605,G-146,'kitchen + dining',-20)+callout(895,G-154,'bedrooms',-12)+callout(742,410,'pool curves around the existing palms',20)+callout(110,G-100,'annex',-14);
+  return frame('C',s)},
+
+D(){seed=41;let s=sky()+moon(120,80)+hedge(-20,1220,150);
+  s+=ground();
+  let b=annex(20,180,90,false);
+  b+=`<rect x="240" y="${G-90}" width="160" height="90" fill="url(#pebble)"/>`;
+  b+=`<rect x="400" y="${G-88}" width="360" height="88" fill="#2b1c10"/>`+glassWall(400,G-88,360,88,60);
+  b+=`<rect x="760" y="${G-88}" width="130" height="88" fill="url(#glass)"/>`;
+  for(let x=762;x<890;x+=7)b+=`<rect x="${x}" y="${G-88}" width="3.5" height="88" fill="#5a3a20"/>`;
+  b+=`<rect x="890" y="${G-90}" width="110" height="90" fill="url(#pebble)"/>`;
+  b+=`<rect x="220" y="${G-102}" width="800" height="12" fill="url(#slab)"/><rect x="220" y="${G-91}" width="800" height="2" fill="#4a3c28"/>`;
+  for(let x=430;x<880;x+=60)b+=`<ellipse cx="${x}" cy="${G-86}" rx="22" ry="10" fill="url(#lamp)"/>`;
+  b+=yucca(320,G-1);
+  s+=`<g id="b-D">${b}</g>`;
+  s+=`<rect x="200" y="${G}" width="840" height="10" fill="#8f826b"/>`;
+  s+=pool('D',210,346,820,46);
+  s+=palm(1090,275,-6)+palm(1165,240,8);
+  s+=callout(320,G-112,'pebble end walls tie to the annex',-28)+callout(580,G-112,'glass wall to the lawn',-14)+callout(825,G-112,'timber screen (bedrooms)',-34)+callout(620,410,'mirror pool reflects the house',20)+callout(110,G-100,'annex',-14);
+  return frame('D',s)},
+
+E(){seed=53;let s=sky()+moon(980,60)+hedge(-20,1220,165);
+  s+=palm(1090,285,-6)+palm(1165,235,8);
+  s+=ground();
+  let b=annex(10,170,90,false);
+  const t=G-74;
+  b+=`<rect x="250" y="${t}" width="700" height="74" fill="url(#render)"/><rect x="250" y="${G-24}" width="700" height="24" fill="url(#pebble)"/>`;
+  const segs=[[250,370],[370,490],[660,780],[780,900]];
+  for(const[a,c]of segs){b+=`<path d="M${a},${t} A${(c-a)/2},34 0 0 1 ${c},${t}Z" fill="url(#render)"/><path d="M${a+6},${t} A${(c-a)/2-6},28 0 0 1 ${c-6},${t}" stroke="#7d5a32" fill="none" stroke-width="1.5"/>`;
+    b+=arch(a+20,t+14,32,G-24-(t+14))+arch(c-52,t+14,32,G-24-(t+14))}
+  b+=`<rect x="490" y="${t-26}" width="170" height="${100}" fill="url(#render)"/><path d="M500,${t-26} A75,70 0 0 1 650,${t-26}Z" fill="url(#render)"/>`;
+  for(let i=0;i<5;i++)b+=`<rect x="${532+i*20}" y="${t-60}" width="6" height="12" rx="3" fill="#ffd590"/>`;
+  b+=arch(540,t+4,70,G-24-(t+4)+24,'url(#warm)','#5b3a1f');
+  b+=`<rect x="900" y="${t-110}" width="50" height="110" fill="url(#render)"/><polygon points="896,${t-110} 954,${t-128} 954,${t-104} 896,${t-104}" fill="#a07444"/><rect x="908" y="${t-96}" width="34" height="34" fill="#21160d"/>`;
+  b+=sconceRow(310,880,t+6,95);
+  s+=`<g id="b-E">${b}</g>`;
+  s+=`<rect x="571" y="${G}" width="8" height="24" fill="url(#water)"/>`;
+  s+=deck(240,720,346)+`<rect x="571" y="${G}" width="8" height="18" fill="url(#water)"/>`+pool('E',470,356,210,36);
+  s+=`<g stroke="#e9fffb" fill="none" stroke-width="1.6" opacity=".85"><path d="M575,372 q-14,-40 -32,4"/><path d="M575,372 q14,-40 32,4"/><path d="M575,372 v-34"/></g>`;
+  s+=palm(200,265,6)+yucca(990)+pots(1010);
+  s+=callout(400,t-48,'barrel vaults',-16)+callout(575,t-82,'domed majlis',-14)+callout(925,t-132,'malqaf wind-catcher',-14)+callout(575,412,'square birka pool + rill on the axis',18)+callout(95,G-100,'annex',-14);
+  return frame('E',s)}
+};
+
+/* ---------- site plans (10 px = 1 m; site assumed 60 × 40 m) ---------- */
+const S=10,OX=24,OY=30;
+const R=(x,y,w,h,cls,extra='')=>`<rect x="${OX+x*S}" y="${OY+y*S}" width="${w*S}" height="${h*S}" class="${cls}" ${extra}/>`;
+const T=(x,y,txt,cls='',anchor='middle')=>`<text x="${OX+x*S}" y="${OY+y*S}" class="p-txt ${cls}" text-anchor="${anchor}">${txt}</text>`;
+function palmP(x,y){const cx=OX+x*S,cy=OY+y*S;let s=`<circle cx="${cx}" cy="${cy}" r="16" class="p-palm" stroke-dasharray="2 2"/>`;
+  for(let i=0;i<10;i++){const a=i*Math.PI/5;s+=`<line x1="${cx}" y1="${cy}" x2="${f(cx+Math.cos(a)*14)}" y2="${f(cy+Math.sin(a)*14)}" class="p-palm"/>`}
+  return s+`<circle cx="${cx}" cy="${cy}" r="2.5" class="p-palmc"/>`}
+const PALMS=[[34,6],[40,6.5],[46,6],[52,7]];
+function siteBase(){let s='';
+  s+=R(0,0,60,40,'p-site');
+  s+=R(0,34,60,6,'p-drive')+R(0,0,60,3,'p-hedge')+R(0,0,3,34,'p-hedge');
+  for(let x=2;x<60;x+=4)s+=`<path d="M${OX+x*S},${OY+34*S} l14,22 l-6,18" class="p-mute" opacity=".5"/>`;
+  s+=R(4,27.5,15,5.5,'p-exist');
+  s+=`<line x1="${OX+60*S}" y1="${OY}" x2="${OX+60*S}" y2="${OY+34*S}" class="p-wall"/>`;
+  for(const y of[8,16,24,31])s+=`<circle cx="${OX+60*S-6}" cy="${OY+y*S}" r="3" class="p-lamp"/>`;
+  s+=`<circle cx="${OX+57*S}" cy="${OY+4.5*S}" r="13" class="p-exist"/>`;
+  s+=PALMS.map(p=>palmP(...p)).join('');
+  s+=T(11.5,30.8,'existing annex','b')+T(30,38,'stamped-stone driveway','s')+T(57,8.8,'tank','s')+T(30,1.9,'ficus hedge','s')+T(43,10.3,'date palms','s');
+  s+=`<text x="${OX+61*S+4}" y="${OY+14*S}" class="p-txt s" transform="rotate(90 ${OX+61*S+4} ${OY+14*S})">neighbour villa (overlooks)</text>`;
+  s+=`<g transform="translate(${OX+6},${OY-16})"><line x1="0" y1="0" x2="${10*S}" y2="0" class="p-ink"/><line x1="0" y1="-4" x2="0" y2="4" class="p-ink"/><line x1="${5*S}" y1="-3" x2="${5*S}" y2="3" class="p-ink"/><line x1="${10*S}" y1="-4" x2="${10*S}" y2="4" class="p-ink"/><text x="${10*S+6}" y="4" class="p-txt s">10 m</text></g>`;
+  s+=`<g transform="translate(${OX+60*S-14},${OY-18})"><path d="M0,10 L5,-4 L10,10 L5,6Z" fill="var(--fg)"/><text x="16" y="8" class="p-txt s">N (assumed)</text></g>`;
+  return s}
+function planSvg(id,inner){return `<svg viewBox="0 0 690 470" role="img" aria-labelledby="pt-${id}"><title id="pt-${id}">Site plan, option ${id}</title>${siteBase()}${inner}</svg>`}
+
+const plans={
+A:()=>R(17,15.5,27,11,'p-deck')+R(18,17,25,4,'p-pool')+R(19,26,24,7,'p-new')+R(30,23,10,3,'p-pergola')+T(31,30.5,'new wing','n')+T(30.5,19.6,'lap pool 25 × 4 m','w')+T(35,24.9,'terrace','s'),
+B:()=>R(25,16,17,11,'p-deck')+R(20,27,27,6,'p-new')+R(20,16,5,11,'p-new')+R(42,16,5,11,'p-new')+R(25,24.5,17,2.5,'p-pergola')+R(28,18,11,5,'p-pool')+T(33.5,30.8,'living + kitchen','n')+T(22.5,22,'beds','n')+T(44.5,22,'master','n')+T(33.5,21,'pool 11 × 5 m','w')+T(33.5,26.1,'riwaq','s'),
+C:()=>{const pp=(x,y)=>`${OX+x*S},${OY+y*S}`;
+  return R(19,25.3,36,1.6,'p-pergola')+R(21,27,9,6,'p-new')+R(33,27,8,6,'p-new')+R(45,26,9,7,'p-new')
+  +`<path d="M${pp(29,13)} C${pp(31,10)} ${pp(35,10.5)} ${pp(37,11)} C${pp(40,12)} ${pp(42,10.5)} ${pp(45,11)} C${pp(48,11.5)} ${pp(53,11)} ${pp(55,13)} C${pp(57,16)} ${pp(53,19)} ${pp(48,18.5)} C${pp(43,18)} ${pp(39,20)} ${pp(34,19)} C${pp(30,18.4)} ${pp(27,16)} ${pp(29,13)}Z" class="p-pool"/>`
+  +T(25.5,30.6,'living','n')+T(37,30.6,'dining','n')+T(49.5,30,'beds','n')+T(42,15.6,'free-form pool ≈ 95 m²','w')+T(37,25,'covered walkway','s')},
+D:()=>R(11,5,8,21,'p-deck')+R(4,5,7,21,'p-new')+R(13,6,4,19,'p-pool')+`<text x="${OX+7.6*S}" y="${OY+15.5*S}" class="p-txt n" text-anchor="middle" transform="rotate(-90 ${OX+7.6*S} ${OY+15.5*S})">long house 21 × 7 m</text>`+`<text x="${OX+15.4*S}" y="${OY+15.5*S}" class="p-txt w" text-anchor="middle" transform="rotate(-90 ${OX+15.4*S} ${OY+15.5*S})">mirror / lap pool 19 × 4 m</text>`+T(36,22,'whole lawn stays open','s'),
+E:()=>R(28,12,12,12,'p-deck')+R(20,26,28,7,'p-new')+R(20,24,28,2,'p-pergola')+R(30,14,8,8,'p-pool')+R(33.6,22,.8,2,'p-pool')+`<circle cx="${OX+34*S}" cy="${OY+18*S}" r="4" class="p-palmc"/>`+R(45.5,26.5,2,2,'p-exist')+T(30,30.5,'vaulted rooms + domed majlis','n')+T(34,16.5,'birka 8 × 8 m','w')+T(46.5,25.5,'malqaf','s')
+};
+
+/* ---------- content ---------- */
+const studies=[
+{id:'A',name:'Pebble Line',kicker:'Extend the annex into one long bar',
+ desc:'The simplest and most continuous idea: the new house starts where the annex ends and carries the same pebble base, ochre render and clay tile edge along one line. A 25 m lap pool runs parallel to it, so the house, terrace and pool form three long bands across the lawn with the palms at the far end.',
+ area:'168 m²',pool:'25 × 4 m lap',
+ keeps:['Annex becomes the first room of the house (guest suite or office)','Palms stay as the end view down the pool','Driveway and parking untouched'],
+ adds:['Raised living room with four arched glass doors','Timber-post terrace for afternoon shade'],
+ watch:['A 40 m long façade needs the height change in the middle, or it reads as a barracks','Pool is in full view from the neighbour if their window looks south-west'],
+ tie:'Same materials in a straight line; physically joined',best:'Lowest cost, one-phase build',cost:'$'},
+{id:'B',name:'Riwaq Courtyard',kicker:'A U-shaped house around a private pool',
+ desc:'Three wings wrap a courtyard and open toward the palms. The back wing has a riwaq, a shaded arcade of arches that repeats the annex’s arched door. The east wing is solid pebble with a mashrabiya-style window, built against the side the neighbour looks from.',
+ area:'262 m²',pool:'11 × 5 m',
+ keeps:['Annex stays free-standing as a guest house','Palms become the open fourth side of the courtyard','Hedge stays as the outer screen'],
+ adds:['Arched loggia with deep shade','A pool nobody outside can see'],
+ watch:['Largest floor area, so the highest build cost','The courtyard needs cross-ventilation openings or it traps heat in summer'],
+ tie:'Arches and pebble piers; same tile edge',best:'Privacy and family life around the water',cost:'$$$'},
+{id:'C',name:'Palm Pavilions',kicker:'Three small houses joined by a timber walkway',
+ desc:'Instead of one block, three pavilions with clay-tile hip roofs sit along the driveway side, linked by a covered timber walkway. The pool is free-form and curves in front of the existing date palms, which become its edge planting. You can build one pavilion at a time.',
+ area:'158 m²',pool:'≈ 95 m² free-form',
+ keeps:['Every existing palm stays in place','Scale stays close to the annex, so nothing dominates','The lawn between buildings stays green'],
+ adds:['Phasing: live in pavilion one while building two and three','Three separate roofs matching the annex’s tile'],
+ watch:['Walking between rooms means going outside under the walkway','Pool edge must stay at least 3 m from palm trunks'],
+ tie:'Same tile roof and pebble corners at the annex’s scale',best:'Building in phases on a budget',cost:'$$'},
+{id:'D',name:'Hedge-Edge Modern',kicker:'A flat-roofed glass bar backed into the hedge',
+ desc:'A thin concrete roof slab floats over a glass wall facing the lawn. Pebble end walls connect it to the annex, and a timber slat screen covers the bedrooms. It sits along the west hedge, so the hedge takes the hot afternoon sun and the entire lawn stays open. A long mirror pool reflects the house at night.',
+ area:'147 m²',pool:'19 × 4 m mirror / lap',
+ keeps:['The biggest open lawn of all five options','Hedge acts as the back wall and sun shield','Annex becomes the pool and garden house'],
+ adds:['Floor-to-ceiling views of the palms','Night reflection of the lit house in the pool'],
+ watch:['Contemporary look is the biggest step away from the annex; the pebble walls carry the link','Glass needs deep overhangs or low-E glazing in summer'],
+ tie:'Pebble end walls only; contrast elsewhere',best:'A modern house that still belongs to the garden',cost:'$$'},
+{id:'E',name:'Vaulted Long House',kicker:'Egyptian vernacular: vaults, a dome and a wind-catcher',
+ desc:'A row of barrel-vaulted rooms in the tradition of Hassan Fathy, with a domed majlis (sitting room) at the centre and a malqaf wind-catcher at one end to pull cool air through the house. A square birka pool with a fountain sits on the dome’s axis, fed by a narrow rill.',
+ area:'196 m²',pool:'8 × 8 m birka + rill',
+ keeps:['Ochre render and pebble base carried through','Palms frame the central axis','Arched openings everywhere, like the annex door'],
+ adds:['Passive cooling from thick walls, vaults and the malqaf','A formal garden axis from dome to pool'],
+ watch:['Vaults and domes need a builder who has done them before','Smaller pool is for cooling off and looking at more than for swimming laps'],
+ tie:'Ochre, pebble and arches as a family; the most rooted in place',best:'A cool house in summer and a strong local identity',cost:'$$'}
+];
+
+const main=document.getElementById('studies'),nav=document.getElementById('jump'),tb=document.querySelector('#compare tbody');
+for(const st of studies){
+  nav.insertAdjacentHTML('beforeend',`<a href="#option-${st.id.toLowerCase()}"><b>${st.id}</b>${st.name}</a>`);
+  const li=a=>a.map(x=>`<li>${x}</li>`).join('');
+  main.insertAdjacentHTML('beforeend',`<section class="study" id="option-${st.id.toLowerCase()}">
+   <div class="study-head"><div class="eyebrow">Option ${st.id} · ${st.kicker}</div><h2>${st.name}</h2></div>
+   <div class="scene">${scenes[st.id]()}</div>
+   <div class="cols">
+     <div class="plan">${planSvg(st.id,plans[st.id]())}</div>
+     <div class="notes">
+       <p>${st.desc}</p>
+       <div class="figs"><div class="fig"><div class="n">${st.area}</div><div class="l">new built area (approx.)</div></div>
+         <div class="fig"><div class="n">${st.pool}</div><div class="l">pool</div></div>
+         <div class="fig"><div class="n">${st.cost}</div><div class="l">relative cost</div></div></div>
+       <div><h4>Keeps</h4><ul>${li(st.keeps)}</ul></div>
+       <div><h4>Gains</h4><ul>${li(st.adds)}</ul></div>
+       <div><h4>Watch for</h4><ul>${li(st.watch)}</ul></div>
+     </div>
+   </div></section>`);
+  tb.insertAdjacentHTML('beforeend',`<tr><td><span class="tag">${st.id}</span>${st.name}</td><td class="num">${st.area}</td><td class="num">${st.pool}</td><td>${st.tie}</td><td>${st.best}</td><td class="num">${st.cost}</td></tr>`);
+}
+</script>

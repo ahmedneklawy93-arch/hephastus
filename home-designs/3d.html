@@ -56,11 +56,11 @@ button b{font-family:var(--mono);font-weight:500;margin-right:5px}
   <p id="desc"></p>
   <div class="row">
     <div class="grp" role="group" aria-label="Camera view"><span class="lbl">View</span>
-      <button id="v-aerial">Aerial</button><button id="v-palms">From the palms</button><button id="v-drive">From the driveway</button><button id="v-top">Top-down</button></div>
+      <button id="v-aerial">Aerial</button><button id="v-palms">From the palms</button><button id="v-drive">From the gate</button><button id="v-top">Top-down</button></div>
     <div class="grp" role="group" aria-label="Time of day"><span class="lbl">Light</span>
       <button id="m-day" aria-pressed="true">Day</button><button id="m-night" aria-pressed="false">Night</button></div>
   </div>
-  <div class="hint">Drag to orbit · scroll or pinch to zoom · right-drag or two-finger drag to pan. Existing: annex, palms, hedge, wall, tank. Everything else is new.</div>
+  <div class="hint">Drag to orbit · scroll or pinch to zoom · right-drag or two-finger drag to pan. Existing: annex, palms, hedges, walls, gate, driveway, tank. Everything else is new.</div>
 </div></div>
 <div id="err" hidden><p>The 3D viewer could not load its graphics library. Check your connection and reload the page.</p></div>
 
@@ -185,12 +185,15 @@ function palm(p,x,y,h){const g=new THREE.Group();const tr=new THREE.Mesh(new THR
 const site=new THREE.Group();scene.add(site);
 const outside=new THREE.Mesh(new THREE.PlaneGeometry(260,260),M.outside);outside.rotation.x=-Math.PI/2;outside.position.y=-.03;outside.receiveShadow=true;site.add(outside);
 const lawn=new THREE.Mesh(new THREE.PlaneGeometry(60,40),M.grass);lawn.rotation.x=-Math.PI/2;lawn.receiveShadow=true;site.add(lawn);
-box(site,0,34,60,6,.03,M.drive,0,5);
+box(site,0,34,60,4.8,.03,M.drive,0,5);box(site,8,33,9,1,.03,M.drive,0,5);
+// south boundary wall with the entrance gate at the east end, low hedge along it
+box(site,-.35,40,54.35,.35,3,M.render);box(site,59,40,1.35,.35,3,M.render);box(site,53.6,39.9,.4,.55,3.3,M.pebble);box(site,59,39.9,.4,.55,3.3,M.pebble);box(site,54,40.05,5,.12,2.4,M.timber);
+for(const x of[20,30,40])lampBulb(site,x,39.6,2.3);
 // hedge (north + west), 5–6 m tall ficus
 box(site,.4,.4,59.2,2.2,4.6,M.hedgeCore);box(site,.4,2.6,2.2,31,4.6,M.hedgeCore);
-(()=>{const N=1100,geo=new THREE.IcosahedronGeometry(1,1),im=new THREE.InstancedMesh(geo,M.hedge,N),d=new THREE.Object3D(),col=new THREE.Color();
-  for(let i=0;i<N;i++){let x,y;if(i<760){x=rnd()*60;y=rnd()*3}else{x=rnd()*3;y=3+rnd()*31}
-    const s=.8+rnd()*.9;d.position.set(x-30,.6+rnd()*4.6+(i%7===0?.6:0),y-20);d.scale.set(s,s*(.8+rnd()*.4),s);d.rotation.set(rnd()*3,rnd()*3,0);d.updateMatrix();im.setMatrixAt(i,d.matrix);
+(()=>{const N=1420,geo=new THREE.IcosahedronGeometry(1,1),im=new THREE.InstancedMesh(geo,M.hedge,N),d=new THREE.Object3D(),col=new THREE.Color();
+  for(let i=0;i<N;i++){let x,y;if(i<760){x=rnd()*60;y=rnd()*3}else if(i<1100){x=rnd()*3;y=3+rnd()*31}else{x=rnd()*53;y=39+rnd()*.8}
+    const low=i>=1100,s=low?.55+rnd()*.4:.8+rnd()*.9;d.position.set(x-30,low?.4+rnd()*1.8:.6+rnd()*4.6+(i%7===0?.6:0),y-20);d.scale.set(s,s*(.8+rnd()*.4),s);d.rotation.set(rnd()*3,rnd()*3,0);d.updateMatrix();im.setMatrixAt(i,d.matrix);
     col.setHSL(.24+rnd()*.06,.45+rnd()*.15,.16+rnd()*.12);im.setColorAt(i,col)}
   im.castShadow=im.receiveShadow=true;site.add(im)})();
 // boundary walls
@@ -204,7 +207,7 @@ box(site,62.5,3,13,18,7.2,M.villa);box(site,62,2.5,14,19,.3,M.white,7.2);box(sit
 for(const [y,z] of[[6,1.4],[12,1.4],[6,4.8],[12,4.8],[17,4.8]])opening(site,'w',62.5,y,1.6,1.8,'glassrect',z);
 // existing annex: pebble walls, ochre fascia, clay tile edge, arched timber door
 block(site,4,27.5,15,5.5,3.2,{all:M.pebble,fascia:.55});
-opening(site,'n',27.5,8,1.1,1.3,'shutter',1.1);opening(site,'n',27.5,12.5,1.15,2.35,'arch');opening(site,'n',27.5,16,1.1,1.3,'shutter',1.1);
+opening(site,'n',27.5,8,1.1,1.3,'shutter',1.1);opening(site,'s',33,12.5,1.15,2.35,'arch');opening(site,'n',27.5,12.5,1.1,1.3,'shutter',1.1);opening(site,'s',33,7.5,1.1,1.3,'shutter',1.1);opening(site,'n',27.5,16,1.1,1.3,'shutter',1.1);
 opening(site,'e',19,30.2,1.1,1.3,'shutter',1.1);
 const flood=new THREE.SpotLight(0xfff1d6,0,30,.75,.6,1.5);flood.position.set(10.5-30,3,27.3-20);flood.target.position.set(10.5-30,0,18-20);flood.userData.night=6;site.add(flood,flood.target);
 // date palms (keep)
@@ -304,7 +307,7 @@ let lastView='aerial',tween=null;
 function view(kind,animate=true){lastView=kind;const [fx,fy]=OPT[current].focus,t=new THREE.Vector3(fx-30,1.2,fy-20);let pos;
   if(kind==='aerial')pos=new THREE.Vector3(fx-30+22,26,fy-20-34);
   if(kind==='palms'){pos=new THREE.Vector3(43-30,1.7,9.5-20);t.y=1.8}
-  if(kind==='drive'){pos=new THREE.Vector3(fx-30-6,1.7,38-20);t.set(fx-30,2,fy-20-8)}
+  if(kind==='drive'){pos=new THREE.Vector3(57-30,1.7,36.4-20);t.set(12.5-30,1.6,34-20)}
   if(kind==='top'){pos=new THREE.Vector3(0.01,78,6);t.set(0,0,0)}
   for(const k of['aerial','palms','drive','top'])document.getElementById('v-'+k).setAttribute('aria-pressed',String(k===kind));
   if(!animate||reduceMotion){camera.position.copy(pos);controls.target.copy(t);controls.update();tween=null;return}

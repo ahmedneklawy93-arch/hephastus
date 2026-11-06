@@ -391,14 +391,15 @@ function palmP(x,y){const cx=OX+x*S,cy=OY+y*S;let s=`<circle cx="${cx}" cy="${cy
 const PALMS=[[34,6],[40,6.5],[46,6],[52,7]];
 function siteBase(){let s='';
   s+=R(0,0,60,40,'p-site');
-  s+=R(0,34,60,6,'p-drive')+R(0,0,60,3,'p-hedge')+R(0,0,3,34,'p-hedge');
+  s+=R(0,34,60,4.8,'p-drive')+R(8,33,9,1,'p-drive')+R(0,38.8,53.6,1.2,'p-hedge')+R(0,0,60,3,'p-hedge')+R(0,0,3,34,'p-hedge');
+  s+=`<line x1="${OX+53.8*S}" y1="${OY+40*S}" x2="${OX+59.2*S}" y2="${OY+40*S}" stroke="var(--accent)" stroke-width="5"/>`+T(56.5,42.6,'gate','n');
   for(let x=2;x<60;x+=4)s+=`<path d="M${OX+x*S},${OY+34*S} l14,22 l-6,18" class="p-mute" opacity=".5"/>`;
   s+=R(4,27.5,15,5.5,'p-exist');
   s+=`<line x1="${OX+60*S}" y1="${OY}" x2="${OX+60*S}" y2="${OY+34*S}" class="p-wall"/>`;
   for(const y of[8,16,24,31])s+=`<circle cx="${OX+60*S-6}" cy="${OY+y*S}" r="3" class="p-lamp"/>`;
   s+=`<circle cx="${OX+57*S}" cy="${OY+4.5*S}" r="13" class="p-exist"/>`;
   s+=PALMS.map(p=>palmP(...p)).join('');
-  s+=T(11.5,30.8,'existing annex','b')+T(30,38,'stamped-stone driveway','s')+T(57,8.8,'tank','s')+T(30,1.9,'ficus hedge','s')+T(43,10.3,'date palms','s');
+  s+=T(11.5,30.8,'existing annex','b')+T(36,37,'stamped-stone driveway: gate → annex door','s')+T(57,8.8,'tank','s')+T(30,1.9,'ficus hedge','s')+T(43,10.3,'date palms','s');
   s+=`<text x="${OX+61*S+4}" y="${OY+14*S}" class="p-txt s" transform="rotate(90 ${OX+61*S+4} ${OY+14*S})">neighbour villa (overlooks)</text>`;
   s+=`<g transform="translate(${OX+6},${OY-16})"><line x1="0" y1="0" x2="${10*S}" y2="0" class="p-ink"/><line x1="0" y1="-4" x2="0" y2="4" class="p-ink"/><line x1="${5*S}" y1="-3" x2="${5*S}" y2="3" class="p-ink"/><line x1="${10*S}" y1="-4" x2="${10*S}" y2="4" class="p-ink"/><text x="${10*S+6}" y="4" class="p-txt s">10 m</text></g>`;
   s+=`<g transform="translate(${OX+60*S-14},${OY-18})"><path d="M0,10 L5,-4 L10,10 L5,6Z" fill="var(--fg)"/><text x="16" y="8" class="p-txt s">N (assumed)</text></g>`;

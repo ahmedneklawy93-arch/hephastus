@@ -2,7 +2,8 @@
 .harnessed/
 node_modules/
 .wrangler/
-.claude/
+.claude/*
+!.claude/skills/
 .lore/
 /.impeccable/
 __pycache__/

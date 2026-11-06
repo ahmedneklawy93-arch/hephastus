@@ -298,7 +298,7 @@ A(){seed=11;let s=sky()+moon(1010,70)+hedge(-20,1220,165);
   b+=sconceRow(300,900,t+24,150)+flood(595,G-118);
   s+=`<g id="b-A">${b}</g>`;
   s+=deck(180,780)+pool('A',200,356,740,26)+yucca(170)+pots(960)+yucca(1110);
-  s+=callout(600,G-128,'new wing: same plinth, render and tile edge',-40)+callout(820,t-12,'shaded terrace',-14)+callout(570,404,'18 m lap pool along the house',22);
+  s+=callout(600,G-128,'new wing: same plinth, render and tile edge',-40)+callout(820,t-12,'shaded terrace',-14)+callout(570,404,'19 m lap pool along the house',22);
   return frame('A',s)},
 
 B(){seed=23;let s=sky()+moon(150,60)+hedge(-20,1220,170);
@@ -388,22 +388,23 @@ const T=(x,y,txt,cls='',anchor='middle')=>`<text x="${OX+x*S}" y="${OY+y*S}" cla
 function palmP(x,y){const cx=OX+x*S,cy=OY+y*S;let s=`<circle cx="${cx}" cy="${cy}" r="16" class="p-palm" stroke-dasharray="2 2"/>`;
   for(let i=0;i<10;i++){const a=i*Math.PI/5;s+=`<line x1="${cx}" y1="${cy}" x2="${f(cx+Math.cos(a)*14)}" y2="${f(cy+Math.sin(a)*14)}" class="p-palm"/>`}
   return s+`<circle cx="${cx}" cy="${cy}" r="2.5" class="p-palmc"/>`}
-const PALMS=[[34,6],[40,6.5],[46,6],[52,7]];
+
 function vtext(x,y,txt,cls){return `<text x="${OX+x*S}" y="${OY+y*S}" class="p-txt ${cls}" text-anchor="middle" transform="rotate(-90 ${OX+x*S} ${OY+y*S})">${txt}</text>`}
+const PALMS=[[54,11],[53,17],[54,23],[53,29]];
 function siteBase(){let s='';
   s+=R(0,0,60,40,'p-site');
-  s+=R(8.5,34,51.5,5,'p-drive')+R(8.5,31.5,6,8,'p-drive')+R(0,0,60,3,'p-hedge')+R(0,3,2.6,21,'p-hedge')+R(15,39.1,44,.8,'p-hedge');
-  for(let x=10;x<59;x+=4)s+=`<path d="M${OX+x*S},${OY+34*S} l14,20 l-6,16" class="p-mute" opacity=".5"/>`;
-  s+=R(3,24.5,5.5,15,'p-exist')+vtext(5.9,32,'existing annex','b');
-  s+=`<path d="M${OX+8.5*S},${OY+35.8*S} a14,14 0 0 1 14,14" class="p-ink"/>`;
-  s+=`<line x1="${OX+60*S}" y1="${OY}" x2="${OX+60*S}" y2="${OY+33.6*S}" class="p-wall"/><line x1="${OX}" y1="${OY+40*S}" x2="${OX+60*S}" y2="${OY+40*S}" class="p-wall"/>`;
-  s+=`<line x1="${OX+60*S}" y1="${OY+33.8*S}" x2="${OX+60*S}" y2="${OY+39.2*S}" stroke="var(--accent)" stroke-width="6"/>`+`<text x="${OX+60*S+8}" y="${OY+37*S}" class="p-txt n">gate</text>`;
-  s+=`<path d="M${OX+56*S},${OY+36.5*S} H${OX+16*S}" class="p-ink" stroke-dasharray="4 4" marker-end="url(#arr)"/>`;
-  for(const y of[6,13,20,27])s+=`<circle cx="${OX+60*S-6}" cy="${OY+y*S}" r="3" class="p-lamp"/>`;
+  s+=R(.6,8.5,5,31.5,'p-drive')+R(.6,8.5,9,4.5,'p-drive')+R(0,0,60,3,'p-hedge')+R(7,37.4,53,2.6,'p-hedge')+R(0,13,.6,26,'p-hedge');
+  for(let y=11;y<39;y+=4)s+=`<path d="M${OX+.6*S},${OY+y*S} l20,14 l16,-6" class="p-mute" opacity=".5"/>`;
+  s+=R(1,3,15,5.5,'p-exist')+T(8.5,6.3,'existing annex','b');
+  s+=`<path d="M${OX+3.7*S},${OY+8.5*S} a12,12 0 0 1 -12,12" class="p-ink"/>`;
+  s+=`<line x1="${OX}" y1="${OY}" x2="${OX}" y2="${OY+40*S}" class="p-wall"/><line x1="${OX+60*S}" y1="${OY}" x2="${OX+60*S}" y2="${OY+40*S}" class="p-wall"/><line x1="${OX+5.6*S}" y1="${OY+40*S}" x2="${OX+60*S}" y2="${OY+40*S}" class="p-wall"/>`;
+  s+=`<line x1="${OX+.6*S}" y1="${OY+40*S}" x2="${OX+5.4*S}" y2="${OY+40*S}" stroke="var(--accent)" stroke-width="6"/>`+T(3,42.6,'gate','n');
+  s+=`<path d="M${OX+3.1*S},${OY+37.5*S} V${OY+11*S}" class="p-ink" stroke-dasharray="4 4" marker-end="url(#arr)"/>`;
+  for(const y of[8,16,24,32])s+=`<circle cx="${OX+60*S-6}" cy="${OY+y*S}" r="3" class="p-lamp"/>`;
   s+=`<circle cx="${OX+57*S}" cy="${OY+4.5*S}" r="13" class="p-exist"/>`;
   s+=PALMS.map(p=>palmP(...p)).join('');
-  s+=T(36,38.2,'driveway: gate → annex door (wall on your left)','s')+T(57,8.8,'tank','s')+T(30,1.9,'ficus hedge','s')+T(43,10.3,'date palms','s')+T(36,32.8,'land on your right as you enter','s');
-  s+=`<text x="${OX+61*S+4}" y="${OY+8*S}" class="p-txt s" transform="rotate(90 ${OX+61*S+4} ${OY+8*S})">neighbour villa</text>`;
+  s+=vtext(4.9,26,'driveway: gate → annex door','s')+vtext(-.7,26,'wall on your left','s')+T(57,8.8,'tank','s')+T(30,1.9,'ficus hedge','s')+vtext(50.6,20,'date palms','s')+T(33,38.9,'ficus hedge','s')+T(14,30,'land on your right as you enter','s');
+  s+=`<text x="${OX+61*S+4}" y="${OY+14*S}" class="p-txt s" transform="rotate(90 ${OX+61*S+4} ${OY+14*S})">neighbour villa</text>`;
   s+=`<defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10Z" fill="var(--fg)"/></marker></defs>`;
   s+=`<g transform="translate(${OX+6},${OY-16})"><line x1="0" y1="0" x2="${10*S}" y2="0" class="p-ink"/><line x1="0" y1="-4" x2="0" y2="4" class="p-ink"/><line x1="${5*S}" y1="-3" x2="${5*S}" y2="3" class="p-ink"/><line x1="${10*S}" y1="-4" x2="${10*S}" y2="4" class="p-ink"/><text x="${10*S+6}" y="4" class="p-txt s">10 m</text></g>`;
   s+=`<g transform="translate(${OX+60*S-14},${OY-18})"><path d="M0,10 L5,-4 L10,10 L5,6Z" fill="var(--fg)"/><text x="16" y="8" class="p-txt s">N (assumed)</text></g>`;
@@ -411,49 +412,49 @@ function siteBase(){let s='';
 function planSvg(id,inner){return `<svg viewBox="0 0 700 470" role="img" aria-labelledby="pt-${id}"><title id="pt-${id}">Site plan, option ${id}</title>${siteBase()}${inner}</svg>`}
 
 const plans={
-A:()=>R(10,5,9.5,19.5,'p-deck')+R(14,6,4,17.5,'p-pool')+R(3,6,7,18.5,'p-new')+R(10,19.2,3,5,'p-pergola')+vtext(6.9,15,'new wing 18.5 × 7 m','n')+vtext(16.4,14.7,'lap pool 18 × 4 m','w')+T(11.5,18.6,'terrace','s'),
-B:()=>R(11.5,10,9,9.5,'p-deck')+R(3,5,6,19.5,'p-new')+R(9,5,11,5,'p-new')+R(9,19.5,11,5,'p-new')+R(9,10,2.5,9.5,'p-pergola')+R(13,11.5,6,6.5,'p-pool')+vtext(6.4,14.7,'living + kitchen','n')+T(14.5,8,'master','n')+T(14.5,22.5,'beds','n')+T(16,15,'pool','w')+vtext(10.6,14.7,'riwaq','s'),
+A:()=>R(15.5,10,22.5,10,'p-deck')+R(17,15,19,4,'p-pool')+R(16,3,20,7,'p-new')+R(30,10,5.5,3,'p-pergola')+T(26,6.8,'new wing 20 × 7 m','n')+T(26.5,17.6,'lap pool 19 × 4 m','w')+T(32.7,11.9,'terrace','s'),
+B:()=>R(21,11.5,10,8.5,'p-deck')+R(16,3,20,6,'p-new')+R(16,9,5,10,'p-new')+R(31,9,5,10,'p-new')+R(21,9,10,2.5,'p-pergola')+R(22.5,13,7,6,'p-pool')+T(26,6.3,'living + kitchen','n')+vtext(18.8,14,'beds','n')+vtext(33.8,14,'master','n')+T(26,16.4,'pool 7 × 6 m','w')+T(26,10.6,'riwaq','s'),
 C:()=>{const pp=(x,y)=>`${OX+x*S},${OY+y*S}`;
-  return R(10.2,4,1.6,20.5,'p-pergola')+R(3,16.5,7,7,'p-new')+R(3,6,7,7,'p-new')+R(12.5,3.5,8,6,'p-new')
-  +`<path d="M${pp(17,13)} C${pp(19,10)} ${pp(23,10.5)} ${pp(25,11)} C${pp(28,12)} ${pp(30,10.5)} ${pp(33,11)} C${pp(36,11.5)} ${pp(41,11)} ${pp(43,13)} C${pp(45,16)} ${pp(41,19)} ${pp(36,18.5)} C${pp(31,18)} ${pp(27,20)} ${pp(22,19)} C${pp(18,18.4)} ${pp(15,16)} ${pp(17,13)}Z" class="p-pool"/>`
-  +T(6.5,20.4,'living','n')+T(6.5,9.9,'dining','n')+T(16.5,7,'beds','n')+T(30,15.6,'free-form pool ≈ 95 m²','w')+vtext(11,15,'covered walkway','s')},
-D:()=>R(9.5,5,8.5,19.5,'p-deck')+R(3,5,7,19.5,'p-new')+R(12,6,4,17.5,'p-pool')+vtext(6.6,14.7,'long house 19.5 × 7 m','n')+vtext(14.4,14.7,'mirror / lap pool 17.5 × 4 m','w')+T(36,22,'whole lawn stays open','s'),
-E:()=>R(12,11.5,13,10,'p-deck')+R(3,5,7,19.5,'p-new')+R(10,5,2,8.3,'p-pergola')+R(10,19.7,2,4.8,'p-pergola')+R(16,12.5,8,8,'p-pool')+R(12,16.1,4,.8,'p-pool')+`<circle cx="${OX+20*S}" cy="${OY+16.5*S}" r="4" class="p-palmc"/>`+R(3.5,5.4,2,2,'p-exist')+vtext(7.2,15.5,'vaults + domed majlis','n')+T(20,22.7,'birka 8 × 8 m','w')+T(4.5,4.6,'malqaf','s')
+  return R(16,10.2,29,1.6,'p-pergola')+R(17,3,7,7,'p-new')+R(27,3,7,7,'p-new')+R(37,4,7,6,'p-new')
+  +`<path d="M${pp(19,18)} C${pp(21,15)} ${pp(25,15.5)} ${pp(27,16)} C${pp(30,17)} ${pp(32,15.5)} ${pp(35,16)} C${pp(38,16.5)} ${pp(43,16)} ${pp(45,18)} C${pp(47,21)} ${pp(43,24)} ${pp(38,23.5)} C${pp(33,23)} ${pp(29,25)} ${pp(24,24)} C${pp(20,23.4)} ${pp(17,21)} ${pp(19,18)}Z" class="p-pool"/>`
+  +T(20.5,6.8,'living','n')+T(30.5,6.8,'dining','n')+T(40.5,7.3,'beds','n')+T(32,20.6,'free-form pool ≈ 95 m²','w')+T(30.5,13.3,'covered walkway','s')},
+D:()=>R(16,9.5,20,8.5,'p-deck')+R(16,3,20,7,'p-new')+R(17,12,18,4,'p-pool')+T(26,6.8,'long house 20 × 7 m','n')+T(26,14.6,'mirror / lap pool 18 × 4 m','w')+T(30,28,'whole lawn stays open','s'),
+E:()=>R(22,12,11,13,'p-deck')+R(16,3,20,7,'p-new')+R(16,10,8.3,2,'p-pergola')+R(30.7,10,5.3,2,'p-pergola')+R(23.5,16,8,8,'p-pool')+R(27.1,12,.8,4,'p-pool')+`<circle cx="${OX+27.5*S}" cy="${OY+20*S}" r="4" class="p-palmc"/>`+R(33.6,3.4,2,2,'p-exist')+T(25,7.2,'vaults + domed majlis','n')+T(27.5,25.9,'birka 8 × 8 m','w')+T(34.6,2.9,'malqaf','s')
 };
 
 /* ---------- content ---------- */
 const studies=[
 {id:'A',name:'Pebble Line',kicker:'Extend the annex into one long bar',
- desc:'The simplest and most continuous idea: the new house starts where the annex ends and carries the same pebble base, ochre render and clay tile edge along one line. It runs north along the west wall on the annex’s right side, and an 18 m lap pool runs parallel to it, so house, terrace and pool form three long bands facing the lawn and the palms.',
- area:'130 m²',pool:'18 × 4 m lap',
+ desc:'The simplest and most continuous idea: the new house starts where the annex ends and carries the same pebble base, ochre render and clay tile edge along one line. It runs east along the north edge on the annex’s right side, and a 19 m lap pool runs parallel to it, so house, terrace and pool form three long bands facing the lawn and the palms.',
+ area:'140 m²',pool:'19 × 4 m lap',
  keeps:['Annex becomes the first room of the house (guest suite or office)','Palms stay as the end view down the pool','Driveway and parking untouched'],
  adds:['Raised living room with four arched glass doors','Timber-post terrace for afternoon shade'],
  watch:['A 40 m long façade needs the height change in the middle, or it reads as a barracks','Pool is in full view from the neighbour if their window looks south-west'],
  tie:'Same materials in a straight line; physically joined',best:'Lowest cost, one-phase build',cost:'$'},
 {id:'B',name:'Riwaq Courtyard',kicker:'A U-shaped house around a private pool',
- desc:'Three wings wrap a courtyard and open toward the palms. The back wing has a riwaq, a shaded arcade of arches that repeats the annex’s arched door. The back wing runs along the west wall beside the annex; the solid pebble north wing has a mashrabiya-style window.',
- area:'227 m²',pool:'6 × 6.5 m',
- keeps:['Annex sits at the end of the back wing as a guest suite','Courtyard opens east to the lawn and palms','Hedge stays as the outer screen'],
+ desc:'Three wings wrap a courtyard and open toward the palms. The back wing has a riwaq, a shaded arcade of arches that repeats the annex’s arched door. The back wing runs along the north edge beside the annex; the solid pebble east wing faces the palms and has a mashrabiya-style window.',
+ area:'220 m²',pool:'7 × 6 m',
+ keeps:['Annex sits at the end of the back wing as a guest suite','Courtyard opens south to the lawn','Hedge stays as the outer screen'],
  adds:['Arched loggia with deep shade','A pool nobody outside can see'],
  watch:['Largest floor area, so the highest build cost','The courtyard needs cross-ventilation openings or it traps heat in summer'],
  tie:'Arches and pebble piers; same tile edge',best:'Privacy and family life around the water',cost:'$$$'},
 {id:'C',name:'Palm Pavilions',kicker:'Three small houses joined by a timber walkway',
- desc:'Instead of one block, three pavilions with clay-tile roofs step north from the annex along the west wall, linked by a covered timber walkway. The free-form pool sits out on the lawn in front of the date palms. You can build one pavilion at a time.',
- area:'146 m²',pool:'≈ 95 m² free-form',
+ desc:'Instead of one block, three pavilions with clay-tile roofs step east from the annex along the north edge, linked by a covered timber walkway. The free-form pool curves across the lawn toward the date palms. You can build one pavilion at a time.',
+ area:'140 m²',pool:'≈ 95 m² free-form',
  keeps:['Every existing palm stays in place','Scale stays close to the annex, so nothing dominates','The lawn between buildings stays green'],
  adds:['Phasing: live in pavilion one while building two and three','Three separate roofs matching the annex’s tile'],
  watch:['Walking between rooms means going outside under the walkway','Pool edge must stay at least 3 m from palm trunks'],
  tie:'Same tile roof and pebble corners at the annex’s scale',best:'Building in phases on a budget',cost:'$$'},
 {id:'D',name:'Hedge-Edge Modern',kicker:'A flat-roofed glass bar backed into the hedge',
- desc:'A thin concrete roof slab floats over a glass wall facing the lawn. Pebble end walls connect it to the annex, and a timber slat screen covers the bedrooms. It sits along the west wall right next to the annex, so the wall and hedge take the hot afternoon sun and the entire lawn stays open. A long mirror pool reflects the house at night.',
- area:'137 m²',pool:'17.5 × 4 m mirror / lap',
+ desc:'A thin concrete roof slab floats over a glass wall facing the lawn. Pebble end walls connect it to the annex, and a timber slat screen covers the bedrooms. It sits along the north hedge right next to the annex, facing south over the lawn, and most of the lawn stays open. A long mirror pool reflects the house at night.',
+ area:'140 m²',pool:'18 × 4 m mirror / lap',
  keeps:['The biggest open lawn of all five options','Hedge acts as the back wall and sun shield','Annex becomes the pool and garden house'],
  adds:['Floor-to-ceiling views of the palms','Night reflection of the lit house in the pool'],
  watch:['Contemporary look is the biggest step away from the annex; the pebble walls carry the link','Glass needs deep overhangs or low-E glazing in summer'],
  tie:'Pebble end walls only; contrast elsewhere',best:'A modern house that still belongs to the garden',cost:'$$'},
 {id:'E',name:'Vaulted Long House',kicker:'Egyptian vernacular: vaults, a dome and a wind-catcher',
- desc:'A row of barrel-vaulted rooms in the tradition of Hassan Fathy, running north from the annex along the west wall, with a domed majlis (sitting room) at the centre and a malqaf wind-catcher at one end to pull cool air through the house. A square birka pool with a fountain sits on the dome’s axis, fed by a narrow rill.',
- area:'137 m² + riwaq',pool:'8 × 8 m birka + rill',
+ desc:'A row of barrel-vaulted rooms in the tradition of Hassan Fathy, running east from the annex along the north edge, with a domed majlis (sitting room) at the centre and a malqaf wind-catcher at one end to pull cool air through the house. A square birka pool with a fountain sits on the dome’s axis, fed by a narrow rill.',
+ area:'140 m² + riwaq',pool:'8 × 8 m birka + rill',
  keeps:['Ochre render and pebble base carried through','Palms frame the central axis','Arched openings everywhere, like the annex door'],
  adds:['Passive cooling from thick walls, vaults and the malqaf','A formal garden axis from dome to pool'],
  watch:['Vaults and domes need a builder who has done them before','Smaller pool is for cooling off and looking at more than for swimming laps'],

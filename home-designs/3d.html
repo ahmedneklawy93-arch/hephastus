@@ -667,6 +667,109 @@ Object.assign(META,{
 });
 Object.assign(FOOT,{K:[115,59],L:[96,59],M:[123,49],N:[98,57],O:[115,45]});
 
+/* ---------- the house styles: a fresh set drawn at the real size of the plot ----------
+   Template coordinates: the house sits between x 16 and 35 (19 m) along the north edge, front facing
+   south at about y 10; pools and terraces stay between y 11 and 23. placeOpt() slides it next to
+   the 10 × 8 m building and updateLink() joins the two. */
+TX.cladding=ctex(128,(g,s)=>{for(let x=0;x<s;x+=12){g.fillStyle=['#b98a5a','#a97a4c','#c49668','#b08050'][(x/12)%4];g.fillRect(x,0,12,s);g.fillStyle='rgba(60,35,15,.45)';g.fillRect(x+11,0,1,s)}});
+TX.batten=ctex(128,(g,s)=>{g.fillStyle='#f4f2ec';g.fillRect(0,0,s,s);g.fillStyle='#d9d5cb';for(let x=0;x<s;x+=16)g.fillRect(x,0,3,s)});
+TX.seam=ctex(64,(g,s)=>{g.fillStyle='#3d4247';g.fillRect(0,0,s,s);g.fillStyle='#5a6067';for(let x=0;x<s;x+=16)g.fillRect(x,0,2,s)});
+Object.assign(M,{limestone:std({map:TX.render,color:0xfff2dc,roughness:.9}),trav:std({color:0xe6d9bf,roughness:.85}),clad:std({map:TX.cladding,roughness:.8}),
+  batten:std({map:TX.batten,roughness:.85}),metal:std({map:TX.seam,roughness:.45,metalness:.5,side:THREE.DoubleSide}),cypress:std({color:0x2a4226,roughness:1,flatShading:true})});
+for(const k of['limestone','trav','clad','batten','metal','cypress'])M[k].name=k;
+Object.assign(NAMES,{limestone:'Limestone wall',trav:'Travertine',clad:'Timber cladding',batten:'Board-and-batten wall',metal:'Standing-seam metal roof',cypress:'Cypress'});
+function gableRoof(p,x,y,w,d,h,o,mat,base,wallMat){const x0=x-o,x1=x+w+o,y0=y-o,y1=y+d+o,z=base,Z=base+h,ym=(y0+y1)/2;
+  const A=[x0,y0,z],B=[x1,y0,z],C=[x1,y1,z],D=[x0,y1,z],E=[x0,ym,Z],F=[x1,ym,Z];const m=meshFromTris([[A,F,B],[A,E,F],[D,C,F],[D,F,E]],mat);p.add(m);
+  if(wallMat){const zb=z+o*h/(d/2+o);p.add(meshFromTris([[[x,y,zb],[x,y+d,zb],[x,ym,Z-.03]],[[x+w,y,zb],[x+w,y+d,zb],[x+w,ym,Z-.03]]],wallMat))}return m}
+gableRoof=wrapUnit(gableRoof,'Gabled roof');
+function cypress(p,x,y,s=1){const c=new THREE.Mesh(new THREE.ConeGeometry(.55*s,4.6*s,9),M.cypress);c.position.set(x-30,2.5*s,y-20);c.castShadow=true;p.add(c);const t=new THREE.Mesh(new THREE.CylinderGeometry(.08,.1,.4,6),M.trunk);t.position.set(x-30,.2,y-20);p.add(t)}
+cypress=wrapUnit(cypress,'Cypress',true);
+function column(p,x,y,h,r=.2,mat=M.stucco){const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r*1.1,h,14),mat);c.position.set(x-30,h/2,y-20);c.castShadow=c.receiveShadow=true;p.add(c);return c}
+function vaultsY(p,x0,x1,n,yA,yB,base,rise,mat){const w=(x1-x0)/n;for(let i=0;i<n;i++){const r=w/2,inner=new THREE.Mesh(new THREE.CylinderGeometry(r,r,yB-yA,24,1,false,Math.PI/2,Math.PI),mat);
+  inner.rotation.x=Math.PI/2;inner.castShadow=true;const g=new THREE.Group();g.add(inner);g.scale.y=rise/r;g.position.set(x0+w*(i+.5)-30,base,(yA+yB)/2-20);p.add(g)}}
+for(const k in OPT)delete OPT[k];for(const k in META)delete META[k];for(const k in FOOT)delete FOOT[k];
+Object.assign(OPT,{
+A:{name:'Mashrabiya Courtyard House',focus:[25.5,11],
+ desc:'A contemporary Egyptian courtyard house in warm limestone. A long north wing and two short wings wrap a shaded court with a fountain and two olive-green trees; big timber mashrabiya screens filter the sun on every glass wall. The pool lies beyond the court, on the garden side.',
+ build(p){deck(p,16,8.5,19,6.5);pool(p,18.5,17,14,4,.45,M.water,M.trav);deck(p,17.5,15.5,16,7);
+  box(p,16,3,19,5.5,3.6,M.limestone,0,2);box(p,16,8.5,5,6.5,3.6,M.limestone,0,2);box(p,30,8.5,5,6.5,3.6,M.limestone,0,2);
+  for(const [x0,w] of[[16,19]])box(p,x0-.1,2.9,w+.2,.3,.35,M.trav,3.6);box(p,15.9,8.4,5.2,6.7,.3,M.trav,3.6);box(p,29.9,8.4,5.2,6.7,.3,M.trav,3.6);
+  opening(p,'s',8.5,25.5,6,2.6,'glassrect');opening(p,'s',8.52,25.5,6.6,3,'lattice');
+  opening(p,'e',21,11.8,3.6,2.6,'glassrect');opening(p,'e',21.02,11.8,4,2.9,'lattice');opening(p,'w',30,11.8,3.6,2.6,'glassrect');opening(p,'w',29.98,11.8,4,2.9,'lattice');
+  opening(p,'s',15,18.5,2.4,2.4,'lattice',.4);opening(p,'s',15,32.5,2.4,2.4,'lattice',.4);
+  box(p,24.5,10.8,2,2,.45,M.trav);box(p,24.8,11.1,1.4,1.4,.05,M.water,.44);citrus(p,22.7,13.6,.9);citrus(p,28.3,13.6,.9);
+  pointLight(p,25.5,11.5,2.8,0xffc78a,6);pointLight(p,25.5,18,1.2,0xffb45c,2)}},
+B:{name:'Contemporary Vault House',focus:[25.5,10],
+ desc:'Hassan Fathy’s vaults redrawn in clean white: four shallow concrete barrel vaults run front to back, each ending in a tall arched glass wall set deep under the vault for shade. A slatted wind tower pulls cool air through the house; a long pool and a shaded seating pergola face the garden.',
+ build(p){deck(p,15.5,10,20,8.5);pool(p,18,13.2,14,3.6,.4,M.water,M.trav);
+  box(p,16,3,19,7,3.1,M.white,0,2);vaultsY(p,16,35,4,3,10,3.1,1.5,M.white);
+  for(let i=0;i<4;i++){const cx=16+4.75*(i+.5);box(p,cx-2.375,9.8,.25,.6,3.1,M.white);opening(p,'s',10.1,cx,3.6,3.9,'glass')}box(p,34.75,9.8,.25,.6,3.1,M.white);
+  box(p,33,3.4,2,2,6.6,M.white,0,2);opening(p,'s',5.4,34,1.4,2,'lattice',4.2);box(p,32.85,3.25,2.3,2.3,.2,M.white,6.6);
+  pergola(p,28.5,17.5,5.5,3,2.6,'x');
+  pointLight(p,21,10.8,2.8,0xffc78a,5);pointLight(p,30,10.8,2.8,0xffc78a,5)}},
+C:{name:'Linear Stone Pavilion',focus:[25.5,10],
+ desc:'A long, low contemporary pavilion: a thin white roof slab floats over full-height glass, held between two solid travertine volumes. A timber soffit and a long reflecting lap pool double the house at night; an outdoor kitchen block anchors the terrace.',
+ build(p){deck(p,15.5,9.6,20,9);pool(p,17.5,12.8,16,3.6,.35,M.waterDark,M.trav);
+  box(p,16,3,4,7,3.3,M.trav,0,1.2);box(p,31,3,4,7,3.3,M.trav,0,1.2);box(p,20,3,11,6.4,3.3,M.white);box(p,20,9.4,11,.1,3.3,M.glass);
+  for(let x=20;x<=31.01;x+=2.2)box(p,x,9.45,.06,.12,3.3,M.frame);
+  box(p,15.2,2.2,20.6,9.6,.28,M.white,3.3);box(p,15.4,2.4,20.2,9.2,.05,M.timber,3.27);
+  box(p,32,17.2,3,1,.95,M.trav);for(const x of[21,25,29])lampBulb(p,x,10.6,3.22);
+  pointLight(p,22,10.4,2.6,0xffc78a,5);pointLight(p,29,10.4,2.6,0xffc78a,5)}},
+D:{name:'Offset Cubes',focus:[25.5,10],
+ desc:'Three single-storey cubes stepped in plan and height: white-rendered bedrooms either side of a taller living cube clad in warm timber. Glass corners open each room to the garden, a cantilevered canopy marks the entrance and a sunken terrace leads down to the pool.',
+ build(p){deck(p,16,10.5,19,8);pool(p,19,13.4,12,3.8,.4,M.water,M.trav);
+  box(p,16,3,8,7,3.3,M.white,0,2);box(p,24,2.6,6,6.6,4.3,M.clad,0,2);box(p,30,3.8,5,6.7,3.2,M.white,0,2);
+  box(p,22.2,9.95,1.8,.1,3.1,M.glass);box(p,16.2,9.95,3,.1,2.6,M.glass);box(p,24.4,9.15,5.2,.1,3.9,M.glass);box(p,33,10.45,2,.1,2.8,M.glass);
+  box(p,24.5,9.2,5,2.6,.2,M.white,3.4);for(const x of[24.7,29.1])box(p,x,11.5,.12,.12,3.4,M.steel);
+  pointLight(p,27,10.8,2.8,0xffc78a,5);pointLight(p,19,10.6,2.4,0xffc78a,3)}},
+E:{name:'Andalusian Patio Villa',focus:[25.5,11],
+ desc:'A Mediterranean villa in the Andalusian tradition: whitewashed walls under hipped terracotta roofs, an arcade of round arches shading the garden front, a small patio with a tiled fountain and orange trees, dark iron-framed windows and bougainvillea climbing the white walls.',
+ build(p){deck(p,19,11,16,9);pool(p,22,15,11,4,.5,M.water,M.roof);
+  box(p,16,3,19,6,3.5,M.lime,0,2);hipRoof(p,16,3,19,6,1.7,.55,M.roof,3.5,1);box(p,16,9,4,6,3.3,M.lime,0,2);hipRoof(p,16,9,4,6,1.5,.5,M.roof,3.3,0);
+  arcade(p,20,11,15,3,6,1.6,2.4);slopedSlab(p,19.8,15.4,9,3.45,11.3,3.05,.12,M.roof);
+  for(const x of[22.5,25,27.5,30,32.5])opening(p,'s',9,x,1,1.6,'shutter',.9);opening(p,'s',15,18,1.2,2.3,'arch');
+  box(p,17,16.5,2,2,.5,M.zellige);citrus(p,16.8,20,.7);citrus(p,19.3,20,.7);bougainvillea(p,20.4,15.1,2.2);
+  pointLight(p,27.5,10,2.6,0xffb45c,6);pointLight(p,18,16,2.4,0xffb45c,3)}},
+F:{name:'Classic Arcade Villa',focus:[25.5,11],
+ desc:'A symmetrical classical villa: a taller central hall with a hipped terracotta roof between two lower wings, a colonnade of slim stuccoed columns across the whole front, and an axial pool framed by cypress trees. Calm, formal and timeless.',
+ build(p){deck(p,16,11.6,19,3.4);pool(p,22.5,15.6,6,7.5,.5,M.water,M.trav);deck(p,21,15,9,8.6);
+  box(p,22,3,7,7.5,4.3,M.stucco,0,2);hipRoof(p,22,3,7,7.5,2,.5,M.roof,4.3,0);
+  box(p,16,3,6,6.5,3.4,M.stucco,0,2);box(p,29,3,6,6.5,3.4,M.stucco,0,2);hipRoof(p,16,3,6,6.5,1.5,.45,M.roof,3.4,.3);hipRoof(p,29,3,6,6.5,1.5,.45,M.roof,3.4,.3);
+  for(let x=16.4;x<=34.7;x+=2.28)column(p,x,11.7,3.1,.2);box(p,16,11.45,19,.5,.35,M.stucco,3.1);box(p,16,9.4,19,2.6,.18,M.stucco,3.3);
+  opening(p,'s',10.5,25.5,1.8,3,'arch');for(const x of[18,20,31,33])opening(p,'s',9.5,x,1,2.2,'glassrect');
+  for(const y of[15.5,19,22.5]){cypress(p,20.4,y,.9);cypress(p,30.6,y,.9)}
+  pointLight(p,25.5,11,3,0xffb45c,6);pointLight(p,19,11,2.6,0xffb45c,3)}},
+G:{name:'Modern Farmhouse',focus:[24,10],
+ desc:'A modern farmhouse: white board-and-batten walls under dark standing-seam metal gables, a timber porch along the whole garden front, a timber-clad barn wing for storage and tools, and solar panels laid into the south roof slope. Built for the farming plan around it.',
+ build(p){deck(p,16,10,14,2);pool(p,18,15,12,4,.45,M.water,M.stone);
+  box(p,16,3,14,7,3.1,M.batten,0,2);gableRoof(p,16,3,14,7,2.7,.5,M.metal,3.1-.5*2.7/4,M.batten);
+  box(p,30,4,5,6,2.9,M.clad,0,2);gableRoof(p,30,4,5,6,1.9,.4,M.metal,2.9-.4*1.9/3.4,M.clad);
+  for(let x=16.2;x<=30;x+=2.75)box(p,x,11.7,.18,.18,2.7,M.timber);slopedSlab(p,15.9,14.3,9.9,3.05,12.2,2.65,.1,M.metal);
+  slopedSlab(p,17,11.5,10.1,3.32,7,5.33,.05,M.pv);
+  opening(p,'s',10,21,1.4,2.3,'glassrect');opening(p,'s',10,23,1.4,2.3,'glassrect');for(const x of[18,26.5,28.5])opening(p,'s',10,x,1.1,1.5,'glassrect',.8);opening(p,'s',10,32.5,2.4,2.4,'rect');
+  pointLight(p,22,11,2.5,0xffc78a,5);pointLight(p,28,11,2.5,0xffc78a,3)}},
+H:{name:'Courtyard Eco House',focus:[25.5,11],
+ desc:'An eco house built around food: rammed-earth wings with planted green roofs wrap a glass-roofed growing court with vegetable beds inside, a solar pergola shades the terrace, and a natural swimming pond is cleaned by plants instead of chemicals.',
+ build(p){deck(p,24,14.5,11,4);freePool(p,[[18,18],[20,15.6,24,15.4,27,16],[29.5,16.6,31,18.5,30,20.6],[28.6,22.6,23,23,20,22.2],[17.6,21.4,16.8,19.4,18,18]],24,19.2,M.waterGreen,M.rock);
+  box(p,16,3,19,4.5,3.2,M.earth,0,1.2);box(p,16,7.5,4,6.5,3.2,M.earth,0,1.2);box(p,31,7.5,4,6.5,3.2,M.earth,0,1.2);
+  for(const [x,y,w,d] of[[16,3,19,4.5],[16,7.5,4,6.5],[31,7.5,4,6.5]])box(p,x+.1,y+.1,w-.2,d-.2,.15,M.grass,3.2,3);
+  box(p,20,7.5,11,6.5,.06,M.poly,3.05);box(p,20,13.9,11,.1,3.05,M.poly);for(const x of[21.5,24.5,27.5])box(p,x,8.3,1.5,5,.4,M.soil);
+  opening(p,'s',7.5,25.5,4,2.4,'glassrect');opening(p,'e',20,10.7,3,2.4,'glassrect');opening(p,'w',31,10.7,3,2.4,'glassrect');
+  for(const [x,y] of[[24.4,14.7],[34.6,14.7],[24.4,18.3],[34.6,18.3]])box(p,x,y,.12,.12,2.6,M.steel);box(p,24.2,14.5,10.6,4,.06,M.pv,2.62);
+  pointLight(p,25.5,10.7,2.6,0xffc78a,5);pointLight(p,29.5,16.5,2.3,0xffc78a,3)}}
+});
+Object.assign(META,{
+ A:{family:'Modern Egyptian',style:'Contemporary courtyard',pal:['#efe2c6','#7a5230','#e6d9bf','#35bdb6'],mat:'Limestone render, timber mashrabiya screens, travertine, fountain court',why:'The court and screens cut glare and heat while keeping privacy, the way Cairo’s old houses did.'},
+ B:{family:'Modern Egyptian',style:'Modern Fathy vaults',pal:['#f2efe8','#e6d9bf','#8fa6ae','#35bdb6'],mat:'White concrete vaults, deep arched glass, slatted wind tower',why:'Vaults shed heat upward, deep reveals shade the glass and the wind tower draws air through the rooms.'},
+ C:{family:'Contemporary',style:'Linear pavilion',pal:['#f2efe8','#e6d9bf','#7a5230','#2b4a52'],mat:'Travertine, glass, thin white roof slab, timber soffit',why:'A deep roof overhang shades the glass; solid stone ends hold the cool.'},
+ D:{family:'Contemporary',style:'Stepped cubes',pal:['#f2efe8','#b98a5a','#8fa6ae','#e6d9bf'],mat:'White render, timber cladding, glass corners, steel canopy',why:'Breaking the house into cubes gives every room two aspects for cross-ventilation.'},
+ E:{family:'Mediterranean',style:'Andalusian villa',pal:['#f6f4ee','#b0522a','#1f7a73','#d6337a'],mat:'Whitewash, terracotta hipped roofs, arcade, zellige, iron windows',why:'White walls reflect heat and the arcade shades the whole garden front.'},
+ F:{family:'Mediterranean',style:'Classic villa',pal:['#fff4e0','#b0522a','#2a4226','#e6d9bf'],mat:'Stucco, terracotta roofs, colonnade, travertine, cypress',why:'A deep colonnade and thick walls keep the main rooms shaded and cool.'},
+ G:{family:'Eco & farmhouse',style:'Modern farmhouse',pal:['#f4f2ec','#3d4247','#b98a5a','#16233a'],mat:'Board-and-batten, standing-seam metal, timber porch, roof solar',why:'Light walls, a metal roof that sheds heat, a deep porch and solar built into the roof.'},
+ H:{family:'Eco & farmhouse',style:'Eco courtyard',pal:['#c58a58','#5d7a33','#f4f6f2','#9ff0cc'],mat:'Rammed earth, green roofs, greenhouse court, solar pergola, natural pond',why:'Earth walls and green roofs cut heat; the court grows food and the pond needs no chemicals.'}
+});
+Object.assign(FOOT,{A:[170,56],B:[133,50],C:[133,58],D:[137,46],E:[138,44],F:[124,45],G:[128,48],H:[155,65]});
+
 /* ---------- additions: power, water and farming elements you can place ---------- */
 TX.pv=ctex(128,(g,s)=>{g.fillStyle='#16233a';g.fillRect(0,0,s,s);g.strokeStyle='#4f6382';g.lineWidth=1;for(let x=0;x<=s;x+=s/6){g.beginPath();g.moveTo(x,0);g.lineTo(x,s);g.stroke()}for(let y=0;y<=s;y+=s/10){g.beginPath();g.moveTo(0,y);g.lineTo(s,y);g.stroke()}g.strokeStyle='#c9d2de';g.lineWidth=3;g.strokeRect(1.5,1.5,s-3,s-3)});
 TX.pv.repeat.set(4,1);
@@ -728,7 +831,7 @@ const addG=new THREE.Group();addG.userData.adds=true;scene.add(addG);
 /* ---------- UI + state ---------- */
 let current=null,night=false,optGroup=null,tool='nav',disp='tex',sel=null,selBox=null;
 const $=id=>document.getElementById(id);
-const IDS=Object.keys(OPT),FAMS=['Egyptian & Mediterranean','Asian','Other styles'];
+const IDS=Object.keys(OPT),FAMS=['Modern Egyptian','Contemporary','Mediterranean','Eco & farmhouse'];
 const f1=v=>(Math.round(v*10)/10).toFixed(1);
 
 /* label the existing site so it can be inspected */
@@ -814,7 +917,7 @@ const fmt=n=>Math.round(n).toLocaleString('en-US');
 function renderLand(){if(!current)return;const S={kwp:0,kwhSave:0,kwhGen:0,kwh:0,water:0,veg:0,fruit:0,eggs:0,honey:0,fish:0,gas:0,farm:0,power:0,n:0};
   for(const g of addG.children){const it=ITEMS[g.userData.item];if(!it||g.userData.userHidden)continue;S.n++;for(const [k,v] of Object.entries(it.stat))if(k!=='farm')S[k]+=v;
     const onRoof=g.position.y>.5;if(it.cat==='Farming')S.farm+=it.stat.farm||it.w*it.d;else if(!onRoof)S.power+=it.w*it.d}
-  const kk=(optGroup?optGroup.scale.x:.82)/.82,house=FOOT[current][0]*kk,poolA=FOOT[current][1]*kk,PLOT=SW*SD,ANNEX=ANNEX_L*ANNEX_D,DRIVE=4.4*(SD-3-ANNEX_D)+4.6*4.5,HEDGE=Math.round(SW*2.4+(SW-7)*1.6);
+  const kk=optGroup?optGroup.scale.x:1,house=FOOT[current][0]*kk,poolA=FOOT[current][1]*kk,PLOT=SW*SD,ANNEX=ANNEX_L*ANNEX_D,DRIVE=4.4*(SD-3-ANNEX_D)+4.6*4.5,HEDGE=Math.round(SW*2.4+(SW-7)*1.6);
   const garden=Math.max(0,PLOT-ANNEX-house-poolA-DRIVE-HEDGE-S.farm-S.power);
   const pvGen=S.kwp*1750,gen=pvGen+S.kwhGen+S.kwhSave,demand=Math.round((ANNEX+house)*55+2000),cover=Math.min(100,gen/demand*100);
   const irrigation=Math.round(S.farm*.8+garden*.6);
@@ -915,7 +1018,7 @@ function placeOpt(){if(!optGroup)return;optGroup.scale.x=1;optGroup.position.x=0
   const P=1+ANNEX_L+LINK_W,xmin=bb.min.x+30,xmax=bb.max.x+30,k=Math.max(.35,Math.min(1,(SW-EAST_SETBACK-P)/(xmax-xmin)));
   optGroup.scale.x=k;optGroup.position.x=P-30-(xmin-30)*k;Object.assign(optGroup.userData,{P,xmin,k});optGroup.updateMatrixWorld(true);updateLink()}
 /* every style is joined to the existing building by a glazed link built in that style's wall material */
-const EAST_SETBACK=1.5,LINK_W=2.5,LINKMAT={A:'render',B:'render',C:'render',D:'pebble',E:'render',F:'yakisugi',G:'concrete',H:'timber',I:'riad',J:'white',K:'nubian',L:'lime',M:'stucco',N:'white',O:'earth'};
+const EAST_SETBACK=1.5,LINK_W=2.5,LINKMAT={A:'limestone',B:'white',C:'trav',D:'white',E:'lime',F:'stucco',G:'batten',H:'earth'};
 const linkG=new THREE.Group();scene.add(linkG);
 function updateLink(){while(linkG.children.length){const o=linkG.children[0];linkG.remove(o);o.traverse(c=>{if(c.geometry&&c.geometry!==FROND)c.geometry.dispose()})}
   if(!optGroup)return;const hb=houseBox();if(!isFinite(hb.min.x))return;
@@ -949,7 +1052,7 @@ function updateDims(){clearDims();const on=$('ly-dims').checked;dimG.visible=on;
 ['ly-dims'].forEach(k=>$(k).addEventListener('change',updateDims));
 $('annex-l').value=ANNEX_L;$('annex-lv').textContent=f1(ANNEX_L)+' × '+f1(ANNEX_AREA/ANNEX_L)+' m';
 $('annex-l').addEventListener('input',e=>{ANNEX_L=+e.target.value;$('annex-lv').textContent=f1(ANNEX_L)+' × '+f1(ANNEX_AREA/ANNEX_L)+' m';try{localStorage.setItem('pg-annex-l2',String(ANNEX_L))}catch(err){}
-  clearSel();buildAnnex();markRoofs(annexUnit);placeOpt();markRoofs(optGroup);applyDisplay();applyLayers();updateDims();renderLand();{const kk=optGroup.scale.x/.82;$('ofigs').textContent=`≈ ${Math.round(FOOT[current][0]*kk)} m² new house · ≈ ${Math.round(FOOT[current][1]*kk)} m² pool · fitted into the ${f1(SW-1-ANNEX_L)} m beside the annex`}});
+  clearSel();buildAnnex();markRoofs(annexUnit);placeOpt();markRoofs(optGroup);applyDisplay();applyLayers();updateDims();renderLand();{const kk=optGroup.scale.x;$('ofigs').textContent=`≈ ${Math.round(FOOT[current][0]*kk)} m² new house · ≈ ${Math.round(FOOT[current][1]*kk)} m² pool · fitted into the ${f1(SW-1-ANNEX_L)} m beside the annex`}});
 
 /* option switching */
 function select(id,animate){if(current===id)return;current=id;clearSel();
@@ -957,7 +1060,7 @@ function select(id,animate){if(current===id)return;current=id;clearSel();
   seed=99;optGroup=new THREE.Group();OPT[id].build(optGroup);placeOpt();scene.add(optGroup);markRoofs(optGroup);
   for(const k of IDS){const b=$('o-'+k);b.setAttribute('aria-pressed',String(k===id));if(k===id&&!document.body.classList.contains('clean'))b.scrollIntoView({block:'nearest',inline:'nearest'})}
   const m=META[id];$('ofam').textContent=`${id} · ${m.family} · ${m.style}`;$('oname').textContent=OPT[id].name;
-  {const kk=optGroup.scale.x/.82;$('ofigs').textContent=`≈ ${Math.round(FOOT[id][0]*kk)} m² new house · ≈ ${Math.round(FOOT[id][1]*kk)} m² pool · fitted into the ${f1(SW-1-ANNEX_L)} m beside the annex`}$('desc').textContent=OPT[id].desc;
+  {const kk=optGroup.scale.x;$('ofigs').textContent=`≈ ${Math.round(FOOT[id][0]*kk)} m² new house · ≈ ${Math.round(FOOT[id][1]*kk)} m² pool · fitted into the ${f1(SW-1-ANNEX_L)} m beside the annex`}$('desc').textContent=OPT[id].desc;
   $('sw').innerHTML=m.pal.map(c=>`<span style="background:${c}" title="${c}"></span>`).join('');$('omat').textContent=m.mat;$('owhy').textContent=m.why;
   applyDisplay();applyLayers();renderLand();updateDims();view(lastView,animate)}
 

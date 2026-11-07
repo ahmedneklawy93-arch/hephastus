@@ -179,7 +179,7 @@ body:not(.clean) #showui{display:none}
   <div id="details">
     <div class="tabs" role="tablist"><button role="tab" id="tab-design" aria-selected="true" aria-controls="pane-design">Design</button><button role="tab" id="tab-land" aria-selected="false" aria-controls="pane-land">Land &amp; energy</button></div>
     <div id="pane-land" role="tabpanel" hidden>
-      <div class="kv slider"><label for="annex-l">Existing annex (80 m²) length</label><input type="range" id="annex-l" min="10" max="24" step="0.5" value="19"><b id="annex-lv">19.0 m</b></div>
+      <div class="kv slider"><label for="annex-l">Existing annex (80 m²) length</label><input type="range" id="annex-l" min="8" max="20" step="0.5" value="10"><b id="annex-lv">19.0 m</b></div>
       <div id="land"></div></div>
     <div id="pane-design" role="tabpanel">
     <div class="figs" id="ofigs"></div>
@@ -409,7 +409,6 @@ const site=new THREE.Group();scene.add(site);
 const outside=new THREE.Mesh(new THREE.PlaneGeometry(260,260),M.outside);outside.rotation.x=-Math.PI/2;outside.position.y=-.03;outside.receiveShadow=true;site.add(outside);
 TX.grass.repeat.set(8.5,8.25);
 const lawn=new THREE.Mesh(new THREE.PlaneGeometry(SW,SD),M.grass);lawn.rotation.x=-Math.PI/2;lawn.position.set(SW/2-30,0,SD/2-20);lawn.receiveShadow=true;site.add(lawn);
-box(site,.6,8.5,4.4,SD-8.5,.03,M.drive,0,5);box(site,.6,8.5,9,4.5,.03,M.drive,0,5);
 // boundary walls; the gate is in the south wall at the end of the driveway
 box(site,-.35,-.35,SW+.7,.35,3,M.render);box(site,-.35,0,.35,SD,3,M.render);box(site,SW,0,.35,SD,3,M.render);
 box(site,-.35,SD,.95,.35,3,M.render);box(site,5.6,SD,SW-5.25,.35,3,M.render);
@@ -430,14 +429,19 @@ box(site,6.4,28.6,2.4,1.8,1.4,M.timber);box(site,6.2,28.4,2.8,2.2,.12,M.timber,1
 box(site,SW+2.5,6,12,16,7.2,M.villa);box(site,SW+2,5.5,13,17,.3,M.white,7.2);box(site,SW+2,10,1,8,.15,M.white,3.6);
 for(const [y,z] of[[9,1.4],[15,1.4],[9,4.8],[15,4.8],[19,4.8]])opening(site,'w',SW+2.5,y,1.6,1.8,'glassrect',z);
 // existing annex at the end of the driveway, arched door facing the gate
-const ANNEX_AREA=80;let ANNEX_L=19,ANNEX_D=ANNEX_AREA/19;try{const v=+localStorage.getItem('pg-annex-l');if(v>=10&&v<=24)ANNEX_L=v}catch(e){}
+const ANNEX_AREA=80;let ANNEX_L=10,ANNEX_D=8;try{const v=+localStorage.getItem('pg-annex-l2');if(v>=8&&v<=20)ANNEX_L=v}catch(e){}
+let driveG=null;
 let annexUnit=null;
 function buildAnnex(){if(annexUnit){site.remove(annexUnit);annexUnit.traverse(o=>{if(o.geometry&&o.geometry!==FROND)o.geometry.dispose()})}
   ANNEX_D=ANNEX_AREA/ANNEX_L;const g=new THREE.Group();g.userData.label='Existing annex';site.add(g);block(g,1,3,ANNEX_L,ANNEX_D,3.2,{all:M.pebble,fascia:.55});
   const y=3+ANNEX_D;opening(g,'s',y,3.1,1.15,2.35,'arch');for(let x=7.5;x<ANNEX_L-.5;x+=4.5)opening(g,'s',y,x,1.1,1.3,'shutter',1.1);
-  g.traverse(o=>{o.userData.existing=true});annexUnit=g;return g}
+  g.traverse(o=>{o.userData.existing=true});annexUnit=g;
+  if(driveG){site.remove(driveG);driveG.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
+  driveG=new THREE.Group();driveG.userData.label='Driveway (stamped stone)';driveG.userData.ground=true;driveG.userData.existing=true;site.add(driveG);
+  box(driveG,.6,3+ANNEX_D,4.4,SD-3-ANNEX_D,.03,M.drive,0,5);box(driveG,.6,3+ANNEX_D,9,4.5,.03,M.drive,0,5);driveG.traverse(o=>{o.userData.ground=true;o.userData.existing=true});
+  return g}
 buildAnnex();
-const flood=new THREE.SpotLight(0xfff1d6,0,34,.7,.6,1.5);flood.position.set(3.1-30,3,8.8-20);flood.target.position.set(3.1-30,0,22-20);flood.userData.night=6;site.add(flood,flood.target);
+const flood=new THREE.SpotLight(0xfff1d6,0,34,.7,.6,1.5);flood.position.set(3.1-30,3,3+ANNEX_D+.3-20);flood.target.position.set(3.1-30,0,22-20);flood.userData.night=6;site.add(flood,flood.target);
 // date palms (keep), a row along the south hedge
 const PALMS=[[11.5,29.2,8.6],[17.5,29.6,9.6],[23.5,29.2,8.2],[29.5,29.6,9.2]];
 PALMS.forEach(([x,y,h])=>palm(site,x,y,h));
@@ -716,9 +720,9 @@ const ITEMS={
 };
 /* the optimised plan: [item, plan x, plan y, height, rotation] — annex roof for solar, the strip between the
    driveway and the house for food, the carport over the driveway, small livestock by the south hedge */
-const OPTIMAL=[['pv',4.5,5.75,3.2,0],['pv',9.6,5.75,3.2,0],['swh',14.2,5.75,3.2,0],['carport',2.8,24.6,0,0],['battery',15.3,8.9,0,0],['grey',13.6,9.8,0,0],
- ['bed',7.2,15.5,0,0],['bed',9,15.5,0,0],['bed',10.8,15.5,0,0],['bed',12.6,15.5,0,0],['herbs',9.9,18.6,0,0],['greenhouse',9.8,22.6,0,0],
- ['citrus',14.4,21.4,0,0],['citrus',14.4,25,0,0],['coop',14.4,29.8,0,0],['compost',9.9,26.9,0,0],['bees',32.4,27.4,0,0]];
+const OPTIMAL=[['pv',3.6,5,3.2,0],['pv',8.4,5,3.2,0],['pv',3.6,8.6,3.2,0],['swh',8.6,8.8,3.2,0],['carport',2.8,25.2,0,0],['battery',10.6,11.4,0,0],['grey',12.3,13.9,0,0],
+ ['bed',7.2,18,0,0],['bed',9,18,0,0],['bed',10.8,18,0,0],['bed',12.6,18,0,0],['herbs',9.9,21,0,0],['greenhouse',9.8,25,0,0],
+ ['citrus',14.5,26.6,0,0],['citrus',20.5,26.6,0,0],['coop',26.5,26.9,0,0],['compost',14.5,30.4,0,0],['bees',32.4,27.4,0,0]];
 const addG=new THREE.Group();addG.userData.adds=true;scene.add(addG);
 
 /* ---------- UI + state ---------- */
@@ -764,7 +768,7 @@ function applyMode(){
 
 /* display modes: materials, clay, wireframe */
 const CLAY=new THREE.MeshStandardMaterial({color:0xece8df,roughness:.95,side:THREE.DoubleSide}),WIRE=new THREE.MeshBasicMaterial({color:0x2d3b42,wireframe:true});
-function applyDisplay(){for(const root of[site,optGroup,addG])if(root)root.traverse(o=>{if(!o.isMesh)return;if(!o.userData.mat0)o.userData.mat0=o.material;
+function applyDisplay(){for(const root of[site,optGroup,addG,linkG])if(root)root.traverse(o=>{if(!o.isMesh)return;if(!o.userData.mat0)o.userData.mat0=o.material;
     o.material=disp==='tex'?o.userData.mat0:disp==='clay'?(o.userData.ground&&o!==lawn?o.userData.mat0:CLAY):WIRE});
   document.querySelectorAll('[data-disp]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.disp===disp)));applyMode()}
 document.querySelectorAll('[data-disp]').forEach(b=>b.onclick=()=>{disp=b.dataset.disp;applyDisplay()});
@@ -779,7 +783,7 @@ function applyLayers(){const L=k=>$('ly-'+k).checked;
   const vis=o=>!o.userData.userHidden&&!(o.userData.veg&&!L('veg'))&&!(o.userData.isRoof&&!L('roof'));
   site.traverse(o=>{if(o===site||o.isLight)return;if(o.parent===site&&!o.userData.ground&&!L('site')){o.visible=false;return}o.visible=vis(o)});
   if(optGroup){optGroup.visible=L('new');optGroup.traverse(o=>{if(o!==optGroup&&!o.isLight)o.visible=vis(o)})}
-  addG.visible=L('add');addG.traverse(o=>{if(o!==addG&&!o.isLight)o.visible=vis(o)});
+  linkG.visible=L('new');addG.visible=L('add');addG.traverse(o=>{if(o!==addG&&!o.isLight)o.visible=vis(o)});
   grid.visible=L('grid')}
 ['new','site','roof','veg','grid','add'].forEach(k=>$('ly-'+k).onchange=applyLayers);
 $('ly-unhide').onclick=()=>{for(const r of[site,optGroup,addG])r.traverse(o=>{delete o.userData.userHidden});applyLayers()};
@@ -801,7 +805,7 @@ let placeType=null;
 function startPlace(k){placeType=k;setTool('place');$('hint-t').textContent=`Tap the garden or a roof to place: ${ITEMS[k].name}`}
 function addItem(t,px,py,h=0,r=0){const it=ITEMS[t];if(!it)return null;const g=new THREE.Group();g.userData.label=it.name;g.userData.item=t;it.build(g);
   g.position.set(px-30,h,py-20);g.rotation.y=r;addG.add(g);return g}
-function saveAdds(){try{localStorage.setItem('pg-add-v1',JSON.stringify(addG.children.map(g=>[g.userData.item,+(g.position.x+30).toFixed(2),+(g.position.z+20).toFixed(2),+g.position.y.toFixed(2),+g.rotation.y.toFixed(3)])))}catch(e){}}
+function saveAdds(){try{localStorage.setItem('pg-add-v2',JSON.stringify(addG.children.map(g=>[g.userData.item,+(g.position.x+30).toFixed(2),+(g.position.z+20).toFixed(2),+g.position.y.toFixed(2),+g.rotation.y.toFixed(3)])))}catch(e){}}
 function clearAdds(){clearSel();while(addG.children.length){const g=addG.children[0];addG.remove(g);g.traverse(o=>{if(o.geometry&&o.geometry!==FROND)o.geometry.dispose()})}}
 function loadAdds(list){clearAdds();for(const a of list)addItem(...a);applyDisplay();applyLayers();renderLand()}
 function optimise(){loadAdds(OPTIMAL);saveAdds();showTab('land')}
@@ -810,7 +814,7 @@ const fmt=n=>Math.round(n).toLocaleString('en-US');
 function renderLand(){if(!current)return;const S={kwp:0,kwhSave:0,kwhGen:0,kwh:0,water:0,veg:0,fruit:0,eggs:0,honey:0,fish:0,gas:0,farm:0,power:0,n:0};
   for(const g of addG.children){const it=ITEMS[g.userData.item];if(!it||g.userData.userHidden)continue;S.n++;for(const [k,v] of Object.entries(it.stat))if(k!=='farm')S[k]+=v;
     const onRoof=g.position.y>.5;if(it.cat==='Farming')S.farm+=it.stat.farm||it.w*it.d;else if(!onRoof)S.power+=it.w*it.d}
-  const kk=(optGroup?optGroup.scale.x:.82)/.82,house=FOOT[current][0]*kk,poolA=FOOT[current][1]*kk,PLOT=SW*SD,ANNEX=ANNEX_L*ANNEX_D,DRIVE=4.4*(SD-8.5)+4.6*4.5,HEDGE=Math.round(SW*2.4+(SW-7)*1.6);
+  const kk=(optGroup?optGroup.scale.x:.82)/.82,house=FOOT[current][0]*kk,poolA=FOOT[current][1]*kk,PLOT=SW*SD,ANNEX=ANNEX_L*ANNEX_D,DRIVE=4.4*(SD-3-ANNEX_D)+4.6*4.5,HEDGE=Math.round(SW*2.4+(SW-7)*1.6);
   const garden=Math.max(0,PLOT-ANNEX-house-poolA-DRIVE-HEDGE-S.farm-S.power);
   const pvGen=S.kwp*1750,gen=pvGen+S.kwhGen+S.kwhSave,demand=Math.round((ANNEX+house)*55+2000),cover=Math.min(100,gen/demand*100);
   const irrigation=Math.round(S.farm*.8+garden*.6);
@@ -856,9 +860,9 @@ $('hint-clear').onclick=()=>{for(const m of measures){measureG.remove(...m.objs)
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),ground=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 function setRay(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera)}
 function shown(o){for(let n=o;n;n=n.parent)if(!n.visible)return false;return true}
-function pick(e){setRay(e);const hits=ray.intersectObjects([site,optGroup,addG],true);for(const h of hits){let ok=shown(h.object);for(let n=h.object;n;n=n.parent)if(n.userData.noPick)ok=false;if(ok)return h}return null}
-function unitOf(o){let u=null;for(let n=o;n&&n!==site&&n!==optGroup&&n!==addG;n=n.parent)if(n.userData.label)u=n;return u||o}
-const isNew=u=>{for(let n=u;n;n=n.parent)if(n===optGroup||n===addG)return true;return false};
+function pick(e){setRay(e);const hits=ray.intersectObjects([site,optGroup,addG,linkG],true);for(const h of hits){let ok=shown(h.object);for(let n=h.object;n;n=n.parent)if(n.userData.noPick)ok=false;if(ok)return h}return null}
+function unitOf(o){let u=null;for(let n=o;n&&n!==site&&n!==optGroup&&n!==addG&&n!==linkG;n=n.parent)if(n.userData.label)u=n;return u||o}
+const isNew=u=>{for(let n=u;n;n=n.parent)if(n===optGroup||n===addG||n===linkG)return true;return false};
 const inOpt=u=>{for(let n=u;n;n=n.parent)if(n===optGroup)return true;return false};
 function nameOf(u){return u.userData.label||NAMES[u.material&&u.material.name]||'Object'}
 function updateSel(){if(!sel)return;sel.updateMatrixWorld(true);selBox.setFromObject(sel);selBox.update&&selBox.update();const b=new THREE.Box3().setFromObject(sel),s=b.getSize(new THREE.Vector3()),c=b.getCenter(new THREE.Vector3());
@@ -866,7 +870,7 @@ function updateSel(){if(!sel)return;sel.updateMatrixWorld(true);selBox.setFromOb
   $('sel-pos').textContent=`Centre ${f1(c.x+30)} m from west wall, ${f1(c.z+20)} m from north wall`;
   $('sel-reset').hidden=!(sel.userData.p0&&!sel.position.equals(sel.userData.p0))}
 function selectObj(u){clearSel();sel=u;selBox=new THREE.BoxHelper(u,0xf2b33d);selBox.userData.noPick=true;selBox.material.depthTest=false;selBox.renderOrder=9;scene.add(selBox);
-  const nw=isNew(u);$('sel-name').textContent=nameOf(u);$('sel-tag').textContent=nw?'New':'Existing';$('sel-tag').className='tag'+(nw?'':' old');$('sel-move').hidden=!nw;const it=ITEMS[u.userData.item];$('sel-rot').hidden=$('sel-del').hidden=!it;$('sel-hide').hidden=!!it;$('sel-note').hidden=!it;if(it)$('sel-note').textContent=it.note;
+  const nw=isNew(u)&&!(u.parent===linkG);$('sel-name').textContent=nameOf(u);$('sel-tag').textContent=nw?'New':'Existing';$('sel-tag').className='tag'+(nw?'':' old');$('sel-move').hidden=!nw;const it=ITEMS[u.userData.item];$('sel-rot').hidden=$('sel-del').hidden=!it;$('sel-hide').hidden=!!it;$('sel-note').hidden=!it;if(it)$('sel-note').textContent=it.note;
   $('selcard').hidden=false;document.body.classList.add('has-sel');updateSel()}
 function clearSel(){if(selBox){scene.remove(selBox);selBox.geometry.dispose()}sel=selBox=null;$('selcard').hidden=true;document.body.classList.remove('has-sel')}
 $('sel-close').onclick=clearSel;
@@ -885,7 +889,7 @@ canvas.addEventListener('pointerdown',e=>{closePops();down={x:e.clientX,y:e.clie
     if(p){if(!u.userData.p0)u.userData.p0=u.position.clone();drag={u,start:p,pos:u.position.clone()};if(sel!==u)selectObj(u);controls.enabled=false;canvas.setPointerCapture(e.pointerId);e.stopImmediatePropagation()}}}}},{capture:true});
 canvas.addEventListener('pointermove',e=>{if(!drag)return;setRay(e);const p=ray.ray.intersectPlane(ground,new THREE.Vector3());if(!p)return;
   const snap=v=>Math.round(v*4)/4;const k=inOpt(drag.u)?optGroup.scale.x:1;drag.u.position.set(drag.pos.x+snap(p.x-drag.start.x)/k,drag.pos.y,drag.pos.z+snap(p.z-drag.start.z));updateSel()});
-addEventListener('pointerup',e=>{if(drag){if(!inOpt(drag.u)){saveAdds();renderLand()}else updateDims();drag=null;controls.enabled=true;return}
+addEventListener('pointerup',e=>{if(drag){if(!inOpt(drag.u)){saveAdds();renderLand()}else{updateLink();updateDims()}drag=null;controls.enabled=true;return}
   if(!down||e.target!==canvas)return;const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y),quick=performance.now()-down.t<400;down=null;if(moved>6||!quick)return;
   const h=pick(e);
   const nowT=performance.now();if(lastTap&&nowT-lastTap.t<320&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<24&&h&&tool!=='place'&&tool!=='measure'){lastTap=null;const off=camera.position.clone().sub(controls.target);tweenTo(h.point.clone().add(off),h.point.clone());return}
@@ -908,8 +912,20 @@ addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input,text
 /* ---------- annex length, house placement and dimension lines ---------- */
 function placeOpt(){if(!optGroup)return;optGroup.scale.x=1;optGroup.position.x=0;optGroup.updateMatrixWorld(true);
   const bb=new THREE.Box3(),t=new THREE.Box3();optGroup.traverse(o=>{if(!o.isMesh)return;for(let n=o;n&&n!==optGroup;n=n.parent)if(n.userData.veg)return;t.setFromObject(o);bb.union(t)});
-  const P=1+ANNEX_L+.6,xmin=bb.min.x+30,xmax=bb.max.x+30,k=Math.max(.35,Math.min(1,(SW-.4-P)/(xmax-xmin)));
-  optGroup.scale.x=k;optGroup.position.x=P-30-(xmin-30)*k;Object.assign(optGroup.userData,{P,xmin,k});optGroup.updateMatrixWorld(true)}
+  const P=1+ANNEX_L+LINK_W,xmin=bb.min.x+30,xmax=bb.max.x+30,k=Math.max(.35,Math.min(1,(SW-EAST_SETBACK-P)/(xmax-xmin)));
+  optGroup.scale.x=k;optGroup.position.x=P-30-(xmin-30)*k;Object.assign(optGroup.userData,{P,xmin,k});optGroup.updateMatrixWorld(true);updateLink()}
+/* every style is joined to the existing building by a glazed link built in that style's wall material */
+const EAST_SETBACK=1.5,LINK_W=2.5,LINKMAT={A:'render',B:'render',C:'render',D:'pebble',E:'render',F:'yakisugi',G:'concrete',H:'timber',I:'riad',J:'white',K:'nubian',L:'lime',M:'stucco',N:'white',O:'earth'};
+const linkG=new THREE.Group();scene.add(linkG);
+function updateLink(){while(linkG.children.length){const o=linkG.children[0];linkG.remove(o);o.traverse(c=>{if(c.geometry&&c.geometry!==FROND)c.geometry.dispose()})}
+  if(!optGroup)return;const hb=houseBox();if(!isFinite(hb.min.x))return;
+  const aE=1+ANNEX_L,x0=hb.min.x+30,yA=3.3;let yB=Math.min(3+ANNEX_D,hb.max.z+20,yA+4.6)-.3;if(yB-yA<2.4)yB=yA+2.4;
+  const mat=M[LINKMAT[current]]||M.render,xs=aE-.2,w=Math.max(.8,x0-aE+.5);
+  const u=new THREE.Group();u.userData.label='Glazed link to the existing building';linkG.add(u);
+  box(u,xs,yA+.15,w,yB-yA-.3,3,mat,0,1.5);box(u,xs+.25,yB-.18,w-.5,.08,2.5,M.glass,.25);box(u,xs+.25,yA+.1,w-.5,.08,2.5,M.glass,.25);
+  box(u,xs-.15,yA-.2,w+.3,yB-yA+.4,.22,mat,3,1.5);if(w>1.6)opening(u,'s',yB-.12,xs+w/2,1.1,2.3,'glassrect');
+  pointLight(u,xs+w/2,yB+.6,2.4,0xffc78a,3,8);
+  if(typeof applyDisplay==='function'){applyDisplay();applyLayers()}}
 const optX=x=>{const u=optGroup?optGroup.userData:{P:16,xmin:16,k:1};return u.P+(x-u.xmin)*u.k};
 const dimG=new THREE.Group();dimG.userData.noPick=true;scene.add(dimG);const dims=[];
 const DIMMAT=new THREE.LineBasicMaterial({color:0x1d2520,depthTest:false,transparent:true,opacity:.85});
@@ -927,12 +943,12 @@ function updateDims(){clearDims();const on=$('ly-dims').checked;dimG.visible=on;
   dimLine(0,SD+1.3,SW,SD+1.3);dimLine(-1.3,0,-1.3,SD);
   dimLine(1,2.2,aE,2.2,`Annex ${f1(ANNEX_L)} m · 80 m²`,4.3);dimLine(aE+.5,3,aE+.5,3+ANNEX_D,`${f1(ANNEX_D)} m`,3.4);
   if(isFinite(x0)){const yl=Math.min(SD-2,y1+1);dimLine(x0,yl,x1,yl,`House ${f1(x1-x0)} m`);dimLine(x1+.7,y0,x1+.7,y1,`${f1(y1-y0)} m`);
-    dimLine(aE,yl,x0,yl,`${f1(Math.max(0,x0-aE))} m`);dimLine(x1,y0-.2,SW,y0-.2,`${f1(SW-x1)} m to east wall`,.4)}
+    dimLine(aE,yl,x0,yl,`Link ${f1(Math.max(0,x0-aE))} m`);dimLine(x1,y0-.2,SW,y0-.2,`${f1(SW-x1)} m to east wall`,.4)}
   dimLine(.6,20,5,20,'Drive 4.4 m');
   Object.assign(lastDims,{annexL:ANNEX_L,annexD:ANNEX_D,houseL:x1-x0,houseD:y1-y0,gapAnnex:x0-aE,gapEast:SW-x1,houseStart:x0,houseEnd:x1})}
 ['ly-dims'].forEach(k=>$(k).addEventListener('change',updateDims));
 $('annex-l').value=ANNEX_L;$('annex-lv').textContent=f1(ANNEX_L)+' × '+f1(ANNEX_AREA/ANNEX_L)+' m';
-$('annex-l').addEventListener('input',e=>{ANNEX_L=+e.target.value;$('annex-lv').textContent=f1(ANNEX_L)+' × '+f1(ANNEX_AREA/ANNEX_L)+' m';try{localStorage.setItem('pg-annex-l',String(ANNEX_L))}catch(err){}
+$('annex-l').addEventListener('input',e=>{ANNEX_L=+e.target.value;$('annex-lv').textContent=f1(ANNEX_L)+' × '+f1(ANNEX_AREA/ANNEX_L)+' m';try{localStorage.setItem('pg-annex-l2',String(ANNEX_L))}catch(err){}
   clearSel();buildAnnex();markRoofs(annexUnit);placeOpt();markRoofs(optGroup);applyDisplay();applyLayers();updateDims();renderLand();{const kk=optGroup.scale.x/.82;$('ofigs').textContent=`≈ ${Math.round(FOOT[current][0]*kk)} m² new house · ≈ ${Math.round(FOOT[current][1]*kk)} m² pool · fitted into the ${f1(SW-1-ANNEX_L)} m beside the annex`}});
 
 /* option switching */
@@ -954,7 +970,7 @@ function view(kind,animate=true){lastView=kind;const fy=OPT[current].focus[1],fx
   if(kind==='aerial')pos=new THREE.Vector3(fx-30+12,narrow?30:22,fy-20+(narrow?40:30));
   if(kind==='fit'){t.set(SW/2-30,0,SD/2-20);pos=new THREE.Vector3(SW/2-30+(narrow?14:16),narrow?46:30,SD/2-20+(narrow?50:34))}
   if(kind==='palms'){pos=new THREE.Vector3(20.5-30,1.7,27.6-20);t.y=1.8}
-  if(kind==='drive'){pos=new THREE.Vector3(3-30,1.7,SD-.8-20);t.set(4-30,1.8,8.5-20)}
+  if(kind==='drive'){pos=new THREE.Vector3(3-30,1.7,SD-.8-20);t.set(3.1-30,1.8,3+ANNEX_D-20)}
   if(kind==='top'){pos=new THREE.Vector3(SW/2-30,narrow?78:52,SD/2-20+.01);t.set(SW/2-30,0,SD/2-20)}
   if(kind==='front'){pos=new THREE.Vector3(fx-30,2.2,fy-20+(narrow?42:30));t.set(fx-30,2.2,fy-20-3)}
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===kind)));
@@ -966,7 +982,7 @@ function updateOffset(){const w=innerWidth,h=innerHeight,wide=w>760&&!document.b
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<600?62:45;camera.updateProjectionMatrix();updateOffset()}
 addEventListener('resize',resize);resize();
 select('A',false);
-{let saved=null;try{saved=JSON.parse(localStorage.getItem('pg-add-v1')||'null')}catch(e){}loadAdds(Array.isArray(saved)?saved:OPTIMAL)}
+{let saved=null;try{saved=JSON.parse(localStorage.getItem('pg-add-v2')||'null')}catch(e){}loadAdds(Array.isArray(saved)?saved:OPTIMAL)}
 
 const tmp=new THREE.Vector3();
 let last=performance.now();

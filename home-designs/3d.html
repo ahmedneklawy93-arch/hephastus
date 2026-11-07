@@ -98,6 +98,16 @@ button.icon{width:34px;height:34px;padding:0;font-size:19px;line-height:1;displa
 .landbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.landbtns button{font-size:12.5px;padding:4px 11px}.landbtns button:first-child{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .slider{align-items:center}.slider label{color:var(--muted);flex:none}.slider input{flex:1;min-width:0;accent-color:var(--accent)}.slider b{flex:none;width:86px;text-align:right}
 .mlabel.dim{background:var(--panel);color:var(--fg);border:1px solid var(--line);font-weight:500}
+.photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.photos figure{margin:0;display:grid;gap:3px;min-width:0}.photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;display:block}
+.photos figcaption{font-size:11.5px;color:var(--muted);line-height:1.3}
+.chips2{display:flex;flex-wrap:wrap;gap:4px}.chips2 span{font-size:11.5px;border:1px solid var(--line);border-radius:99px;padding:2px 8px}
+h3.sub{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:4px 0 0;font-weight:500}
+.rules{margin:0;padding-left:18px;font-size:13px;display:grid;gap:3px}
+#shot{width:100%;border-radius:6px;border:1px solid var(--line)}
+.pblock{display:grid;gap:4px}.phead{display:flex;justify-content:space-between;align-items:center}.phead button{font-size:12px;padding:2px 10px}
+.pblock pre{margin:0;background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word;max-height:170px;overflow:auto}
+#pane-site,#pane-render{display:grid;gap:8px}
+.tabs{overflow-x:auto}
 .note,.selnote{font-size:12px;color:var(--muted);margin:0}
 .pop.add{max-width:min(440px,calc(100vw - 24px))}.pop.add .row button{font-size:12.5px;padding:4px 10px}
 /* measure labels */
@@ -177,7 +187,27 @@ body:not(.clean) #showui{display:none}
     <button id="toggle" class="icon" aria-expanded="true" aria-controls="details" aria-label="Hide details">▾</button>
   </div>
   <div id="details">
-    <div class="tabs" role="tablist"><button role="tab" id="tab-design" aria-selected="true" aria-controls="pane-design">Design</button><button role="tab" id="tab-land" aria-selected="false" aria-controls="pane-land">Land &amp; energy</button></div>
+    <div class="tabs" role="tablist"><button role="tab" id="tab-design" aria-selected="true" aria-controls="pane-design">Design</button><button role="tab" id="tab-land" aria-selected="false" aria-controls="pane-land">Land &amp; energy</button><button role="tab" id="tab-site" aria-selected="false" aria-controls="pane-site">Site</button><button role="tab" id="tab-render" aria-selected="false" aria-controls="pane-render">Render</button></div>
+    <div id="pane-site" role="tabpanel" hidden>
+      <p class="note">What is on the land today. Every option keeps all of it.</p>
+      <div class="photos">
+        <figure><img src="img/cd3e173b.jpg" alt="Ochre annex wall with pebble corner and shutters" loading="lazy"><figcaption>Existing building: pebble, ochre render, shutters</figcaption></figure>
+        <figure><img src="img/df12bf79.jpg" alt="Lawn with ficus hedge and date palms lit amber" loading="lazy"><figcaption>Ficus hedge and date palms</figcaption></figure>
+        <figure><img src="img/97a1ec99.jpg" alt="Three date palms with ripening dates" loading="lazy"><figcaption>Date palms (kept)</figcaption></figure>
+        <figure><img src="img/53891621.jpg" alt="Lawn toward the boundary wall and the neighbour's villa" loading="lazy"><figcaption>Boundary wall and neighbour's villa</figcaption></figure>
+        <figure><img src="img/ed888777.jpg" alt="Stamped flagstone driveway at night" loading="lazy"><figcaption>Stamped-stone driveway</figcaption></figure>
+      </div>
+      <div class="chips2"><span>Plot 34 × 33 m · 1,122 m²</span><span>Existing building 10 × 8 m · 80 m²</span><span>River-pebble walls</span><span>Ochre render</span><span>Terracotta tile edge</span><span>Arched timber door</span><span>Gate → driveway → door (33 m side)</span><span>Wall on the left as you enter</span><span>Date palms</span><span>Ficus hedge</span><span>Neighbour on the east</span></div>
+      <h3 class="sub">Rules every option follows</h3>
+      <ul class="rules"><li>Joined to the existing building by a glazed link in the new house's own material.</li><li>At least 1.5 m from the neighbour's wall (check your local setback rules).</li><li>Pool and paving kept 3 m clear of the date-palm trunks.</li><li>One warm 2700 K light colour; only the pool light is cool.</li><li>Solar on the flat roof first, so the garden stays free for food.</li></ul>
+    </div>
+    <div id="pane-render" role="tabpanel" hidden>
+      <p class="note">Turn the current view into a realistic image: frame the view you like (hide the UI with H for a clean frame), capture it, save it, then upload it as the reference image in an AI renderer such as Higgsfield (Nano Banana Pro, 16:9, 2K) with the prompt below.</p>
+      <div class="landbtns"><button id="capture">Capture this view</button></div>
+      <img id="shot" alt="Captured view of the model" hidden>
+      <p class="note" id="shot-note" hidden>Long-press (phone) or right-click (computer) the image to save it.</p>
+      <div id="render-prompts"></div>
+    </div>
     <div id="pane-land" role="tabpanel" hidden>
       <div class="kv slider"><label for="annex-l">Existing annex (80 m²) length</label><input type="range" id="annex-l" min="8" max="20" step="0.5" value="10"><b id="annex-lv">19.0 m</b></div>
       <div id="land"></div></div>
@@ -943,8 +973,28 @@ function renderLand(){if(!current)return;const S={kwp:0,kwhSave:0,kwhGen:0,kwh:0
    <div class="landbtns"><button id="l-opt">Optimise this plot</button><button id="l-add">Add element</button><button id="l-clear">Remove all additions</button></div>
    <p class="note">Rough yearly estimates for Cairo: about 1,750 kWh per kWp of solar, about 55 kWh/m² for an air-conditioned house plus about 2,000 kWh for the pool pump. Real figures depend on equipment, shading and how you live.</p>`;
   $('l-opt').onclick=optimise;$('l-clear').onclick=()=>{clearAdds();saveAdds();renderLand()};$('l-add').onclick=()=>$('b-add').click()}
-function showTab(t){for(const k of['design','land']){$('tab-'+k).setAttribute('aria-selected',String(k===t));$('pane-'+k).hidden=k!==t}if($('details').hidden)setDetails(true);if(t==='land')renderLand()}
-$('tab-design').onclick=()=>showTab('design');$('tab-land').onclick=()=>showTab('land');
+let showTab=function(t){for(const k of['design','land']){$('tab-'+k).setAttribute('aria-selected',String(k===t));$('pane-'+k).hidden=k!==t}if($('details').hidden)setDetails(true);if(t==='land')renderLand()}
+/* ---------- Site and Render tabs: everything in one place ---------- */
+const RBASE=`Photorealistic architectural visualization of a private walled garden plot (34 × 33 m) on the outskirts of Cairo, Egypt. Use the reference image for layout, massing, camera angle and the position of every element, and keep them exactly. Keep the existing single-storey 10 × 8 m building at the north-west corner: river-pebble stone walls, a thin ochre plaster band, a terracotta Roman-tile roof edge, an arched dark-timber door facing the gate, solar panels on its flat roof. Keep the stamped flagstone-pattern driveway along the west boundary wall, the ochre-rendered boundary walls, the tall clipped ficus hedge along the north wall, the row of date palms (Phoenix dactylifera) with orange date clusters along the south hedge, the raised vegetable beds and greenhouse between the driveway and the pool. Replace the low-poly trees and hedges with real ones.`;
+const RTAIL=`Late golden hour, warm low sun, long soft shadows, light dust haze, clear sky. Real materials with fine texture and weathering, correct scale. Full-frame camera, 24 mm lens, same viewpoint as the reference. No people, no cars, no text, no watermark.`;
+const RNIGHT=`Same image at blue hour turning to night: warm 2700 K light glowing from every window and the glazed link, uplights on the date palms, small brass wall lights along the boundary walls, the pool lit from underwater in soft turquoise, a full moon low in a deep-blue sky. Keep the composition, architecture and materials identical. No people, no text.`;
+const RVIDEO=`Slow cinematic drone move starting exactly on this frame: a gentle forward push and slight rise toward the pool, steady and smooth with no cuts. Date palm fronds move a little in a light breeze, the pool surface ripples. Keep the architecture rigid and unchanged. No people, no text.`;
+const esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function renderPane(){const o=OPT[current],m=META[current];
+  const still=`${RBASE} The new house, joined to the existing building by a short glazed link: ${o.desc} Materials: ${m.mat}. ${RTAIL}`;
+  $('render-prompts').innerHTML=[['Still prompt',still],['Night version (run on your best still)',RNIGHT],['Fly-through video (start frame = best still)',RVIDEO]]
+    .map(([l,t])=>`<div class="pblock"><div class="phead"><span class="lbl">${l}</span><button type="button" class="copy">Copy</button></div><pre>${esc(t)}</pre></div>`).join('')}
+$('render-prompts').addEventListener('click',async e=>{const b=e.target.closest('.copy');if(!b)return;const pre=b.closest('.pblock').querySelector('pre');
+  try{await navigator.clipboard.writeText(pre.textContent);b.textContent='Copied'}catch(err){const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected: copy it'}
+  setTimeout(()=>{b.textContent='Copy'},1800)});
+$('capture').onclick=()=>{const hide=[dimG,measureG,grid,selBox].filter(Boolean),was=hide.map(o=>o.visible);hide.forEach(o=>o.visible=false);
+  renderer.render(scene,camera);const url=canvas.toDataURL('image/jpeg',.9);hide.forEach((o,i)=>o.visible=was[i]);
+  $('shot').src=url;$('shot').hidden=false;$('shot-note').hidden=false};
+const _showTab=showTab;showTab=function(t){for(const k of['site','render']){$('tab-'+k).setAttribute('aria-selected',String(k===t));$('pane-'+k).hidden=k!==t}
+  if(t==='site'||t==='render'){for(const k of['design','land']){$('tab-'+k).setAttribute('aria-selected','false');$('pane-'+k).hidden=true}if($('details').hidden)setDetails(true);if(t==='render')renderPane();return}
+  _showTab(t)};
+$('tab-design').onclick=()=>showTab('design');$('tab-land').onclick=()=>showTab('land');$('tab-site').onclick=()=>showTab('site');$('tab-render').onclick=()=>{showTab('render')};
+
 
 
 
@@ -1062,7 +1112,7 @@ function select(id,animate){if(current===id)return;current=id;clearSel();
   const m=META[id];$('ofam').textContent=`${id} · ${m.family} · ${m.style}`;$('oname').textContent=OPT[id].name;
   {const kk=optGroup.scale.x;$('ofigs').textContent=`≈ ${Math.round(FOOT[id][0]*kk)} m² new house · ≈ ${Math.round(FOOT[id][1]*kk)} m² pool · fitted into the ${f1(SW-1-ANNEX_L)} m beside the annex`}$('desc').textContent=OPT[id].desc;
   $('sw').innerHTML=m.pal.map(c=>`<span style="background:${c}" title="${c}"></span>`).join('');$('omat').textContent=m.mat;$('owhy').textContent=m.why;
-  applyDisplay();applyLayers();renderLand();updateDims();view(lastView,animate)}
+  applyDisplay();applyLayers();renderLand();updateDims();if($('pane-render')&&!$('pane-render').hidden)renderPane();view(lastView,animate)}
 
 /* camera views */
 let lastView='fit',tween=null;

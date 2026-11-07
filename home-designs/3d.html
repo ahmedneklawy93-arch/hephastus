@@ -96,6 +96,8 @@ button.icon{width:34px;height:34px;padding:0;font-size:19px;line-height:1;displa
 .meter{height:10px;border-radius:99px;background:var(--line);overflow:hidden}.meter i{display:block;height:100%;background:#4f9a3a}
 .food{display:flex;flex-wrap:wrap;gap:10px 16px;font-size:12.5px;color:var(--muted)}.food span{display:grid}.food b{font-size:15px;color:var(--fg);font-weight:500}
 .landbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.landbtns button{font-size:12.5px;padding:4px 11px}.landbtns button:first-child{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.slider{align-items:center}.slider label{color:var(--muted);flex:none}.slider input{flex:1;min-width:0;accent-color:var(--accent)}.slider b{flex:none;width:52px}
+.mlabel.dim{background:var(--panel);color:var(--fg);border:1px solid var(--line);font-weight:500}
 .note,.selnote{font-size:12px;color:var(--muted);margin:0}
 .pop.add{max-width:min(440px,calc(100vw - 24px))}.pop.add .row button{font-size:12.5px;padding:4px 10px}
 /* measure labels */
@@ -136,6 +138,7 @@ body:not(.clean) #showui{display:none}
 
 <div id="tools" class="card ui" role="toolbar" aria-label="Model tools">
   <button class="tb" id="t-nav" aria-pressed="true" title="Navigate and inspect (N)" aria-label="Navigate and inspect"><svg viewBox="0 0 24 24"><path d="M5 3l14 7-6 2-2 6z"/></svg></button>
+  <button class="tb" id="t-pan" aria-pressed="false" title="Pan: drag with one finger or the mouse (P)" aria-label="Pan"><svg viewBox="0 0 24 24"><path d="M8 11V5.5a1.5 1.5 0 0 1 3 0V11M11 10V4.5a1.5 1.5 0 0 1 3 0V10M14 10.5V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.8-2.4L3.3 14.5a1.5 1.5 0 0 1 2.3-1.9L8 15V8.5a1.5 1.5 0 0 1 3 0"/></svg></button>
   <button class="tb" id="t-move" aria-pressed="false" title="Move new objects (M)" aria-label="Move new objects"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg></button>
   <button class="tb" id="t-measure" aria-pressed="false" title="Measure distance (R)" aria-label="Measure distance"><svg viewBox="0 0 24 24"><path d="M3 16l13-13 5 5-13 13z"/><path d="M7 12l2 2M10 9l2 2M13 6l2 2"/></svg></button>
   <button class="tb" id="b-add" aria-expanded="false" aria-controls="p-add" title="Add solar, water or farming (A)" aria-label="Add solar, water or farming"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></button>
@@ -149,7 +152,7 @@ body:not(.clean) #showui{display:none}
 </div>
 
 <div id="p-views" class="pop card ui" hidden><span class="lbl">Camera</span><div class="row">
-  <button data-view="aerial">Aerial</button><button data-view="drive">From the gate</button><button data-view="palms">From the palms</button><button data-view="top">Top-down</button><button data-view="front">Front elevation</button></div></div>
+  <button data-view="fit">Whole plot</button><button data-view="aerial">Aerial of house</button><button data-view="drive">From the gate</button><button data-view="palms">From the palms</button><button data-view="top">Top-down</button><button data-view="front">Front elevation</button></div></div>
 <div id="p-disp" class="pop card ui" hidden><span class="lbl">Display</span><div class="row">
   <button data-disp="tex" aria-pressed="true">Materials</button><button data-disp="clay" aria-pressed="false">Clay</button><button data-disp="wire" aria-pressed="false">Wireframe</button></div></div>
 <div id="p-add" class="pop card ui add" hidden></div>
@@ -159,6 +162,7 @@ body:not(.clean) #showui{display:none}
   <label><input type="checkbox" id="ly-add" checked> Solar, water &amp; farming</label>
   <label><input type="checkbox" id="ly-roof" checked> Roofs</label>
   <label><input type="checkbox" id="ly-veg" checked> Trees &amp; hedges</label>
+  <label><input type="checkbox" id="ly-dims" checked> Dimensions</label>
   <label><input type="checkbox" id="ly-grid"> 1 m grid</label>
   <button id="ly-unhide" style="justify-self:start;font-size:12.5px;padding:3px 10px">Show hidden objects</button>
 </div>
@@ -174,7 +178,9 @@ body:not(.clean) #showui{display:none}
   </div>
   <div id="details">
     <div class="tabs" role="tablist"><button role="tab" id="tab-design" aria-selected="true" aria-controls="pane-design">Design</button><button role="tab" id="tab-land" aria-selected="false" aria-controls="pane-land">Land &amp; energy</button></div>
-    <div id="pane-land" role="tabpanel" hidden><div id="land"></div></div>
+    <div id="pane-land" role="tabpanel" hidden>
+      <div class="kv slider"><label for="annex-l">Existing annex length</label><input type="range" id="annex-l" min="10" max="24" step="0.5" value="19"><b id="annex-lv">19.0 m</b></div>
+      <div id="land"></div></div>
     <div id="pane-design" role="tabpanel">
     <div class="figs" id="ofigs"></div>
     <p id="desc"></p>
@@ -214,7 +220,7 @@ renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(45,1,.3,500);
 const controls=new THREE.OrbitControls(camera,canvas);
-controls.enableDamping=true;controls.maxPolarAngle=Math.PI*.495;controls.minDistance=4;controls.maxDistance=140;
+controls.enableDamping=true;controls.dampingFactor=.09;controls.screenSpacePanning=true;controls.panSpeed=1.3;controls.rotateSpeed=.75;controls.zoomSpeed=1.15;controls.maxPolarAngle=Math.PI*.495;controls.minDistance=2.5;controls.maxDistance=110;
 
 /* ---------- textures (drawn in canvas, no image downloads) ---------- */
 function ctex(size,draw){const c=document.createElement('canvas');c.width=c.height=size;draw(c.getContext('2d'),size);
@@ -424,8 +430,13 @@ box(site,6.4,28.6,2.4,1.8,1.4,M.timber);box(site,6.2,28.4,2.8,2.2,.12,M.timber,1
 box(site,SW+2.5,6,12,16,7.2,M.villa);box(site,SW+2,5.5,13,17,.3,M.white,7.2);box(site,SW+2,10,1,8,.15,M.white,3.6);
 for(const [y,z] of[[9,1.4],[15,1.4],[9,4.8],[15,4.8],[19,4.8]])opening(site,'w',SW+2.5,y,1.6,1.8,'glassrect',z);
 // existing annex at the end of the driveway, arched door facing the gate
-const annexUnit=block(site,1,3,15,5.5,3.2,{all:M.pebble,fascia:.55});
-opening(site,'s',8.5,3.1,1.15,2.35,'arch');opening(site,'s',8.5,7.5,1.1,1.3,'shutter',1.1);opening(site,'s',8.5,12,1.1,1.3,'shutter',1.1);
+let ANNEX_L=19,ANNEX_D=5.5;try{const v=+localStorage.getItem('pg-annex-l');if(v>=10&&v<=24)ANNEX_L=v}catch(e){}
+let annexUnit=null;
+function buildAnnex(){if(annexUnit){site.remove(annexUnit);annexUnit.traverse(o=>{if(o.geometry&&o.geometry!==FROND)o.geometry.dispose()})}
+  const g=new THREE.Group();g.userData.label='Existing annex';site.add(g);block(g,1,3,ANNEX_L,ANNEX_D,3.2,{all:M.pebble,fascia:.55});
+  const y=3+ANNEX_D;opening(g,'s',y,3.1,1.15,2.35,'arch');for(let x=7.5;x<ANNEX_L-.5;x+=4.5)opening(g,'s',y,x,1.1,1.3,'shutter',1.1);
+  g.traverse(o=>{o.userData.existing=true});annexUnit=g;return g}
+buildAnnex();
 const flood=new THREE.SpotLight(0xfff1d6,0,34,.7,.6,1.5);flood.position.set(3.1-30,3,8.8-20);flood.target.position.set(3.1-30,0,22-20);flood.userData.night=6;site.add(flood,flood.target);
 // date palms (keep), a row along the south hedge
 const PALMS=[[11.5,29.2,8.6],[17.5,29.6,9.6],[23.5,29.2,8.2],[29.5,29.6,9.2]];
@@ -670,7 +681,7 @@ for(const fam of FAMS){const s=document.createElement('span');s.className='famlb
   for(const id of IDS.filter(k=>META[k].family===fam)){const b=document.createElement('button');b.id='o-'+id;b.innerHTML=`<b>${id}</b>${OPT[id].name}`;b.title=META[id].style;b.setAttribute('aria-pressed','false');b.onclick=()=>select(id,true);optsEl.appendChild(b)}}
 const step=d=>select(IDS[(IDS.indexOf(current)+d+IDS.length)%IDS.length],true);
 $('prev').onclick=()=>step(-1);$('next').onclick=()=>step(1);
-function setDetails(open){$('details').hidden=!open;$('toggle').setAttribute('aria-expanded',String(open));$('toggle').textContent=open?'▾':'▴';$('toggle').setAttribute('aria-label',open?'Hide details':'Show details');try{localStorage.setItem('pg-details',open?'1':'0')}catch(e){}}
+function setDetails(open){$('details').hidden=!open;requestAnimationFrame(()=>typeof updateOffset==='function'&&updateOffset());$('toggle').setAttribute('aria-expanded',String(open));$('toggle').textContent=open?'▾':'▴';$('toggle').setAttribute('aria-label',open?'Hide details':'Show details');try{localStorage.setItem('pg-details',open?'1':'0')}catch(e){}}
 $('toggle').onclick=()=>setDetails($('details').hidden);
 try{const v=localStorage.getItem('pg-details');if(v==='0'||(v===null&&innerWidth<=760))setDetails(false)}catch(e){if(innerWidth<=760)setDetails(false)}
 
@@ -732,7 +743,7 @@ const fmt=n=>Math.round(n).toLocaleString('en-US');
 function renderLand(){if(!current)return;const S={kwp:0,kwhSave:0,kwhGen:0,kwh:0,water:0,veg:0,fruit:0,eggs:0,honey:0,fish:0,gas:0,farm:0,power:0,n:0};
   for(const g of addG.children){const it=ITEMS[g.userData.item];if(!it||g.userData.userHidden)continue;S.n++;for(const [k,v] of Object.entries(it.stat))if(k!=='farm')S[k]+=v;
     const onRoof=g.position.y>.5;if(it.cat==='Farming')S.farm+=it.stat.farm||it.w*it.d;else if(!onRoof)S.power+=it.w*it.d}
-  const [house,poolA]=FOOT[current],PLOT=SW*SD,ANNEX=82.5,DRIVE=4.4*(SD-8.5)+4.6*4.5,HEDGE=Math.round(SW*2.4+(SW-7)*1.6);
+  const kk=(optGroup?optGroup.scale.x:.82)/.82,house=FOOT[current][0]*kk,poolA=FOOT[current][1]*kk,PLOT=SW*SD,ANNEX=ANNEX_L*ANNEX_D,DRIVE=4.4*(SD-8.5)+4.6*4.5,HEDGE=Math.round(SW*2.4+(SW-7)*1.6);
   const garden=Math.max(0,PLOT-ANNEX-house-poolA-DRIVE-HEDGE-S.farm-S.power);
   const pvGen=S.kwp*1750,gen=pvGen+S.kwhGen+S.kwhSave,demand=Math.round((ANNEX+house)*55+2000),cover=Math.min(100,gen/demand*100);
   const irrigation=Math.round(S.farm*.8+garden*.6);
@@ -764,13 +775,13 @@ $('tab-design').onclick=()=>showTab('design');$('tab-land').onclick=()=>showTab(
 
 
 /* tools */
-const HINTS={place:'Tap to place.',move:'Drag a new building, pool or tree to move it. Snaps to 25 cm.',measure:'Tap two points to measure the distance between them.'};
+const HINTS={pan:'Drag to pan. Pinch or scroll to zoom. Double-tap a spot to centre the view on it.',place:'Tap to place.',move:'Drag a new building, pool or tree to move it. Snaps to 25 cm.',measure:'Tap two points to measure the distance between them.'};
 let mStart=null;const measures=[],measureG=new THREE.Group();measureG.userData.noPick=true;scene.add(measureG);
-function setTool(t){tool=t;for(const k of['nav','move','measure'])$('t-'+k).setAttribute('aria-pressed',String(k===t));
+function setTool(t){tool=t;controls.mouseButtons.LEFT=t==='pan'?THREE.MOUSE.PAN:THREE.MOUSE.ROTATE;controls.touches.ONE=t==='pan'?THREE.TOUCH.PAN:THREE.TOUCH.ROTATE;for(const k of['nav','pan','move','measure'])$('t-'+k).setAttribute('aria-pressed',String(k===t));
   if(t!=='place')placeType=null;$('hint').hidden=!HINTS[t];$('hint-t').textContent=HINTS[t]||'';$('hint-clear').hidden=t!=='measure'||!measures.length;mStart=null;canvas.style.cursor=t==='nav'?'':'crosshair'}
-$('t-nav').onclick=()=>setTool('nav');$('t-move').onclick=()=>setTool('move');$('t-measure').onclick=()=>setTool('measure');
+$('t-nav').onclick=()=>setTool('nav');$('t-pan').onclick=()=>setTool('pan');$('t-move').onclick=()=>setTool('move');$('t-measure').onclick=()=>setTool('measure');
 $('t-night').onclick=()=>{night=!night;applyMode()};
-function setClean(on){document.body.classList.toggle('clean',on);closePops();if(on)$('showui').focus()}
+function setClean(on){document.body.classList.toggle('clean',on);updateOffset();closePops();if(on)$('showui').focus()}
 $('t-hide').onclick=()=>setClean(true);$('showui').onclick=()=>{setClean(false);$('t-hide').focus()};
 $('hint-clear').onclick=()=>{for(const m of measures){measureG.remove(...m.objs);m.el.remove()}measures.length=0;$('hint-clear').hidden=true};
 
@@ -801,15 +812,17 @@ $('sel-focus').onclick=()=>{if(!sel)return;const c=new THREE.Box3().setFromObjec
   tweenTo(c.clone().add(new THREE.Vector3(d*.6,d*.55,d*.8)),c)};
 
 /* pointer handling: taps select or measure; drags in move mode move the object */
-let down=null,drag=null;
+let down=null,drag=null,lastTap=null;
 canvas.addEventListener('pointerdown',e=>{closePops();down={x:e.clientX,y:e.clientY,t:performance.now()};
   if(tool==='move'){const h=pick(e);if(h){const u=unitOf(h.object);if(isNew(u)){setRay(e);const p=ray.ray.intersectPlane(ground,new THREE.Vector3());
     if(p){if(!u.userData.p0)u.userData.p0=u.position.clone();drag={u,start:p,pos:u.position.clone()};if(sel!==u)selectObj(u);controls.enabled=false;canvas.setPointerCapture(e.pointerId);e.stopImmediatePropagation()}}}}},{capture:true});
 canvas.addEventListener('pointermove',e=>{if(!drag)return;setRay(e);const p=ray.ray.intersectPlane(ground,new THREE.Vector3());if(!p)return;
-  const snap=v=>Math.round(v*4)/4;const k=inOpt(drag.u)?SX:1;drag.u.position.set(drag.pos.x+snap(p.x-drag.start.x)/k,drag.pos.y,drag.pos.z+snap(p.z-drag.start.z));updateSel()});
-addEventListener('pointerup',e=>{if(drag){if(!inOpt(drag.u)){saveAdds();renderLand()}drag=null;controls.enabled=true;return}
+  const snap=v=>Math.round(v*4)/4;const k=inOpt(drag.u)?optGroup.scale.x:1;drag.u.position.set(drag.pos.x+snap(p.x-drag.start.x)/k,drag.pos.y,drag.pos.z+snap(p.z-drag.start.z));updateSel()});
+addEventListener('pointerup',e=>{if(drag){if(!inOpt(drag.u)){saveAdds();renderLand()}else updateDims();drag=null;controls.enabled=true;return}
   if(!down||e.target!==canvas)return;const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y),quick=performance.now()-down.t<400;down=null;if(moved>6||!quick)return;
   const h=pick(e);
+  const nowT=performance.now();if(lastTap&&nowT-lastTap.t<320&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<24&&h&&tool!=='place'&&tool!=='measure'){lastTap=null;const off=camera.position.clone().sub(controls.target);tweenTo(h.point.clone().add(off),h.point.clone());return}
+  lastTap={t:nowT,x:e.clientX,y:e.clientY};
   if(tool==='measure'){if(!h)return;addMeasurePoint(h.point.clone());return}
   if(tool==='place'){if(!h||!placeType)return;const t=placeType,y=h.point.y>.3?h.point.y:0,g=addItem(t,h.point.x+30,h.point.z+20,y,0);applyDisplay();applyLayers();saveAdds();renderLand();setTool('nav');selectObj(g);return}
   if(h)selectObj(unitOf(h.object));else clearSel()});
@@ -822,26 +835,57 @@ function addMeasurePoint(p){if(!mStart){mStart={p,d:dot(p)};return}
 /* keyboard */
 addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input,textarea')||e.metaKey||e.ctrlKey||e.altKey)return;const k=e.key.toLowerCase();
   if(e.key==='ArrowRight')step(1);else if(e.key==='ArrowLeft')step(-1);else if(k==='h')setClean(!document.body.classList.contains('clean'));
-  else if(k==='n')setTool('nav');else if(k==='m')setTool('move');else if(k==='r')setTool('measure');else if(k==='l'){night=!night;applyMode()}else if(k==='a')$('b-add').click()
+  else if(k==='n')setTool('nav');else if(k==='p')setTool('pan');else if(k==='m')setTool('move');else if(k==='r')setTool('measure');else if(k==='l'){night=!night;applyMode()}else if(k==='a')$('b-add').click()
   else if(e.key==='Escape'){if(document.body.classList.contains('clean'))setClean(false);else{clearSel();closePops();mStart=null}}});
+
+/* ---------- annex length, house placement and dimension lines ---------- */
+function placeOpt(){if(!optGroup)return;optGroup.scale.x=1;optGroup.position.x=0;optGroup.updateMatrixWorld(true);
+  const bb=new THREE.Box3(),t=new THREE.Box3();optGroup.traverse(o=>{if(!o.isMesh)return;for(let n=o;n&&n!==optGroup;n=n.parent)if(n.userData.veg)return;t.setFromObject(o);bb.union(t)});
+  const P=1+ANNEX_L+.6,xmin=bb.min.x+30,xmax=bb.max.x+30,k=Math.max(.35,Math.min(1,(SW-.4-P)/(xmax-xmin)));
+  optGroup.scale.x=k;optGroup.position.x=P-30-(xmin-30)*k;Object.assign(optGroup.userData,{P,xmin,k});optGroup.updateMatrixWorld(true)}
+const optX=x=>{const u=optGroup?optGroup.userData:{P:16,xmin:16,k:1};return u.P+(x-u.xmin)*u.k};
+const dimG=new THREE.Group();dimG.userData.noPick=true;scene.add(dimG);const dims=[];
+const DIMMAT=new THREE.LineBasicMaterial({color:0x1d2520,depthTest:false,transparent:true,opacity:.85});
+function clearDims(){for(const d of dims)d.el.remove();dims.length=0;while(dimG.children.length){const o=dimG.children[0];dimG.remove(o);o.geometry.dispose()}}
+function dimLine(x1,y1,x2,y2,text,h=.15){const a=new THREE.Vector3(x1-30,h,y1-20),b=new THREE.Vector3(x2-30,h,y2-20),dir=b.clone().sub(a).normalize(),n=new THREE.Vector3(-dir.z,0,dir.x).multiplyScalar(.35);
+  const pts=[a,b,a.clone().add(n),a.clone().sub(n),b.clone().add(n),b.clone().sub(n)];const geo=new THREE.BufferGeometry().setFromPoints([pts[0],pts[1],pts[2],pts[3],pts[4],pts[5]]);
+  const l=new THREE.LineSegments(geo,DIMMAT);l.renderOrder=11;dimG.add(l);const el=document.createElement('div');el.className='mlabel dim';el.textContent=text||f1(a.distanceTo(b))+' m';$('labels').appendChild(el);dims.push({a,b,el})}
+const lastDims={};window.__pgDims=lastDims;
+function houseBox(){const b=new THREE.Box3(),t=new THREE.Box3();if(!optGroup)return b;optGroup.updateMatrixWorld(true);
+  const skip=new Set(['water','waterDark','waterGreen','coping','deck','gravel','grass','zellige','rock','toro','lamp']);
+  optGroup.traverse(o=>{if(!o.isMesh)return;for(let n=o;n&&n!==optGroup;n=n.parent)if(n.userData.veg||n.userData.label==='Swimming pool'||n.userData.label==='Free-form pool'||n.userData.label==='Terrace'||n.userData.label==='Stone lantern')return;
+    const m=o.userData.mat0||o.material;if(m&&skip.has(m.name))return;t.setFromObject(o);if(t.max.y>2)b.union(t)});return b}
+function updateDims(){clearDims();const on=$('ly-dims').checked;dimG.visible=on;if(!on)return;
+  const hb=houseBox(),x0=hb.min.x+30,x1=hb.max.x+30,y0=hb.min.z+20,y1=hb.max.z+20,aE=1+ANNEX_D*0+ANNEX_L;
+  dimLine(0,SD+1.3,SW,SD+1.3);dimLine(-1.3,0,-1.3,SD);
+  dimLine(1,2.2,aE,2.2,`Annex ${f1(ANNEX_L)} m`,4.3);dimLine(aE+.5,3,aE+.5,3+ANNEX_D,`${f1(ANNEX_D)} m`,3.4);
+  if(isFinite(x0)){const yl=Math.min(SD-2,y1+1);dimLine(x0,yl,x1,yl,`House ${f1(x1-x0)} m`);dimLine(x1+.7,y0,x1+.7,y1,`${f1(y1-y0)} m`);
+    dimLine(aE,yl,x0,yl,`${f1(Math.max(0,x0-aE))} m`);dimLine(x1,y0-.2,SW,y0-.2,`${f1(SW-x1)} m to east wall`,.4)}
+  dimLine(.6,20,5,20,'Drive 4.4 m');
+  Object.assign(lastDims,{annexL:ANNEX_L,annexD:ANNEX_D,houseL:x1-x0,houseD:y1-y0,gapAnnex:x0-aE,gapEast:SW-x1,houseStart:x0,houseEnd:x1})}
+['ly-dims'].forEach(k=>$(k).addEventListener('change',updateDims));
+$('annex-l').value=ANNEX_L;$('annex-lv').textContent=f1(ANNEX_L)+' m';
+$('annex-l').addEventListener('input',e=>{ANNEX_L=+e.target.value;$('annex-lv').textContent=f1(ANNEX_L)+' m';try{localStorage.setItem('pg-annex-l',String(ANNEX_L))}catch(err){}
+  clearSel();buildAnnex();markRoofs(annexUnit);placeOpt();markRoofs(optGroup);applyDisplay();applyLayers();updateDims();renderLand()});
 
 /* option switching */
 function select(id,animate){if(current===id)return;current=id;clearSel();
   if(optGroup){scene.remove(optGroup);optGroup.traverse(o=>{if(o.geometry&&o.geometry!==FROND)o.geometry.dispose()})}
-  seed=99;optGroup=new THREE.Group();OPT[id].build(optGroup);optGroup.scale.x=SX;optGroup.position.x=(16-30)*(1-SX);scene.add(optGroup);markRoofs(optGroup);
+  seed=99;optGroup=new THREE.Group();OPT[id].build(optGroup);placeOpt();scene.add(optGroup);markRoofs(optGroup);
   for(const k of IDS){const b=$('o-'+k);b.setAttribute('aria-pressed',String(k===id));if(k===id&&!document.body.classList.contains('clean'))b.scrollIntoView({block:'nearest',inline:'nearest'})}
   const m=META[id];$('ofam').textContent=`${id} · ${m.family} · ${m.style}`;$('oname').textContent=OPT[id].name;
   $('ofigs').textContent=OPT[id].figs;$('desc').textContent=OPT[id].desc;
   $('sw').innerHTML=m.pal.map(c=>`<span style="background:${c}" title="${c}"></span>`).join('');$('omat').textContent=m.mat;$('owhy').textContent=m.why;
-  applyDisplay();applyLayers();renderLand();view(lastView,animate)}
+  applyDisplay();applyLayers();renderLand();updateDims();view(lastView,animate)}
 
 /* camera views */
-let lastView='aerial',tween=null;
+let lastView='fit',tween=null;
 function tweenTo(pos,t,animate=true){if(!animate||reduceMotion){camera.position.copy(pos);controls.target.copy(t);controls.update();tween=null;return}
   tween={p0:camera.position.clone(),t0:controls.target.clone(),p1:pos,t1:t,s:performance.now(),d:1100}}
-function view(kind,animate=true){lastView=kind;const fy=OPT[current].focus[1],fx=16+(OPT[current].focus[0]-16)*SX,t=new THREE.Vector3(fx-30,1.2,fy-20);let pos;
+function view(kind,animate=true){lastView=kind;const fy=OPT[current].focus[1],fx=optX(OPT[current].focus[0]),t=new THREE.Vector3(fx-30,1.2,fy-20);let pos;
   const narrow=innerWidth<=760;
   if(kind==='aerial')pos=new THREE.Vector3(fx-30+12,narrow?30:22,fy-20+(narrow?40:30));
+  if(kind==='fit'){t.set(SW/2-30,0,SD/2-20);pos=new THREE.Vector3(SW/2-30+(narrow?14:16),narrow?46:30,SD/2-20+(narrow?50:34))}
   if(kind==='palms'){pos=new THREE.Vector3(20.5-30,1.7,27.6-20);t.y=1.8}
   if(kind==='drive'){pos=new THREE.Vector3(3-30,1.7,SD-.8-20);t.set(4-30,1.8,8.5-20)}
   if(kind==='top'){pos=new THREE.Vector3(SW/2-30,narrow?78:52,SD/2-20+.01);t.set(SW/2-30,0,SD/2-20)}
@@ -850,7 +894,9 @@ function view(kind,animate=true){lastView=kind;const fy=OPT[current].focus[1],fx
   tweenTo(pos,t,animate)}
 controls.addEventListener('start',()=>{tween=null});
 
-function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<600?62:45;camera.updateProjectionMatrix()}
+function updateOffset(){const w=innerWidth,h=innerHeight,wide=w>760&&!document.body.classList.contains('clean');
+  const right=wide&&!$('details').hidden?$('sheet').offsetWidth+12:0,left=wide?$('tools').offsetWidth+12:0;camera.setViewOffset(w,h,(right-left)/2,0,w,h);camera.updateProjectionMatrix()}
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<600?62:45;camera.updateProjectionMatrix();updateOffset()}
 addEventListener('resize',resize);resize();
 select('A',false);
 {let saved=null;try{saved=JSON.parse(localStorage.getItem('pg-add-v1')||'null')}catch(e){}loadAdds(Array.isArray(saved)?saved:OPTIMAL)}
@@ -861,8 +907,9 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   if(tween){let k=Math.min(1,(now-tween.s)/tween.d);k=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;camera.position.lerpVectors(tween.p0,tween.p1,k);controls.target.lerpVectors(tween.t0,tween.t1,k);if(k>=1)tween=null}
   if(!reduceMotion){TX.water.offset.x+=dt*.03;TX.water.offset.y+=dt*.012}
   if(!reduceMotion)addG.traverse(o=>{if(o.userData.spin)o.rotation.z+=dt*2.5});
-  controls.update();renderer.render(scene,camera);
-  const w=innerWidth,h=innerHeight;for(const m of measures){tmp.copy(m.a).add(m.b).multiplyScalar(.5).project(camera);const vis=tmp.z<1;m.el.style.display=vis?'':'none';
+  controls.target.x=Math.max(-40,Math.min(12,controls.target.x));controls.target.z=Math.max(-28,Math.min(22,controls.target.z));controls.target.y=Math.max(0,Math.min(8,controls.target.y));
+  controls.update();if(camera.position.y<.6)camera.position.y=.6;renderer.render(scene,camera);
+  const w=innerWidth,h=innerHeight;for(const m of measures.concat(dimG.visible?dims:[])){tmp.copy(m.a).add(m.b).multiplyScalar(.5).project(camera);const vis=tmp.z<1;m.el.style.display=vis?'':'none';
     if(vis){m.el.style.left=((tmp.x+1)/2*w)+'px';m.el.style.top=((1-tmp.y)/2*h)+'px'}}
   requestAnimationFrame(loop)}
 requestAnimationFrame(loop);

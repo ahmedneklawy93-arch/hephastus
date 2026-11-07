@@ -197,9 +197,9 @@ body:not(.clean) #showui{display:none}
         <figure><img src="img/53891621.jpg" alt="Lawn toward the boundary wall and the neighbour's villa" loading="lazy"><figcaption>Boundary wall and neighbour's villa</figcaption></figure>
         <figure><img src="img/ed888777.jpg" alt="Stamped flagstone driveway at night" loading="lazy"><figcaption>Stamped-stone driveway</figcaption></figure>
       </div>
-      <div class="chips2"><span>Plot 34 × 33 m · 1,122 m²</span><span>Existing building 10 × 8 m · 80 m²</span><span>River-pebble walls</span><span>Ochre render</span><span>Terracotta tile edge</span><span>Arched timber door</span><span>Gate → driveway → door (33 m side)</span><span>Wall on the left as you enter</span><span>Date palms</span><span>Ficus hedge</span><span>Neighbour on the east</span></div>
+      <div class="chips2"><span>Plot 34 × 33 m · 1,122 m²</span><span>Existing building 10 × 8 m · 80 m²</span><span>River-pebble walls</span><span>Ochre render</span><span>Pyramid terracotta roof</span><span>Arched timber door</span><span>Gate → driveway → door (33 m side)</span><span>Wall on the left as you enter</span><span>Date palms</span><span>Ficus hedge</span><span>Neighbour on the east</span></div>
       <h3 class="sub">Rules every option follows</h3>
-      <ul class="rules"><li>Joined to the existing building by a glazed link in the new house's own material.</li><li>At least 1.5 m from the neighbour's wall (check your local setback rules).</li><li>Pool and paving kept 3 m clear of the date-palm trunks.</li><li>One warm 2700 K light colour; only the pool light is cool.</li><li>Solar on the flat roof first, so the garden stays free for food.</li></ul>
+      <ul class="rules"><li>Joined to the existing building by a glazed link in the new house's own material.</li><li>At least 1.5 m from the neighbour's wall (check your local setback rules).</li><li>Pool and paving kept 3 m clear of the date-palm trunks.</li><li>One warm 2700 K light colour; only the pool light is cool.</li><li>Solar on the south slope of the pyramid roof and over the driveway first, so the garden stays free for food.</li></ul>
     </div>
     <div id="pane-render" role="tabpanel" hidden>
       <p class="note">Turn the current view into a realistic image: frame the view you like (hide the UI with H for a clean frame), capture it, save it, then upload it as the reference image in an AI renderer such as Higgsfield (Nano Banana Pro, 16:9, 2K) with the prompt below.</p>
@@ -463,7 +463,7 @@ const ANNEX_AREA=80;let ANNEX_L=10,ANNEX_D=8;try{const v=+localStorage.getItem('
 let driveG=null;
 let annexUnit=null;
 function buildAnnex(){if(annexUnit){site.remove(annexUnit);annexUnit.traverse(o=>{if(o.geometry&&o.geometry!==FROND)o.geometry.dispose()})}
-  ANNEX_D=ANNEX_AREA/ANNEX_L;const g=new THREE.Group();g.userData.label='Existing annex';site.add(g);block(g,1,3,ANNEX_L,ANNEX_D,3.2,{all:M.pebble,fascia:.55});
+  ANNEX_D=ANNEX_AREA/ANNEX_L;const g=new THREE.Group();g.userData.label='Existing annex';site.add(g);block(g,1,3,ANNEX_L,ANNEX_D,3.2,{all:M.pebble,fascia:.55,tile:false});hipRoof(g,1,3,ANNEX_L,ANNEX_D,2.4,.5,M.roof,3.2,0);
   const y=3+ANNEX_D;opening(g,'s',y,3.1,1.15,2.35,'arch');for(let x=7.5;x<ANNEX_L-.5;x+=4.5)opening(g,'s',y,x,1.1,1.3,'shutter',1.1);
   g.traverse(o=>{o.userData.existing=true});annexUnit=g;
   if(driveG){site.remove(driveG);driveG.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
@@ -814,6 +814,8 @@ function sprouts(g,w,d,y,n){for(let i=0;i<n;i++){const s=new THREE.Mesh(new THRE
 const ITEMS={
  pv:{cat:'Power',name:'Solar array 3.6 kWp',w:4.6,d:2.4,stat:{kwp:3.6},note:'8 × 450 W panels tilted 25° to the south. On a roof it uses no garden space.',
   build(g){for(const [x,z] of[[-2.1,-.9],[2.1,-.9],[-2.1,.9],[2.1,.9]])lb(g,.08,.08,z<0?1.3:.45,M.steel,x,z);panels(g,4.5,2.1,.44,0,0,.88)}},
+ pvflush:{cat:'Power',name:'Roof-mounted solar 3.6 kWp',w:4.6,d:2.1,stat:{kwp:3.6},note:'8 panels fixed flat onto the south slope of the pyramid roof (about 28° tilt, close to ideal for Cairo).',
+  build(g){panels(g,4.5,2.1,.49,0,0,.06)}},
  carport:{cat:'Power',name:'Solar carport 5.4 kWp',w:4.4,d:5.2,stat:{kwp:5.4},note:'12 panels over the driveway: shade for the car and power for the house.',
   build(g){for(const [x,z] of[[-2,-2.4],[2,-2.4],[-2,2.4],[2,2.4]])lb(g,.14,.14,2.6,M.steel,x,z);lb(g,4.4,.12,.12,M.steel,0,-2.4,2.6);lb(g,4.4,.12,.12,M.steel,0,2.4,2.6);panels(g,4.6,5.4,.1,0,0,2.95)}},
  swh:{cat:'Power',name:'Solar water heater',w:2.2,d:1.8,stat:{kwhSave:2000},note:'200 L thermosiphon heater. Replaces about 2,000 kWh a year of electric water heating.',
@@ -853,9 +855,9 @@ const ITEMS={
 };
 /* the optimised plan: [item, plan x, plan y, height, rotation] — annex roof for solar, the strip between the
    driveway and the house for food, the carport over the driveway, small livestock by the south hedge */
-const OPTIMAL=[['pv',3.6,5,3.2,0],['pv',8.4,5,3.2,0],['pv',3.6,8.6,3.2,0],['swh',8.6,8.8,3.2,0],['carport',2.8,25.2,0,0],['battery',10.6,11.4,0,0],['grey',12.3,13.9,0,0],
+const OPTIMAL=[['pvflush',6,10,4.03,0],['carport',2.8,25.2,0,0],['pv',22,25.6,0,0],['battery',10.6,11.4,0,0],['swh',12.6,12.4,0,0],['grey',12.3,14.4,0,0],
  ['bed',7.2,18,0,0],['bed',9,18,0,0],['bed',10.8,18,0,0],['bed',12.6,18,0,0],['herbs',9.9,21,0,0],['greenhouse',9.8,25,0,0],
- ['citrus',14.5,26.6,0,0],['citrus',20.5,26.6,0,0],['coop',26.5,26.9,0,0],['compost',14.5,30.4,0,0],['bees',32.4,27.4,0,0]];
+ ['citrus',14.5,26.6,0,0],['citrus',18,27.2,0,0],['coop',27.6,27,0,0],['compost',14.5,30.4,0,0],['bees',32.4,27.4,0,0]];
 const addG=new THREE.Group();addG.userData.adds=true;scene.add(addG);
 
 /* ---------- UI + state ---------- */
@@ -938,7 +940,7 @@ let placeType=null;
 function startPlace(k){placeType=k;setTool('place');$('hint-t').textContent=`Tap the garden or a roof to place: ${ITEMS[k].name}`}
 function addItem(t,px,py,h=0,r=0){const it=ITEMS[t];if(!it)return null;const g=new THREE.Group();g.userData.label=it.name;g.userData.item=t;it.build(g);
   g.position.set(px-30,h,py-20);g.rotation.y=r;addG.add(g);return g}
-function saveAdds(){try{localStorage.setItem('pg-add-v2',JSON.stringify(addG.children.map(g=>[g.userData.item,+(g.position.x+30).toFixed(2),+(g.position.z+20).toFixed(2),+g.position.y.toFixed(2),+g.rotation.y.toFixed(3)])))}catch(e){}}
+function saveAdds(){try{localStorage.setItem('pg-add-v3',JSON.stringify(addG.children.map(g=>[g.userData.item,+(g.position.x+30).toFixed(2),+(g.position.z+20).toFixed(2),+g.position.y.toFixed(2),+g.rotation.y.toFixed(3)])))}catch(e){}}
 function clearAdds(){clearSel();while(addG.children.length){const g=addG.children[0];addG.remove(g);g.traverse(o=>{if(o.geometry&&o.geometry!==FROND)o.geometry.dispose()})}}
 function loadAdds(list){clearAdds();for(const a of list)addItem(...a);applyDisplay();applyLayers();renderLand()}
 function optimise(){loadAdds(OPTIMAL);saveAdds();showTab('land')}
@@ -975,7 +977,7 @@ function renderLand(){if(!current)return;const S={kwp:0,kwhSave:0,kwhGen:0,kwh:0
   $('l-opt').onclick=optimise;$('l-clear').onclick=()=>{clearAdds();saveAdds();renderLand()};$('l-add').onclick=()=>$('b-add').click()}
 let showTab=function(t){for(const k of['design','land']){$('tab-'+k).setAttribute('aria-selected',String(k===t));$('pane-'+k).hidden=k!==t}if($('details').hidden)setDetails(true);if(t==='land')renderLand()}
 /* ---------- Site and Render tabs: everything in one place ---------- */
-const RBASE=`Photorealistic architectural visualization of a private walled garden plot (34 × 33 m) on the outskirts of Cairo, Egypt. Use the reference image for layout, massing, camera angle and the position of every element, and keep them exactly. Keep the existing single-storey 10 × 8 m building at the north-west corner: river-pebble stone walls, a thin ochre plaster band, a terracotta Roman-tile roof edge, an arched dark-timber door facing the gate, solar panels on its flat roof. Keep the stamped flagstone-pattern driveway along the west boundary wall, the ochre-rendered boundary walls, the tall clipped ficus hedge along the north wall, the row of date palms (Phoenix dactylifera) with orange date clusters along the south hedge, the raised vegetable beds and greenhouse between the driveway and the pool. Replace the low-poly trees and hedges with real ones.`;
+const RBASE=`Photorealistic architectural visualization of a private walled garden plot (34 × 33 m) on the outskirts of Cairo, Egypt. Use the reference image for layout, massing, camera angle and the position of every element, and keep them exactly. Keep the existing single-storey 10 × 8 m building at the north-west corner: river-pebble stone walls, a thin ochre plaster band, a a pyramid roof of terracotta Roman tiles with solar panels on its south slope, an arched dark-timber door facing the gate. Keep the stamped flagstone-pattern driveway along the west boundary wall, the ochre-rendered boundary walls, the tall clipped ficus hedge along the north wall, the row of date palms (Phoenix dactylifera) with orange date clusters along the south hedge, the raised vegetable beds and greenhouse between the driveway and the pool. Replace the low-poly trees and hedges with real ones.`;
 const RTAIL=`Late golden hour, warm low sun, long soft shadows, light dust haze, clear sky. Real materials with fine texture and weathering, correct scale. Full-frame camera, 24 mm lens, same viewpoint as the reference. No people, no cars, no text, no watermark.`;
 const RNIGHT=`Same image at blue hour turning to night: warm 2700 K light glowing from every window and the glazed link, uplights on the date palms, small brass wall lights along the boundary walls, the pool lit from underwater in soft turquoise, a full moon low in a deep-blue sky. Keep the composition, architecture and materials identical. No people, no text.`;
 const RVIDEO=`Slow cinematic drone move starting exactly on this frame: a gentle forward push and slight rise toward the pool, steady and smooth with no cuts. Date palm fronds move a little in a light breeze, the pool surface ripples. Keep the architecture rigid and unchanged. No people, no text.`;
@@ -1135,7 +1137,7 @@ function updateOffset(){const w=innerWidth,h=innerHeight,wide=w>760&&!document.b
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<600?62:45;camera.updateProjectionMatrix();updateOffset()}
 addEventListener('resize',resize);resize();
 select('A',false);
-{let saved=null;try{saved=JSON.parse(localStorage.getItem('pg-add-v2')||'null')}catch(e){}loadAdds(Array.isArray(saved)?saved:OPTIMAL)}
+{let saved=null;try{saved=JSON.parse(localStorage.getItem('pg-add-v3')||'null')}catch(e){}loadAdds(Array.isArray(saved)?saved:OPTIMAL)}
 
 const tmp=new THREE.Vector3();
 let last=performance.now();

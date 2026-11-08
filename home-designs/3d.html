@@ -445,8 +445,8 @@ TX.grass.repeat.set(8.5,8.25);
 const lawn=new THREE.Mesh(new THREE.PlaneGeometry(SW,SD),M.grass);lawn.rotation.x=-Math.PI/2;lawn.position.set(SW/2-30,0,SD/2-20);lawn.receiveShadow=true;site.add(lawn);
 // boundary walls; the gate is in the south wall at the end of the driveway
 box(site,-.35,-.35,SW+.7,.35,3,M.render);box(site,-.35,0,.35,SD,3,M.render);box(site,SW,0,.35,SD,3,M.render);
-box(site,-.35,SD,.95,.35,3,M.render);box(site,5.6,SD,SW-5.25,.35,3,M.render);
-box(site,.2,SD-.1,.6,.6,3.4,M.pebble);box(site,5.4,SD-.1,.6,.6,3.4,M.pebble);box(site,.8,SD+.05,4.6,.12,2.4,M.timber);
+box(site,-.35,SD,.95,.35,3,M.render);box(site,6.6,SD,SW-6.25,.35,3,M.render);
+box(site,.2,SD-.1,.6,.6,3.4,M.pebble);box(site,6.4,SD-.1,.6,.6,3.4,M.pebble);box(site,.8,SD+.05,5.6,.12,2.4,M.timber);
 for(const y of[14,20,26])lampBulb(site,.12,y,2.3);
 for(const y of[8,15,22,29])lampBulb(site,SW-.12,y,2.3);
 pointLight(site,SW-1.5,18,2.3,0xffb45c,3,16);
@@ -459,12 +459,16 @@ box(site,.4,.4,SW-.8,2,4.6,M.hedgeCore);box(site,7,SD-1.6,SW-7.4,1.3,3.2,M.hedge
   im.castShadow=im.receiveShadow=true;site.add(im)})();
 // water tank, shed, neighbour villa beyond the east wall
 const tank=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,2.6,20),M.white);tank.position.set(SW-2.4-30,1.3,4.2-20);tank.castShadow=true;site.add(tank);
-box(site,6.4,28.6,2.4,1.8,1.4,M.timber);box(site,6.2,28.4,2.8,2.2,.12,M.timber,1.4);
+box(site,30.6,20.2,2.4,1.8,1.4,M.timber);box(site,30.4,20,2.8,2.2,.12,M.timber,1.4);
 box(site,SW+2.5,6,12,16,7.2,M.villa);box(site,SW+2,5.5,13,17,.3,M.white,7.2);box(site,SW+2,10,1,8,.15,M.white,3.6);
 for(const [y,z] of[[9,1.4],[15,1.4],[9,4.8],[15,4.8],[19,4.8]])opening(site,'w',SW+2.5,y,1.6,1.8,'glassrect',z);
 // existing annex at the end of the driveway, arched door facing the gate
 const ANNEX_AREA=80;let ANNEX_L=10,ANNEX_D=8;try{const v=+localStorage.getItem('pg-annex-l2');if(v>=8&&v<=20)ANNEX_L=v}catch(e){}
 let driveG=null;
+function car(p,x,y,col){const g=new THREE.Group();g.userData.label='Parked car';const body=std({color:col,roughness:.35,metalness:.6});
+  const b=new THREE.Mesh(new THREE.BoxGeometry(1.8,.7,4.5),body);b.position.y=.55;const c=new THREE.Mesh(new THREE.BoxGeometry(1.6,.55,2.3),M.glass);c.position.set(0,1.15,.2);g.add(b,c);
+  for(const [dx,dz] of[[-.85,-1.4],[.85,-1.4],[-.85,1.4],[.85,1.4]]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.33,.33,.22,14),M.frame);w.rotation.z=Math.PI/2;w.position.set(dx,.33,dz);g.add(w)}
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true});g.position.set(x-30,0,y-20);p.add(g);return g}
 let annexUnit=null;
 function buildAnnex(){if(annexUnit){site.remove(annexUnit);annexUnit.traverse(o=>{if(o.geometry&&o.geometry!==FROND)o.geometry.dispose()})}
   ANNEX_D=ANNEX_AREA/ANNEX_L;const g=new THREE.Group();g.userData.label='Existing annex';site.add(g);block(g,1,3,ANNEX_L,ANNEX_D,3.2,{all:M.pebble,fascia:.55,tile:false});hipRoof(g,1,3,ANNEX_L,ANNEX_D,2.4,.5,M.roof,3.2,0);
@@ -472,7 +476,11 @@ function buildAnnex(){if(annexUnit){site.remove(annexUnit);annexUnit.traverse(o=
   g.traverse(o=>{o.userData.existing=true});annexUnit=g;
   if(driveG){site.remove(driveG);driveG.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
   driveG=new THREE.Group();driveG.userData.label='Driveway (stamped stone)';driveG.userData.ground=true;driveG.userData.existing=true;site.add(driveG);
-  box(driveG,.6,3+ANNEX_D,4.4,SD-3-ANNEX_D,.03,M.drive,0,5);box(driveG,.6,3+ANNEX_D,9,4.5,.03,M.drive,0,5);driveG.traverse(o=>{o.userData.ground=true;o.userData.existing=true});
+  box(driveG,.6,3+ANNEX_D,6,SD-3-ANNEX_D,.03,M.drive,0,5);box(driveG,.6,3+ANNEX_D,ANNEX_L+.4,7,.03,M.drive,0,5);
+  const cy=3+ANNEX_D;car(driveG,2.3,cy+4.6,0x2a2d31);car(driveG,4.8,cy+4.4,0x6b6e72);
+  {const pt=new THREE.Group();pt.userData.label='Patio table and chairs';driveG.add(pt);const t=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.72,16),M.steel);t.position.set(8.4-30,.36,cy+1.6-20);pt.add(t);
+   for(const [dx,dz] of[[-.8,0],[.8,0],[0,-.8],[0,.8]]){const c=new THREE.Mesh(new THREE.BoxGeometry(.5,.85,.5),M.steel);c.position.set(8.4+dx-30,.42,cy+1.6+dz-20);pt.add(c)}}
+  for(let y=cy+7.5;y<SD-1;y+=4)lampBulb(driveG,6.4,y,.15);driveG.traverse(o=>{o.userData.ground=true;o.userData.existing=true});
   return g}
 buildAnnex();
 const flood=new THREE.SpotLight(0xfff1d6,0,34,.7,.6,1.5);flood.position.set(3.1-30,3,3+ANNEX_D+.3-20);flood.target.position.set(3.1-30,0,22-20);flood.userData.night=6;site.add(flood,flood.target);
@@ -859,9 +867,9 @@ const ITEMS={
 };
 /* the optimised plan: [item, plan x, plan y, height, rotation] — annex roof for solar, the strip between the
    driveway and the house for food, the carport over the driveway, small livestock by the south hedge */
-const OPTIMAL=[['pvflush',6,10,4.03,0],['carport',2.8,25.2,0,0],['pv',22,25.6,0,0],['battery',10.6,11.4,0,0],['swh',12.6,12.4,0,0],['grey',12.3,14.4,0,0],
- ['bed',7.2,18,0,0],['bed',9,18,0,0],['bed',10.8,18,0,0],['bed',12.6,18,0,0],['herbs',9.9,21,0,0],['greenhouse',9.8,25,0,0],
- ['citrus',14.5,26.6,0,0],['citrus',18,27.2,0,0],['coop',27.6,27,0,0],['compost',14.5,30.4,0,0],['bees',32.4,27.4,0,0]];
+const OPTIMAL=[['pvflush',6,10,4.03,0],['carport',3.6,27,0,0],['pv',22,25.6,0,0],['battery',10.9,11.6,0,0],['swh',12.6,12.4,0,0],['grey',12.4,14.8,0,0],
+ ['bed',7.6,21,0,0],['bed',9.4,21,0,0],['bed',11.2,21,0,0],['bed',13,21,0,0],['herbs',10.3,24.2,0,0],['greenhouse',10.3,28.3,0,0],
+ ['citrus',14.6,26.6,0,0],['citrus',18,27.2,0,0],['coop',27.6,27,0,0],['compost',14.6,30.4,0,0],['bees',32.4,27.4,0,0]];
 const addG=new THREE.Group();addG.userData.adds=true;scene.add(addG);
 
 /* ---------- UI + state ---------- */
@@ -944,7 +952,7 @@ let placeType=null;
 function startPlace(k){placeType=k;setTool('place');$('hint-t').textContent=`Tap the garden or a roof to place: ${ITEMS[k].name}`}
 function addItem(t,px,py,h=0,r=0){const it=ITEMS[t];if(!it)return null;const g=new THREE.Group();g.userData.label=it.name;g.userData.item=t;it.build(g);
   g.position.set(px-30,h,py-20);g.rotation.y=r;addG.add(g);return g}
-function saveAdds(){try{localStorage.setItem('pg-add-v3',JSON.stringify(addG.children.map(g=>[g.userData.item,+(g.position.x+30).toFixed(2),+(g.position.z+20).toFixed(2),+g.position.y.toFixed(2),+g.rotation.y.toFixed(3)])))}catch(e){}}
+function saveAdds(){try{localStorage.setItem('pg-add-v4',JSON.stringify(addG.children.map(g=>[g.userData.item,+(g.position.x+30).toFixed(2),+(g.position.z+20).toFixed(2),+g.position.y.toFixed(2),+g.rotation.y.toFixed(3)])))}catch(e){}}
 function clearAdds(){clearSel();while(addG.children.length){const g=addG.children[0];addG.remove(g);g.traverse(o=>{if(o.geometry&&o.geometry!==FROND)o.geometry.dispose()})}}
 function loadAdds(list){clearAdds();for(const a of list)addItem(...a);applyDisplay();applyLayers();renderLand()}
 function optimise(){loadAdds(OPTIMAL);saveAdds();showTab('land')}
@@ -953,7 +961,7 @@ const fmt=n=>Math.round(n).toLocaleString('en-US');
 function renderLand(){if(!current)return;const S={kwp:0,kwhSave:0,kwhGen:0,kwh:0,water:0,veg:0,fruit:0,eggs:0,honey:0,fish:0,gas:0,farm:0,power:0,n:0};
   for(const g of addG.children){const it=ITEMS[g.userData.item];if(!it||g.userData.userHidden)continue;S.n++;for(const [k,v] of Object.entries(it.stat))if(k!=='farm')S[k]+=v;
     const onRoof=g.position.y>.5;if(it.cat==='Farming')S.farm+=it.stat.farm||it.w*it.d;else if(!onRoof)S.power+=it.w*it.d}
-  const kk=optGroup?optGroup.scale.x:1,house=FOOT[current][0]*kk,poolA=FOOT[current][1]*kk,PLOT=SW*SD,ANNEX=ANNEX_L*ANNEX_D,DRIVE=4.4*(SD-3-ANNEX_D)+4.6*4.5,HEDGE=Math.round(SW*2.4+(SW-7)*1.6);
+  const kk=optGroup?optGroup.scale.x:1,house=FOOT[current][0]*kk,poolA=FOOT[current][1]*kk,PLOT=SW*SD,ANNEX=ANNEX_L*ANNEX_D,DRIVE=6*(SD-3-ANNEX_D)+(ANNEX_L-5.6)*7,HEDGE=Math.round(SW*2.4+(SW-7)*1.6);
   const garden=Math.max(0,PLOT-ANNEX-house-poolA-DRIVE-HEDGE-S.farm-S.power);
   const pvGen=S.kwp*1750,gen=pvGen+S.kwhGen+S.kwhSave,demand=Math.round((ANNEX+house)*55+2000),cover=Math.min(100,gen/demand*100);
   const irrigation=Math.round(S.farm*.8+garden*.6);
@@ -1103,7 +1111,7 @@ function updateDims(){clearDims();const on=$('ly-dims').checked;dimG.visible=on;
   dimLine(1,2.2,aE,2.2,`Annex ${f1(ANNEX_L)} m · 80 m²`,4.3);dimLine(aE+.5,3,aE+.5,3+ANNEX_D,`${f1(ANNEX_D)} m`,3.4);
   if(isFinite(x0)){const yl=Math.min(SD-2,y1+1);dimLine(x0,yl,x1,yl,`House ${f1(x1-x0)} m`);dimLine(x1+.7,y0,x1+.7,y1,`${f1(y1-y0)} m`);
     dimLine(aE,yl,x0,yl,`Link ${f1(Math.max(0,x0-aE))} m`);dimLine(x1,y0-.2,SW,y0-.2,`${f1(SW-x1)} m to east wall`,.4)}
-  dimLine(.6,20,5,20,'Drive 4.4 m');
+  dimLine(.6,22,6.6,22,'Drive 6.0 m');
   Object.assign(lastDims,{annexL:ANNEX_L,annexD:ANNEX_D,houseL:x1-x0,houseD:y1-y0,gapAnnex:x0-aE,gapEast:SW-x1,houseStart:x0,houseEnd:x1})}
 ['ly-dims'].forEach(k=>$(k).addEventListener('change',updateDims));
 $('annex-l').value=ANNEX_L;$('annex-lv').textContent=f1(ANNEX_L)+' × '+f1(ANNEX_AREA/ANNEX_L)+' m';
@@ -1129,7 +1137,7 @@ function view(kind,animate=true){lastView=kind;const fy=OPT[current].focus[1],fx
   if(kind==='aerial')pos=new THREE.Vector3(fx-30+12,narrow?30:22,fy-20+(narrow?40:30));
   if(kind==='fit'){t.set(SW/2-30,0,SD/2-20);pos=new THREE.Vector3(SW/2-30+(narrow?14:16),narrow?46:30,SD/2-20+(narrow?50:34))}
   if(kind==='palms'){pos=new THREE.Vector3(20.5-30,1.7,27.6-20);t.y=1.8}
-  if(kind==='drive'){pos=new THREE.Vector3(3-30,1.7,SD-.8-20);t.set(3.1-30,1.8,3+ANNEX_D-20)}
+  if(kind==='drive'){pos=new THREE.Vector3(3.6-30,1.7,SD-.8-20);t.set(3.1-30,1.8,3+ANNEX_D-20)}
   if(kind==='top'){pos=new THREE.Vector3(SW/2-30,narrow?78:52,SD/2-20+.01);t.set(SW/2-30,0,SD/2-20)}
   if(kind==='front'){pos=new THREE.Vector3(fx-30,2.2,fy-20+(narrow?42:30));t.set(fx-30,2.2,fy-20-3)}
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===kind)));
@@ -1141,7 +1149,7 @@ function updateOffset(){const w=innerWidth,h=innerHeight,wide=w>760&&!document.b
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<600?62:45;camera.updateProjectionMatrix();updateOffset()}
 addEventListener('resize',resize);resize();
 select('A',false);
-{let saved=null;try{saved=JSON.parse(localStorage.getItem('pg-add-v3')||'null')}catch(e){}loadAdds(Array.isArray(saved)?saved:OPTIMAL)}
+{let saved=null;try{saved=JSON.parse(localStorage.getItem('pg-add-v4')||'null')}catch(e){}loadAdds(Array.isArray(saved)?saved:OPTIMAL)}
 
 const tmp=new THREE.Vector3();
 let last=performance.now();

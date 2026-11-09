@@ -198,7 +198,7 @@ body:not(.clean) #showui{display:none}
         <figure><img src="img/53891621.jpg" alt="Lawn toward the boundary wall and the neighbour's villa" loading="lazy"><figcaption>Boundary wall and neighbour's villa</figcaption></figure>
         <figure><img src="img/ed888777.jpg" alt="Stamped flagstone driveway at night" loading="lazy"><figcaption>Stamped-stone driveway</figcaption></figure>
       </div>
-      <div class="chips2"><span>Plot 34 × 33 m · 1,122 m²</span><span>Existing building 10 × 8 m · 80 m²</span><span>River-pebble walls</span><span>Ochre render</span><span>Pyramid terracotta roof</span><span>Arched timber door</span><span>Street along the west side</span><span>Gate in the west wall, near the south end</span><span>Straight driveway: gate → door</span><span>Wall on the left as you enter</span><span>Date palms</span><span>Ficus hedge</span><span>Neighbour on the east</span></div>
+      <div class="chips2"><span>Plot 34 × 33 m · 1,122 m²</span><span>Existing building 10 × 8 m · 80 m²</span><span>River-pebble walls</span><span>Ochre render</span><span>Pyramid terracotta roof</span><span>Arched timber door</span><span>Street along the south side</span><span>Gate in the south wall at the south-west corner</span><span>Straight driveway: gate → door</span><span>Wall on the left as you enter</span><span>Date palms</span><span>Ficus hedge</span><span>Neighbour on the east</span></div>
       <h3 class="sub">Rules every option follows</h3>
       <ul class="rules"><li>Joined to the existing building by a glazed link in the new house's own material.</li><li>At least 1.5 m from the neighbour's wall (check your local setback rules).</li><li>Pool and paving kept 3 m clear of the date-palm trunks.</li><li>One warm 2700 K light colour; only the pool light is cool.</li><li>Solar on the south slope of the pyramid roof and over the driveway first, so the garden stays free for food.</li></ul>
     </div>
@@ -445,17 +445,17 @@ const outside=new THREE.Mesh(new THREE.PlaneGeometry(260,260),M.outside);outside
 TX.grass.repeat.set(8.5,8.25);
 const lawn=new THREE.Mesh(new THREE.PlaneGeometry(SW,SD),M.grass);lawn.rotation.x=-Math.PI/2;lawn.position.set(SW/2-30,0,SD/2-20);lawn.receiveShadow=true;site.add(lawn);
 // boundary walls; the gate is in the south wall at the end of the driveway
-box(site,-.35,-.35,SW+.7,.35,3,M.render);box(site,-.35,0,.35,26.4,3,M.render);box(site,-.35,32.6,.35,SD-32.6,3,M.render);box(site,SW,0,.35,SD,3,M.render);
-box(site,-.35,SD,SW+.7,.35,3,M.render);
-box(site,-.45,26,.6,.6,3.4,M.pebble);box(site,-.45,32.4,.6,.6,3.4,M.pebble);box(site,-.3,26.6,.12,5.8,2.4,M.timber);
-{const st=new THREE.Group();st.userData.label='Street';st.userData.noPick=true;site.add(st);box(st,-11,-8,10,SD+16,.02,M.stone,0,4);box(st,-2.2,-8,1.85,SD+16,.12,M.trav,0,2);box(st,-1.2,26.4,1.2,6.2,.06,M.drive,0,5)}
-for(const y of[14,20])lampBulb(site,.12,y,2.3);lampBulb(site,-.5,25.7,2.6);lampBulb(site,-.5,32.9,2.6);
+box(site,-.35,-.35,SW+.7,.35,3,M.render);box(site,-.35,0,.35,SD,3,M.render);box(site,SW,0,.35,SD,3,M.render);
+box(site,-.35,SD,.95,.35,3,M.render);box(site,6.6,SD,SW-6.25,.35,3,M.render);
+box(site,.2,SD-.1,.6,.6,3.4,M.pebble);box(site,6.4,SD-.1,.6,.6,3.4,M.pebble);box(site,.8,SD+.05,5.6,.12,2.4,M.timber);
+{const st=new THREE.Group();st.userData.label='Street';st.userData.noPick=true;site.add(st);box(st,-10,SD+2.2,SW+20,9,.02,M.stone,0,4);box(st,-10,SD+.35,SW+20,1.85,.12,M.trav,0,2);box(st,.6,SD+.35,6,1.9,.13,M.drive,0,5)}
+for(const y of[14,20,26])lampBulb(site,.12,y,2.3);lampBulb(site,.5,SD+.5,2.6);lampBulb(site,6.7,SD+.5,2.6);
 for(const y of[8,15,22,29])lampBulb(site,SW-.12,y,2.3);
 pointLight(site,SW-1.5,18,2.3,0xffb45c,3,16);
 // hedges: tall ficus along the north wall, a lower hedge along the south wall, low hedge by the driveway
 box(site,.4,.4,SW-.8,2,4.6,M.hedgeCore);box(site,7,SD-1.6,SW-7.4,1.3,3.2,M.hedgeCore);
 (()=>{const N=900,geo=new THREE.IcosahedronGeometry(1,1),im=new THREE.InstancedMesh(geo,M.hedge,N),d=new THREE.Object3D(),col=new THREE.Color();
-  for(let i=0;i<N;i++){let x,y,h,s;if(i<480){x=rnd()*SW;y=rnd()*2.6;h=.6+rnd()*4.4;s=.8+rnd()*.9}else if(i<760){x=6.6+rnd()*(SW-7);y=SD-1.9+rnd()*1.6;h=.5+rnd()*2.8;s=.6+rnd()*.6}else{x=rnd()*.6;y=13+rnd()*12.5;h=.35+rnd()*1.1;s=.45+rnd()*.3}
+  for(let i=0;i<N;i++){let x,y,h,s;if(i<480){x=rnd()*SW;y=rnd()*2.6;h=.6+rnd()*4.4;s=.8+rnd()*.9}else if(i<760){x=6.6+rnd()*(SW-7);y=SD-1.9+rnd()*1.6;h=.5+rnd()*2.8;s=.6+rnd()*.6}else{x=rnd()*.6;y=13+rnd()*(SD-14);h=.35+rnd()*1.1;s=.45+rnd()*.3}
     d.position.set(x-30,h,y-20);d.scale.set(s,s*(.8+rnd()*.4),s);d.rotation.set(rnd()*3,rnd()*3,0);d.updateMatrix();im.setMatrixAt(i,d.matrix);
     col.setHSL(.24+rnd()*.06,.45+rnd()*.15,.16+rnd()*.12);im.setColorAt(i,col)}
   im.castShadow=im.receiveShadow=true;site.add(im)})();
@@ -991,7 +991,7 @@ function renderLand(){if(!current)return;const S={kwp:0,kwhSave:0,kwhGen:0,kwh:0
   $('l-opt').onclick=optimise;$('l-clear').onclick=()=>{clearAdds();saveAdds();renderLand()};$('l-add').onclick=()=>$('b-add').click()}
 let showTab=function(t){for(const k of['design','land']){$('tab-'+k).setAttribute('aria-selected',String(k===t));$('pane-'+k).hidden=k!==t}if($('details').hidden)setDetails(true);if(t==='land')renderLand()}
 /* ---------- Site and Render tabs: everything in one place ---------- */
-const RBASE=`Photorealistic architectural visualization of a private walled garden plot (34 × 33 m) on the outskirts of Cairo, Egypt. Use the reference image for layout, massing, camera angle and the position of every element, and keep them exactly. Keep the existing single-storey 10 × 8 m building at the north-west corner: river-pebble stone walls, a thin ochre plaster band, a a pyramid roof of terracotta Roman tiles with solar panels on its south slope, an arched dark-timber door facing the gate. Keep the 6 m wide stamped flagstone-pattern driveway running straight north along the inside of the west boundary wall, from a wide timber gate set in that west wall near its south end (the public street runs along the outside of the west wall), to the building's door, ending in a stamped-stone parking court with two parked cars and a patio table and chairs beside the door, with small ground lights along its edge, the ochre-rendered boundary walls, the tall clipped ficus hedge along the north wall, the row of date palms (Phoenix dactylifera) with orange date clusters along the south hedge, the raised vegetable beds and greenhouse between the driveway and the pool. Replace the low-poly trees and hedges with real ones.`;
+const RBASE=`Photorealistic architectural visualization of a private walled garden plot (34 × 33 m) on the outskirts of Cairo, Egypt. Use the reference image for layout, massing, camera angle and the position of every element, and keep them exactly. Keep the existing single-storey 10 × 8 m building at the north-west corner: river-pebble stone walls, a thin ochre plaster band, a a pyramid roof of terracotta Roman tiles with solar panels on its south slope, an arched dark-timber door facing the gate. Keep the 6 m wide stamped flagstone-pattern driveway running straight north along the inside of the west boundary wall, from a wide timber gate in the south boundary wall at the south-west corner (the public street runs along the outside of the south wall), to the building's door, ending in a stamped-stone parking court with two parked cars and a patio table and chairs beside the door, with small ground lights along its edge, the ochre-rendered boundary walls, the tall clipped ficus hedge along the north wall, the row of date palms (Phoenix dactylifera) with orange date clusters along the south hedge, the raised vegetable beds and greenhouse between the driveway and the pool. Replace the low-poly trees and hedges with real ones.`;
 const RTAIL=`Late golden hour, warm low sun, long soft shadows, light dust haze, clear sky. Real materials with fine texture and weathering, correct scale. Full-frame camera, 24 mm lens, same viewpoint as the reference. No people, no cars, no text, no watermark.`;
 const RNIGHT=`Same image at blue hour turning to night: warm 2700 K light glowing from every window and the glazed link, uplights on the date palms, small brass wall lights along the boundary walls, the pool lit from underwater in soft turquoise, a full moon low in a deep-blue sky. Keep the composition, architecture and materials identical. No people, no text.`;
 const RVIDEO=`Slow cinematic drone move starting exactly on this frame: a gentle forward push and slight rise toward the pool, steady and smooth with no cuts. Date palm fronds move a little in a light breeze, the pool surface ripples. Keep the architecture rigid and unchanged. No people, no text.`;
@@ -1139,7 +1139,7 @@ function view(kind,animate=true){lastView=kind;const fy=OPT[current].focus[1],fx
   if(kind==='aerial')pos=new THREE.Vector3(fx-30+12,narrow?30:22,fy-20+(narrow?40:30));
   if(kind==='fit'){t.set(SW/2-30,0,SD/2-20);pos=new THREE.Vector3(SW/2-30+(narrow?14:16),narrow?46:30,SD/2-20+(narrow?50:34))}
   if(kind==='palms'){pos=new THREE.Vector3(20.5-30,1.7,27.6-20);t.y=1.8}
-  if(kind==='drive'){pos=new THREE.Vector3(1.2-30,1.7,30.5-20);t.set(3.1-30,1.8,3+ANNEX_D-20)}
+  if(kind==='drive'){pos=new THREE.Vector3(3.6-30,1.7,SD-.8-20);t.set(3.1-30,1.8,3+ANNEX_D-20)}
   if(kind==='top'){pos=new THREE.Vector3(SW/2-30,narrow?78:52,SD/2-20+.01);t.set(SW/2-30,0,SD/2-20)}
   if(kind==='front'){pos=new THREE.Vector3(fx-30,2.2,fy-20+(narrow?42:30));t.set(fx-30,2.2,fy-20-3)}
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===kind)));

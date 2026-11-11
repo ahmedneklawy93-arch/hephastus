@@ -49,8 +49,29 @@ Make up a long password for your Hephastus page. This is `APP_PASSWORD`. Anyone 
 
 Bookmark the address. On a phone, use your browser's **Add to Home Screen** to get an app-like icon.
 
+## Projects and site work (MEP contracting)
+
+Hephastus also runs your MEP contracting work. All amounts are in Egyptian pounds (EGP).
+
+- **Projects**: each project's contract (client, consultant, disciplines, contract value, retention %, advance %, dates, status, progress) and its **variations** (change orders with Draft, Submitted, Approved or Rejected status). The dashboard shows revised contract value (contract plus approved variations), work done (revised value × progress), variations still pending, retention held, and overdue tasks.
+- **Site**: **daily reports** (manpower by trade, work done, materials received, issues) and **tasks** (discipline, who it's assigned to, due date, priority, status).
+- **Chat**: ask things like "Which projects are behind?", "Total pending variations?" or "What happened on P-101 this week?". Hephastus reads the data to answer; it never changes it.
+
+### Your team
+
+Log in as `admin` with your `APP_PASSWORD`, open **Team** and add people:
+
+| Role | Can do |
+|---|---|
+| Admin (you) | Everything, including adding and removing people |
+| Manager | Add and edit projects, variations, tasks and any daily report |
+| Site engineer | Read projects, write daily reports (and correct their own), add and update tasks |
+
+Everyone has their own chat; the memory is shared by the team. Removing someone logs them out at once.
+
 ## Using it
 
+- Log in with your username (`admin` for you) and password.
 - Type a message and press **Enter** (on a computer) or the arrow button. **Shift+Enter** adds a new line.
 - Tell it "remember that…" to save something.
 - **Memory** shows everything it remembers; tap **Forget** to remove one.

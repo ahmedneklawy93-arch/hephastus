@@ -5,6 +5,8 @@ import { pathToFileURL } from "node:url";
 import { loadConfig } from "./config.js";
 import { createStore } from "./store.js";
 import { createAssistant } from "./assistant.js";
+import { SCHEMA, createOps } from "./ops.js";
+import { ADMIN_USERNAME, hashPassword, normalizeUsername, publicUser, validateUser, verifyPassword } from "./users.js";
 
 const SESSION_DAYS = 30;
 const MAX_BODY_BYTES = 64 * 1024;
@@ -14,6 +16,8 @@ const MAX_FAILED_LOGINS = 10;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 
 const PAGE = new URL("../public/index.html", import.meta.url);
+const OPS_SCRIPT = new URL("../public/ops.js", import.meta.url);
+const ADMIN = { username: ADMIN_USERNAME, displayName: "Admin", role: "admin" };
 
 function sign(value, secret) {
   return crypto.createHmac("sha256", secret).update(value).digest("hex");
@@ -25,17 +29,23 @@ function safeEqual(a, b) {
   return crypto.timingSafeEqual(hashA, hashB);
 }
 
-// A session is "<expiry time>.<signature>", so it can't be forged without the secret.
-export function createSessionToken(secret, now = Date.now()) {
-  const expires = String(now + SESSION_DAYS * 24 * 60 * 60 * 1000);
-  return `${expires}.${sign(expires, secret)}`;
+// A session is "<username>.<expiry time>.<signature>", so it can't be forged without the secret.
+export function createSessionToken(secret, now = Date.now(), username = ADMIN_USERNAME) {
+  const payload = `${Buffer.from(username).toString("base64url")}.${now + SESSION_DAYS * 24 * 60 * 60 * 1000}`;
+  return `${payload}.${sign(payload, secret)}`;
+}
+
+// Returns the username a valid session belongs to, or null.
+export function readSession(token, secret, now = Date.now()) {
+  if (!token) return null;
+  const [name, expires, signature] = token.split(".");
+  if (!name || !expires || !signature || !safeEqual(signature, sign(`${name}.${expires}`, secret))) return null;
+  if (!(Number(expires) > now)) return null;
+  return Buffer.from(name, "base64url").toString("utf8");
 }
 
 export function isValidSession(token, secret, now = Date.now()) {
-  if (!token) return false;
-  const [expires, signature] = token.split(".");
-  if (!expires || !signature || !safeEqual(signature, sign(expires, secret))) return false;
-  return Number(expires) > now;
+  return readSession(token, secret, now) !== null;
 }
 
 function readCookie(req, name) {
@@ -69,8 +79,31 @@ function sendJson(res, status, body, headers = {}) {
   res.end(JSON.stringify(body));
 }
 
-export function createServer({ password, sessionSecret, assistant, store, log = console }) {
+function forbidden(message = "Your role can't do this.") {
+  return Object.assign(new Error(message), { status: 403 });
+}
+
+export function createServer({ password, sessionSecret, assistant, store, ops = createOps(store), log = console }) {
   const failedLogins = [];
+  // Account changes are applied one at a time.
+  let userQueue = Promise.resolve();
+  const serialUsers = (work) => {
+    const run = userQueue.then(work);
+    userQueue = run.catch(() => {});
+    return run;
+  };
+
+  async function findUser(username) {
+    if (username === ADMIN_USERNAME) return ADMIN;
+    const user = (await store.getCollection("users")).find((u) => u.username === username);
+    return user ? publicUser(user) : null;
+  }
+
+  async function checkLogin(username, attempt) {
+    if (!username || username === ADMIN_USERNAME) return safeEqual(attempt, password) ? ADMIN : null;
+    const user = (await store.getCollection("users")).find((u) => u.username === username);
+    return user && verifyPassword(attempt, user.passwordHash) ? publicUser(user) : null;
+  }
   // Chat messages are answered one at a time so the history never gets mixed up.
   let queue = Promise.resolve();
 
@@ -86,11 +119,17 @@ export function createServer({ password, sessionSecret, assistant, store, log = 
     if (req.method === "GET" && url.pathname === "/") {
       res.writeHead(200, {
         "Content-Type": "text/html; charset=utf-8",
-        "Content-Security-Policy": "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:",
         "X-Frame-Options": "DENY",
         "Referrer-Policy": "no-referrer",
       });
       res.end(await fs.readFile(PAGE));
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/ops.js") {
+      res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-cache" });
+      res.end(await fs.readFile(OPS_SCRIPT));
       return;
     }
 
@@ -107,12 +146,13 @@ export function createServer({ password, sessionSecret, assistant, store, log = 
         return;
       }
       const body = await readJson(req);
-      if (typeof body.password !== "string" || !safeEqual(body.password, password)) {
+      const user = typeof body.password === "string" ? await checkLogin(normalizeUsername(body.username), body.password) : null;
+      if (!user) {
         failedLogins.push(now);
-        sendJson(res, 401, { error: "Wrong password." });
+        sendJson(res, 401, { error: "Wrong username or password." });
         return;
       }
-      const token = createSessionToken(sessionSecret, now);
+      const token = createSessionToken(sessionSecret, now, user.username);
       sendJson(res, 200, { ok: true }, { "Set-Cookie": sessionCookie(req, token, SESSION_DAYS * 24 * 60 * 60) });
       return;
     }
@@ -122,10 +162,14 @@ export function createServer({ password, sessionSecret, assistant, store, log = 
       return;
     }
 
-    if (!isValidSession(readCookie(req, "session"), sessionSecret)) {
+    const username = readSession(readCookie(req, "session"), sessionSecret);
+    // Looked up on every request, so removing an account or changing a role takes effect at once.
+    const user = username === null ? null : await findUser(username);
+    if (!user) {
       sendJson(res, 401, { error: "Please log in." });
       return;
     }
+    const office = user.role === "admin" || user.role === "manager";
 
     if (req.method === "POST" && url.pathname === "/api/logout") {
       sendJson(res, 200, { ok: true }, { "Set-Cookie": sessionCookie(req, "", 0) });
@@ -133,7 +177,7 @@ export function createServer({ password, sessionSecret, assistant, store, log = 
     }
 
     if (req.method === "GET" && url.pathname === "/api/state") {
-      sendJson(res, 200, { messages: await store.getHistory(), facts: await store.getFacts() });
+      sendJson(res, 200, { me: user, messages: await store.getHistory(user.username), facts: await store.getFacts() });
       return;
     }
 
@@ -147,20 +191,21 @@ export function createServer({ password, sessionSecret, assistant, store, log = 
         sendJson(res, 413, { error: "That message is too long." });
         return;
       }
-      const turn = queue.then(() => assistant.reply(message.trim()));
+      const turn = queue.then(() => assistant.reply(message.trim(), user));
       queue = turn.catch(() => {});
       sendJson(res, 200, { reply: await turn });
       return;
     }
 
     if (req.method === "POST" && url.pathname === "/api/reset") {
-      await store.setHistory([]);
+      await store.setHistory([], user.username);
       sendJson(res, 200, { ok: true });
       return;
     }
 
     const factMatch = url.pathname.match(/^\/api\/facts\/(\d+)$/);
     if (req.method === "DELETE" && factMatch) {
+      if (!office) throw forbidden("Only managers can remove team memory.");
       const facts = await store.getFacts();
       const index = Number(factMatch[1]);
       if (index >= facts.length) {
@@ -173,7 +218,92 @@ export function createServer({ password, sessionSecret, assistant, store, log = 
       return;
     }
 
+    if (url.pathname.startsWith("/api/ops")) {
+      await routeOps(req, res, url, user);
+      return;
+    }
+
+    if (url.pathname === "/api/users" || url.pathname.startsWith("/api/users/")) {
+      if (user.role !== "admin") throw forbidden("Only the admin manages the team.");
+      await routeUsers(req, res, url);
+      return;
+    }
+
     sendJson(res, 404, { error: "Not found." });
+  }
+
+  async function routeOps(req, res, url, user) {
+    if (req.method === "GET" && url.pathname === "/api/ops/schema") {
+      sendJson(res, 200, { schema: SCHEMA });
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/ops/data") {
+      const data = await ops.loadAll();
+      sendJson(res, 200, { ...data, summary: await ops.summary() });
+      return;
+    }
+    const match = url.pathname.match(/^\/api\/ops\/([a-z]+)(?:\/([0-9a-f-]{36}))?$/);
+    if (!match || !SCHEMA[match[1]]) {
+      sendJson(res, 404, { error: "Not found." });
+      return;
+    }
+    const [, collection, id] = match;
+    if (req.method === "POST" && !id) {
+      sendJson(res, 201, { record: await ops.create(collection, await readJson(req), user) });
+    } else if (req.method === "PUT" && id) {
+      sendJson(res, 200, { record: await ops.update(collection, id, await readJson(req), user) });
+    } else if (req.method === "DELETE" && id) {
+      await ops.remove(collection, id, user);
+      sendJson(res, 200, { ok: true });
+    } else {
+      sendJson(res, 405, { error: "Not allowed." });
+    }
+  }
+
+  async function routeUsers(req, res, url) {
+    const target = url.pathname === "/api/users" ? null : normalizeUsername(decodeURIComponent(url.pathname.slice(11)));
+    if (req.method === "GET" && !target) {
+      sendJson(res, 200, { users: [ADMIN, ...(await store.getCollection("users")).map(publicUser)] });
+      return;
+    }
+    const body = ["POST", "PUT"].includes(req.method) ? await readJson(req) : null;
+    const result = await serialUsers(async () => {
+      const users = await store.getCollection("users");
+      if (req.method === "POST" && !target) {
+        const fields = { ...body, username: normalizeUsername(body.username) };
+        const problem = validateUser(fields, { requirePassword: true });
+        if (problem) throw Object.assign(new Error(problem), { status: 400 });
+        if (users.some((u) => u.username === fields.username)) {
+          throw Object.assign(new Error("That username is taken."), { status: 400 });
+        }
+        users.push({
+          username: fields.username,
+          displayName: fields.displayName.trim(),
+          role: fields.role,
+          passwordHash: hashPassword(fields.password),
+        });
+      } else if (target && ["PUT", "DELETE"].includes(req.method)) {
+        const index = users.findIndex((u) => u.username === target);
+        if (index < 0) throw Object.assign(new Error("No such user."), { status: 404 });
+        if (req.method === "DELETE") {
+          users.splice(index, 1);
+        } else {
+          const problem = validateUser({ ...body, username: target }, { requirePassword: false });
+          if (problem) throw Object.assign(new Error(problem), { status: 400 });
+          users[index] = {
+            ...users[index],
+            displayName: body.displayName.trim(),
+            role: body.role,
+            ...(body.password ? { passwordHash: hashPassword(body.password) } : {}),
+          };
+        }
+      } else {
+        throw Object.assign(new Error("Not allowed."), { status: 405 });
+      }
+      await store.setCollection("users", users);
+      return [ADMIN, ...users.map(publicUser)];
+    });
+    sendJson(res, 200, { users: result });
   }
 
   return http.createServer(async (req, res) => {
@@ -193,12 +323,14 @@ export function createServer({ password, sessionSecret, assistant, store, log = 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const config = loadConfig();
   const store = createStore(config);
-  const assistant = createAssistant(config, store);
+  const ops = createOps(store);
+  const assistant = createAssistant(config, store, undefined, ops);
   const server = createServer({
     password: config.password,
     sessionSecret: config.sessionSecret,
     assistant,
     store,
+    ops,
   });
   // Claude can take a while on hard questions; don't let Node cut the request off.
   server.requestTimeout = 0;

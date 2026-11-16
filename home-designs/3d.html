@@ -122,14 +122,32 @@ figure.render{margin:0;display:grid;gap:4px}figure.render img{width:100%;border-
 body.clean .ui{display:none!important}
 body:not(.clean) #showui{display:none}
 
-#pano{position:fixed;inset:0;z-index:20;background:#000}
-#pano canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
-#pano .pbar{position:absolute;left:var(--gutL);right:var(--gutR);top:var(--top);display:flex;gap:8px;align-items:center;padding:8px 10px;flex-wrap:wrap}
-#pano .pbar h2{font-size:16px;flex:1;min-width:140px}
-#pano .pspots{display:flex;gap:6px;overflow-x:auto;max-width:100%}
-#pano .phelp{position:absolute;left:50%;transform:translateX(-50%);bottom:var(--bot);padding:6px 12px;font-size:12.5px;color:var(--muted);white-space:nowrap}
-#pano .pload{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-family:var(--mono);font-size:13px;pointer-events:none}
-.pspotlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.pspotlist button{white-space:normal;text-align:left;border-radius:8px;padding:8px 10px;display:grid;gap:1px}.pspotlist button small{color:var(--muted);font-size:11.5px}
+
+/* photoreal viewpoints: pins in the model + full-screen viewer */
+#pins{position:fixed;inset:0;pointer-events:none;z-index:2}
+.pin{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;display:flex;align-items:center;gap:5px;padding:3px 9px 3px 3px;border-radius:99px;background:var(--panel);border:1px solid var(--accent);font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.pin i{font-style:normal;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--mono);font-size:11px}
+.pin::after{content:"";position:absolute;left:50%;bottom:-7px;width:2px;height:7px;background:var(--accent);transform:translateX(-50%)}
+.pin span{white-space:nowrap}
+@media (hover:none){.pin span{max-width:160px}}
+body.clean #pins,body.vp-open #pins{display:none}
+#vp{position:fixed;inset:0;z-index:20;background:#0d0f10;color:#fff}
+#vp canvas,#vp .still{position:absolute;inset:0;width:100%;height:100%;display:block}
+#vp canvas{touch-action:none;cursor:grab}#vp canvas:active{cursor:grabbing}
+#vp .still{object-fit:contain;background:#0d0f10}
+#vp .vtop{position:absolute;top:var(--top);left:var(--gutL);right:var(--gutR);display:flex;gap:8px;align-items:flex-start;pointer-events:none}
+#vp .vtop>*{pointer-events:auto}
+#vp .vtitle{flex:1;min-width:0;padding:8px 12px;color:var(--fg)}
+#vp .vtitle h2{font-size:17px}
+#vp .vmap{padding:6px;color:var(--fg);flex:none}
+#vp .vmap svg{width:150px;height:150px;display:block}
+#vp .vbot{position:absolute;left:var(--gutL);right:var(--gutR);bottom:var(--bot);display:grid;gap:8px;padding:10px;color:var(--fg)}
+#vp .vrow{display:flex;gap:6px;overflow-x:auto;align-items:center;scrollbar-width:thin}
+#vp .vrow button{font-size:12.5px;padding:4px 11px}
+#vp .vrow button.go{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+#vp .vlabel{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex:none;padding-right:2px}
+#vp .vload{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:13px;pointer-events:none}
+@media (max-width:760px){#vp .vmap svg{width:96px;height:96px}#vp .vtitle h2{font-size:15px}}
 [hidden]{display:none!important}
 #err{position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;z-index:9}
 
@@ -166,6 +184,7 @@ body:not(.clean) #showui{display:none}
   <button class="tb" id="b-views" aria-expanded="false" aria-controls="p-views" title="Camera views" aria-label="Camera views"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="11" rx="2"/><path d="M16 11l5-3v9l-5-3"/></svg></button>
   <button class="tb" id="b-disp" aria-expanded="false" aria-controls="p-disp" title="Display mode" aria-label="Display mode"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></button>
   <button class="tb" id="b-layers" aria-expanded="false" aria-controls="p-layers" title="Layers" aria-label="Layers"><svg viewBox="0 0 24 24"><path d="M12 4l9 5-9 5-9-5z"/><path d="M3 14l9 5 9-5"/></svg></button>
+  <button class="tb" id="t-vp" title="Photoreal viewpoints (V)" aria-label="Photoreal viewpoints"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9.5" ry="4"/><path d="M12 2.5a4 9.5 0 0 1 0 19a4 9.5 0 0 1 0-19"/></svg></button>
   <button class="tb" id="t-night" aria-pressed="false" title="Night lighting (L)" aria-label="Night lighting"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/></svg></button>
   <div class="sep"></div>
   <button class="tb" id="t-hide" title="Hide all UI (H)" aria-label="Hide all UI"><svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 6.1A9.6 9.6 0 0 1 12 6c5 0 8.5 4 9.5 6a12.6 12.6 0 0 1-2.8 3.6M6.4 7.6A12.7 12.7 0 0 0 2.5 12c1 2 4.5 6 9.5 6a9.3 9.3 0 0 0 4.2-1"/></svg></button>
@@ -184,6 +203,7 @@ body:not(.clean) #showui{display:none}
   <label><input type="checkbox" id="ly-veg" checked> Trees &amp; hedges</label>
   <label><input type="checkbox" id="ly-dims" checked> Dimensions</label>
   <label><input type="checkbox" id="ly-grid"> 1 m grid</label>
+  <label><input type="checkbox" id="ly-vp" checked> Photoreal viewpoint pins</label>
   <button id="ly-unhide" style="justify-self:start;font-size:12.5px;padding:3px 10px">Show hidden objects</button>
 </div>
 
@@ -212,16 +232,9 @@ body:not(.clean) #showui{display:none}
       <ul class="rules"><li>Joined to the existing building by a glazed link in the new house's own material.</li><li>At least 1.5 m from the neighbour's wall (check your local setback rules).</li><li>Pool and paving kept 3 m clear of the date-palm trunks.</li><li>One warm 2700 K light colour; only the pool light is cool.</li><li>Solar on the south slope of the pyramid roof and over the driveway first, so the garden stays free for food.</li></ul>
     </div>
     <div id="pane-render" role="tabpanel" hidden>
-      <h3 class="sub">Walk around in 360° · E · Andalusian Patio Villa</h3>
-      <p class="note">Photoreal Blender views you can turn around in. Pick where to stand, then drag to look in any direction.</p>
-      <div class="pspotlist" id="pspotlist"></div>
-      <h3 class="sub">Blender renders · E · Andalusian Patio Villa</h3>
-      <p class="note">Ray-traced in Blender (Cycles) from this exact 3D model, so sizes and positions are true to the plan.</p>
-      <figure class="render"><img src="renders/blender/E-pool-day.jpg" alt="Eye-level view across the pool to the terracotta-roofed arcade, with grass, citrus trees and the pebble building" loading="lazy"><figcaption>Pool and arcade, late afternoon</figcaption></figure>
-      <figure class="render"><img src="renders/blender/E-aerial-day.jpg" alt="Aerial view of the whole plot: ochre boundary wall, gate at the south-west corner, driveway, pebble building with pyramid roof, the new house, pool and date palms" loading="lazy"><figcaption>Aerial from the south-west, gate and driveway in front</figcaption></figure>
-      <figure class="render"><img src="renders/blender/E-drive-day.jpg" alt="Eye-level view from the gate along the stone driveway to the pebble-clad building and solar carport" loading="lazy"><figcaption>Entering through the gate, driveway to the pebble building</figcaption></figure>
-      <figure class="render"><img src="renders/blender/E-pool-dusk.jpg" alt="Dusk view of the lit pool and arcade" loading="lazy"><figcaption>Pool at dusk with lights on</figcaption></figure>
-      <figure class="render"><img src="renders/blender/E-aerial-dusk.jpg" alt="Dusk aerial view of the plot with wall lights on" loading="lazy"><figcaption>Aerial at dusk</figcaption></figure>
+      <h3 class="sub">Photoreal views (Blender)</h3>
+      <p class="note">Ray-traced from this exact model. Each one is pinned in the 3D view where it was taken.</p>
+      <div class="landbtns"><button id="open-vp">Open photoreal viewpoints</button></div>
       <h3 class="sub">AI renders</h3>
       <figure class="render"><img src="renders/E-andalusian.jpg" alt="Photoreal aerial render of the Andalusian Patio Villa: whitewashed walls, terracotta hipped roofs, white arcade, zellige fountain, pool, beside the pebble-stone building with a pyramid roof, with the gate at the south-west corner of the south wall and a straight driveway" loading="lazy"><figcaption>E · Andalusian Patio Villa, confirmed layout (AI render; sizes approximate)</figcaption></figure>
       <figure class="render"><img src="renders/A-mashrabiya-v4.jpg" alt="Photoreal aerial render: street along the south wall, wooden double gate at the south-west end, straight stamped driveway to the pebble-stone building with a pyramid roof, cars and patio, solar carport, limestone courtyard house with mashrabiya screens, pool, greenhouse and date palms" loading="lazy"><figcaption>A · Mashrabiya Courtyard House, confirmed layout: gate in the south wall at the south-west corner (AI render; sizes approximate)</figcaption></figure>
@@ -258,11 +271,20 @@ body:not(.clean) #showui{display:none}
 </div>
 
 <button id="showui" aria-label="Show the interface (H)">Show UI</button>
-<div id="pano" hidden role="dialog" aria-label="360 degree view">
-  <canvas id="pc" aria-label="360 degree photoreal view. Drag to look around, pinch or scroll to zoom."></canvas>
-  <div class="pload" id="pload">Loading 360° view…</div>
-  <div class="pbar card"><h2 id="ptitle">360° view</h2><div class="pspots" id="pspots"></div><button class="icon" id="pclose" aria-label="Close 360 view">✕</button></div>
-  <div class="phelp card">Drag to look around · pinch or scroll to zoom · Esc to close</div>
+<div id="pins" aria-label="Photoreal viewpoints in the model"></div>
+<div id="vp" hidden role="dialog" aria-modal="true" aria-labelledby="vp-name">
+  <canvas id="vp-c" aria-label="Photoreal 360 degree view. Drag to look around, pinch or scroll to zoom."></canvas>
+  <img class="still" id="vp-img" alt="" hidden>
+  <div class="vload" id="vp-load" hidden>Loading…</div>
+  <div class="vtop">
+    <div class="vtitle card"><div class="eyebrow">Photoreal · style E · Andalusian Patio Villa</div><h2 id="vp-name"></h2><div class="note" id="vp-sub"></div></div>
+    <div class="vmap card" title="Where you are standing on the plot"><svg id="vp-map" viewBox="-3 -3 40 39" aria-label="Plot map showing your position and view direction"></svg></div>
+    <button class="icon card" id="vp-close" aria-label="Close and return to the 3D model">✕</button>
+  </div>
+  <div class="vbot card">
+    <div class="vrow" id="vp-shots"></div>
+    <div class="vrow" id="vp-spots"></div>
+  </div>
 </div>
 <div id="err" hidden><p>The 3D viewer could not load its graphics library. Check your connection and reload the page.</p></div>
 
@@ -1194,35 +1216,92 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
     if(vis){m.el.style.left=((tmp.x+1)/2*w)+'px';m.el.style.top=((1-tmp.y)/2*h)+'px'}}
   requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
+window.PG={camera,controls,tweenTo,select:(id,a)=>select(id,a),get current(){return current},houseBox,get optGroup(){return optGroup}};
 })();
 </script>
+<script>window.PANO_READY=["gate","pool"];</script>
 <script>
+/* Photoreal viewpoints. Each viewpoint is a real spot on the plan (metres; x east, y south, h eye height).
+   It can carry a 360° panorama and/or still renders, all ray-traced in Blender from this same model (style E). */
 (function(){
-if(!window.THREE)return;
-const READY=['pool','gate'];const SPOTS=[['pool','By the pool','Lawn south of the pool, facing the arcade'],['gate','Inside the gate','Where the driveway starts'],['garden','In the garden','Among the palms and beds'],['roof','From above','9 m up over the lawn']].filter(s=>READY.includes(s[0]));
-const $=id=>document.getElementById(id),box=$('pano'),cv=$('pc'),list=$('pspotlist'),bar=$('pspots');
-let R=null,scene,cam,mesh,lon=180,lat=0,cur=null,last=null;const loader=new THREE.TextureLoader(),cache={};
-function init(){R=new THREE.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(2,devicePixelRatio||1));R.outputEncoding=THREE.sRGBEncoding;
-  scene=new THREE.Scene();cam=new THREE.PerspectiveCamera(75,1,.1,200);const g=new THREE.SphereGeometry(50,64,32);g.scale(-1,1,1);
-  mesh=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x000000}));scene.add(mesh);addEventListener('resize',()=>{if(!box.hidden)draw()})}
-function draw(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();lat=Math.max(-85,Math.min(85,lat));
-  const p=THREE.MathUtils.degToRad(90-lat),t=THREE.MathUtils.degToRad(lon);cam.lookAt(Math.sin(p)*Math.cos(t),Math.cos(p),Math.sin(p)*Math.sin(t));R.render(scene,cam)}
-function show(id){cur=id;$('ptitle').textContent='360° · '+SPOTS.find(s=>s[0]===id)[1];
-  for(const b of bar.children)b.setAttribute('aria-pressed',String(b.dataset.id===id));
-  const done=t=>{if(cur!==id)return;mesh.material.map=t;mesh.material.color.set(0xffffff);mesh.material.needsUpdate=true;$('pload').hidden=true;draw()};
-  if(cache[id])return done(cache[id]);$('pload').hidden=false;$('pload').textContent='Loading 360° view…';
-  loader.load('renders/360/E-'+id+'.jpg',t=>{t.encoding=THREE.sRGBEncoding;t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;cache[id]=t;done(t)},undefined,()=>{$('pload').textContent='Could not load this view.'})}
-function open(id){if(!R)init();box.hidden=false;lon=180;lat=id==='roof'?-20:0;cam.fov=innerWidth<innerHeight?95:75;draw();show(id);$('pclose').focus()}
-function close(){box.hidden=true}
-for(const [id,name,sub] of SPOTS){const b=document.createElement('button');b.innerHTML=name+'<small>'+sub+'</small>';b.onclick=()=>open(id);list.appendChild(b);
-  const c=document.createElement('button');c.textContent=name;c.dataset.id=id;c.onclick=()=>show(id);bar.appendChild(c)}
-$('pclose').onclick=close;addEventListener('keydown',e=>{if(!box.hidden&&e.key==='Escape'){e.stopPropagation();close()}},true);
+if(!window.THREE||!window.PG)return;
+const VP=[
+ {id:'gate',name:'Inside the gate',sub:'Start of the driveway, south-west corner',at:[3.4,31.4,1.65],pano:'renders/360/E-gate.jpg',
+   shots:[{f:'renders/blender/E-drive-day.jpg',cap:'Driveway, afternoon',at:[3.4,31.6,1.65],to:[5.5,10,1.9]}]},
+ {id:'pool',name:'By the pool',sub:'On the lawn, facing the arcade',at:[25,22.6,1.6],pano:'renders/360/E-pool.jpg',
+   shots:[{f:'renders/blender/E-pool-day.jpg',cap:'Pool, afternoon',at:[28.9,26.2,1.6],to:[21.4,13,1.7]},{f:'renders/blender/E-pool-dusk.jpg',cap:'Pool at dusk',at:[28.9,26.2,1.6],to:[21.4,13,1.7]}]},
+ {id:'garden',name:'In the garden',sub:'Among the palms and vegetable beds',at:[14,28.5,1.6],pano:'renders/360/E-garden.jpg',shots:[]},
+ {id:'above',name:'From above',sub:'9 m up, over the lawn',at:[16,23,9],pano:'renders/360/E-roof.jpg',lat:-25,shots:[]},
+ {id:'aerial',name:'Aerial',sub:'Bird’s-eye from the south-west',at:[-15,55,15],pano:null,
+   shots:[{f:'renders/blender/E-aerial-day.jpg',cap:'Afternoon',at:[-15,55,15],to:[19,19,2.5]},{f:'renders/blender/E-aerial-dusk.jpg',cap:'Dusk',at:[-15,55,15],to:[19,19,2.5]}]}
+];
+const AVAIL=window.PANO_READY||null;
+const $=id=>document.getElementById(id),box=$('vp'),cv=$('vp-c'),img=$('vp-img'),load=$('vp-load'),pinsEl=$('pins');
+const W=(x,y,h)=>new THREE.Vector3(x-30,h,y-20);
+let cur=null,shot=-1,lon=270,lat=0,R=null,sc,cam,sphere,lastFocus=null;const cache={},tl=new THREE.TextureLoader();
+function initGL(){R=new THREE.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(2,devicePixelRatio||1));R.outputEncoding=THREE.sRGBEncoding;
+  sc=new THREE.Scene();cam=new THREE.PerspectiveCamera(75,1,.1,200);const g=new THREE.SphereGeometry(50,64,32);g.scale(-1,1,1);
+  sphere=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0}));sphere.rotation.y=-Math.PI/2;sc.add(sphere);addEventListener('resize',()=>{if(!box.hidden)draw()})}
+function heading(){if(shot>=0){const s=cur.shots[shot];return Math.atan2(s.to[1]-s.at[1],s.to[0]-s.at[0])}return THREE.MathUtils.degToRad(lon)}
+function draw(){if(shot<0&&R){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();lat=Math.max(-85,Math.min(85,lat));
+  const p=THREE.MathUtils.degToRad(90-lat),t=THREE.MathUtils.degToRad(lon);cam.lookAt(Math.sin(p)*Math.cos(t),Math.cos(p),Math.sin(p)*Math.sin(t));R.render(sc,cam)}drawMap()}
+/* plan map: plot, existing building, house and pool from the live model, all viewpoints, you-are-here wedge */
+let base='';
+function planRect(b){return b&&isFinite(b.min.x)?`<rect x="${(b.min.x+30).toFixed(2)}" y="${(b.min.z+20).toFixed(2)}" width="${(b.max.x-b.min.x).toFixed(2)}" height="${(b.max.z-b.min.z).toFixed(2)}"`:''}
+function buildBase(){const css=getComputedStyle(document.documentElement),acc=css.getPropertyValue('--accent').trim()||'#b8752a',mut=css.getPropertyValue('--muted').trim()||'#888';
+  let h=`<rect x="0" y="0" width="34" height="33" fill="#5d7a33" fill-opacity=".35" stroke="${mut}" stroke-width=".4"/><rect x="1" y="3" width="10" height="8" fill="#c99257" stroke="${mut}" stroke-width=".2"/><rect x=".8" y="32.6" width="5.6" height=".8" fill="${acc}"/>`;
+  try{const hb=PG.houseBox();h+=planRect(hb)+` fill="#f2efe8" stroke="${mut}" stroke-width=".2"/>`;
+    const pb=new THREE.Box3(),t=new THREE.Box3();PG.optGroup.traverse(o=>{if(o.isMesh)for(let n=o;n;n=n.parent)if(n.userData&&/pool/i.test(n.userData.label||'')){t.setFromObject(o);pb.union(t);break}});
+    h+=planRect(pb)+` fill="#35bdb6" stroke="none"/>`}catch(e){}
+  base=h}
+const clampMap=(x,y)=>[Math.max(-2,Math.min(36,x)),Math.max(-2,Math.min(35,y))];
+function drawMap(){if(!cur)return;const acc=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#b8752a';let h=base;
+  for(const v of VP){if(v===cur||!ok(v))continue;const [x,y]=clampMap(v.at[0],v.at[1]);h+=`<circle cx="${x}" cy="${y}" r="1" fill="#fff" stroke="${acc}" stroke-width=".4"/>`}
+  const a=shot>=0?cur.shots[shot].at:cur.at,[x,y]=clampMap(a[0],a[1]),hd=heading(),f=shot>=0?.45:THREE.MathUtils.degToRad((cam?cam.fov:75)*Math.max(1,innerWidth/innerHeight)/2),L=7;
+  const p1=[x+Math.cos(hd-f)*L,y+Math.sin(hd-f)*L],p2=[x+Math.cos(hd+f)*L,y+Math.sin(hd+f)*L];
+  h+=`<path d="M${x},${y} L${p1} A${L},${L} 0 0 1 ${p2} Z" fill="${acc}" fill-opacity=".45"/><circle cx="${x}" cy="${y}" r="1.4" fill="${acc}" stroke="#fff" stroke-width=".4"/>`;
+  $('vp-map').innerHTML=h}
+const ok=v=>!v.pano||!AVAIL||AVAIL.includes(v.id)||v.shots.length;
+const hasPano=v=>v.pano&&(!AVAIL||AVAIL.includes(v.id));
+function showPano(){shot=-1;img.hidden=true;cv.hidden=false;if(!R)initGL();lon=270;lat=cur.lat||0;cam.fov=innerWidth<innerHeight?95:75;
+  const v=cur,done=t=>{if(cur!==v||shot>=0)return;sphere.material.map=t;sphere.material.color.set(0xffffff);sphere.material.needsUpdate=true;load.hidden=true;draw()};
+  if(cache[v.pano])done(cache[v.pano]);else{load.hidden=false;load.textContent='Loading 360° view…';
+    tl.load(v.pano,t=>{t.encoding=THREE.sRGBEncoding;t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;cache[v.pano]=t;done(t)},undefined,()=>{load.textContent='This view could not load.'})}
+  syncButtons()}
+function showShot(i){shot=i;const s=cur.shots[i];cv.hidden=true;img.hidden=false;load.hidden=false;load.textContent='Loading…';img.onload=()=>load.hidden=true;img.alt=cur.name+': '+s.cap;img.src=s.f;drawMap();syncButtons()}
+function syncButtons(){for(const b of $('vp-shots').querySelectorAll('[data-k]'))b.setAttribute('aria-pressed',String(b.dataset.k===String(shot)))}
+function openVP(id){const v=VP.find(q=>q.id===id)||VP.find(ok);cur=v;if(PG.current!=='E')PG.select('E',false);buildBase();
+  if(box.hidden){lastFocus=document.activeElement;box.hidden=false;document.body.classList.add('vp-open')}
+  $('vp-name').textContent=v.name;$('vp-sub').textContent=v.sub;
+  const sh=$('vp-shots');sh.innerHTML='<span class="vlabel">View</span>';
+  if(hasPano(v)){const b=document.createElement('button');b.textContent='360° look around';b.dataset.k='-1';b.onclick=showPano;sh.appendChild(b)}
+  v.shots.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s.cap;b.dataset.k=String(i);b.onclick=()=>showShot(i);sh.appendChild(b)});
+  const g=document.createElement('button');g.className='go';g.textContent='See this spot in the 3D model';g.onclick=to3D;sh.appendChild(g);
+  for(const b of $('vp-spots').querySelectorAll('[data-id]'))b.setAttribute('aria-pressed',String(b.dataset.id===v.id));
+  if(hasPano(v))showPano();else showShot(0);$('vp-close').focus()}
+function closeVP(){box.hidden=true;document.body.classList.remove('vp-open');if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+function to3D(){let pos,t;
+  if(shot>=0){const s=cur.shots[shot];pos=W(...s.at);t=W(...s.to)}
+  else{pos=W(...cur.at);const p=THREE.MathUtils.degToRad(90-Math.max(-60,Math.min(20,lat))),a=THREE.MathUtils.degToRad(lon);t=pos.clone().add(new THREE.Vector3(Math.sin(p)*Math.cos(a),Math.cos(p),Math.sin(p)*Math.sin(a)).multiplyScalar(4))}
+  closeVP();PG.tweenTo(pos,t,true)}
+// spot chips
+{const r=$('vp-spots');r.innerHTML='<span class="vlabel">Stand at</span>';VP.forEach((v,i)=>{if(!ok(v))return;const b=document.createElement('button');b.dataset.id=v.id;b.textContent=(i+1)+' · '+v.name;b.onclick=()=>openVP(v.id);r.appendChild(b)})}
+$('vp-close').onclick=closeVP;$('t-vp').onclick=()=>openVP('gate');const ov=$('open-vp');if(ov)ov.onclick=()=>openVP('gate');
+addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input,textarea'))return;
+  if(!box.hidden){if(e.key==='Escape'){e.stopImmediatePropagation();closeVP()}else if(shot<0&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.stopImmediatePropagation();lon+=e.key==='ArrowLeft'?-10:10;draw()}else e.stopImmediatePropagation();return}
+  if(e.key.toLowerCase()==='v'&&!e.metaKey&&!e.ctrlKey&&!e.altKey)openVP('gate')},true);
+// look-around controls
 const pts=new Map();let pinch=0;
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);if(pts.size===2){const [a,b]=[...pts.values()];pinch=Math.hypot(a[0]-b[0],a[1]-b[1])}});
 cv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const o=pts.get(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);
   if(pts.size===1){const k=cam.fov/innerHeight;lon-=(e.clientX-o[0])*k;lat+=(e.clientY-o[1])*k;draw()}
-  else if(pts.size===2){const [a,b]=[...pts.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pinch){cam.fov=Math.max(30,Math.min(95,cam.fov*pinch/d));draw()}pinch=d}});
+  else if(pts.size===2){const [a,b]=[...pts.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pinch){cam.fov=Math.max(30,Math.min(100,cam.fov*pinch/d));draw()}pinch=d}});
 const up=e=>{pts.delete(e.pointerId);pinch=0};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
-cv.addEventListener('wheel',e=>{e.preventDefault();cam.fov=Math.max(30,Math.min(95,cam.fov+e.deltaY*.05));draw()},{passive:false});
+cv.addEventListener('wheel',e=>{e.preventDefault();cam.fov=Math.max(30,Math.min(100,cam.fov+e.deltaY*.05));draw()},{passive:false});
+// pins in the 3D model
+const pins=VP.filter(ok).map((v,i)=>{const b=document.createElement('button');b.className='pin';b.innerHTML=`<i>${VP.indexOf(v)+1}</i><span>${v.name}</span>`;b.setAttribute('aria-label','Photoreal view: '+v.name);b.onclick=()=>openVP(v.id);pinsEl.appendChild(b);return{v,b,p:W(v.at[0],v.at[1],Math.min(v.at[2],3)+.6)}});
+const tmp=new THREE.Vector3(),lyr=$('ly-vp');
+(function tick(){requestAnimationFrame(tick);if(!box.hidden||document.body.classList.contains('clean'))return;const on=!lyr||lyr.checked,w=innerWidth,h=innerHeight;
+  for(const q of pins){tmp.copy(q.p).project(PG.camera);const vis=on&&tmp.z<1&&Math.abs(tmp.x)<1.05&&Math.abs(tmp.y)<1.05;q.b.style.display=vis?'':'none';if(vis){q.b.style.left=((tmp.x+1)/2*w)+'px';q.b.style.top=((1-tmp.y)/2*h)+'px'}}})();
 })();
 </script>

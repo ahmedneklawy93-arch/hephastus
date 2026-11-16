@@ -44,6 +44,7 @@ button b{font-family:var(--mono);font-weight:500;margin-right:5px}
 #tools{position:fixed;z-index:4;left:var(--gutL);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;padding:6px}
 .tb{width:42px;height:42px;padding:0;border-radius:8px;display:grid;place-items:center;border-color:transparent;background:transparent}
 .tb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+a.tb{color:var(--fg);text-decoration:none}
 .tb[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .tb[aria-expanded="true"]{border-color:var(--accent)}
 .sep{height:1px;background:var(--line);margin:3px 4px}
@@ -185,6 +186,7 @@ body.clean #pins,body.vp-open #pins{display:none}
   <button class="tb" id="b-disp" aria-expanded="false" aria-controls="p-disp" title="Display mode" aria-label="Display mode"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></button>
   <button class="tb" id="b-layers" aria-expanded="false" aria-controls="p-layers" title="Layers" aria-label="Layers"><svg viewBox="0 0 24 24"><path d="M12 4l9 5-9 5-9-5z"/><path d="M3 14l9 5 9-5"/></svg></button>
   <button class="tb" id="t-vp" title="Photoreal viewpoints (V)" aria-label="Photoreal viewpoints"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9.5" ry="4"/><path d="M12 2.5a4 9.5 0 0 1 0 19a4 9.5 0 0 1 0-19"/></svg></button>
+  <a class="tb" id="t-plans" href="plans.html" title="Architectural plans: site plan, floor plan, elevation, areas, cost" aria-label="Architectural plans"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="1"/><path d="M3.5 11h7v9.5M10.5 3.5V8M14 11h6.5M14 11v3"/></svg></a>
   <button class="tb" id="t-night" aria-pressed="false" title="Night lighting (L)" aria-label="Night lighting"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/></svg></button>
   <div class="sep"></div>
   <button class="tb" id="t-hide" title="Hide all UI (H)" aria-label="Hide all UI"><svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 6.1A9.6 9.6 0 0 1 12 6c5 0 8.5 4 9.5 6a12.6 12.6 0 0 1-2.8 3.6M6.4 7.6A12.7 12.7 0 0 0 2.5 12c1 2 4.5 6 9.5 6a9.3 9.3 0 0 0 4.2-1"/></svg></button>

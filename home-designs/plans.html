@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Palm Garden Plans</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a drawing set. Title block on top, key figures, then sheets (site plan, floor plan,
+   elevation) beside their schedules, then checks, programme and cost. Paper in light, blueprint in dark. */
+:root{
+  --paper:#f3f5f4;--sheet:#ffffff;--ink:#1c2830;--ink2:#4c5a63;--muted:#6f7c84;--line:#c9d2d6;--hair:#e2e8ea;
+  --accent:#1f6f9a;--accent-ink:#ffffff;--poche:#26343c;--hatch:#9aa9b1;
+  --roof:#b0522a;--water:#5cc3cf;--grass:#cfe3bf;--pave:#e3ddd2;--wall:#d6a25f;--glass:#bfe3ee;--white:#fbfaf6;
+  --good:#1d7a3a;--warn:#a86400;--crit:#b4232c;
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;--body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0c1822;--sheet:#11202c;--ink:#dce8ef;--ink2:#a9bcc7;--muted:#86a0ad;--line:#2b4252;--hair:#1d3140;
+  --accent:#6cb6e0;--accent-ink:#06131c;--poche:#cfe0ea;--hatch:#5d7888;
+  --roof:#c8693f;--water:#2f8f9c;--grass:#22402e;--pave:#3a3a34;--wall:#8a6a3f;--glass:#2a5566;--white:#203240;
+  --good:#53c07a;--warn:#e0a03a;--crit:#ef6b6f;
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#0ca30c;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0c1822;--sheet:#11202c;--ink:#dce8ef;--ink2:#a9bcc7;--muted:#86a0ad;--line:#2b4252;--hair:#1d3140;
+  --accent:#6cb6e0;--accent-ink:#06131c;--poche:#cfe0ea;--hatch:#5d7888;
+  --roof:#c8693f;--water:#2f8f9c;--grass:#22402e;--pave:#3a3a34;--wall:#8a6a3f;--glass:#2a5566;--white:#203240;
+  --good:#53c07a;--warn:#e0a03a;--crit:#ef6b6f;
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#0ca30c;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:14px/1.5 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+.wrap{max-width:1280px;margin:0 auto;display:grid;gap:16px}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:.02em;margin:0;text-wrap:balance}
+h1{font-size:30px;line-height:1.05}
+h2{font-size:20px;text-transform:uppercase;letter-spacing:.06em}
+h3{font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink2)}
+.mono,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+a{color:var(--accent)}
+button,input,select{font:inherit;color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* title block: the drawing-set's own convention */
+.tblock{background:var(--sheet);border:1.5px solid var(--ink);display:grid;grid-template-columns:minmax(0,2.2fr) repeat(4,minmax(0,1fr))}
+.tblock>div{padding:10px 12px;border-left:1px solid var(--line);min-width:0}
+.tblock>div:first-child{border-left:0}
+.tblock .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tblock .v{font-family:var(--display);font-size:18px;font-weight:600}
+.tblock .actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:4px;padding:5px 11px;font-size:13px;text-decoration:none;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+@media (max-width:860px){.tblock{grid-template-columns:repeat(2,minmax(0,1fr))}.tblock>div:first-child{grid-column:1/-1}.tblock>div{border-top:1px solid var(--line)}.tblock>div:nth-child(2n){border-left:0}}
+
+/* key figures */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.kpi{background:var(--sheet);padding:10px 12px;display:grid;gap:2px}
+.kpi .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font-family:var(--mono);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--ink2)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:99px;border:1px solid currentColor;width:max-content}
+.pill.good{color:var(--good)}.pill.warn{color:var(--warn)}.pill.crit{color:var(--crit)}
+
+/* sheets */
+.row{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:980px){.row{grid-template-columns:minmax(0,1fr)}}
+.sheet{background:var(--sheet);border:1px solid var(--line);display:grid;min-width:0}
+.sheet>header{display:flex;gap:10px;align-items:baseline;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.sheet>header .no{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:500}
+.sheet .body{padding:12px 14px;min-width:0}
+.draw{width:100%;height:auto;display:block;touch-action:manipulation}
+.draw text{font-family:var(--mono);fill:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink2);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:10px;border:1px solid var(--line);display:inline-block}
+.note{font-size:12.5px;color:var(--ink2);margin:0}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:6px 8px;border-bottom:1.5px solid var(--ink)}
+td{padding:6px 8px;border-bottom:1px solid var(--hair);vertical-align:top}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tfoot td{border-top:1.5px solid var(--ink);border-bottom:0;font-weight:600}
+tr.hl td{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+tbody tr{cursor:default}
+.tag{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:500}
+
+/* land use bar */
+.bar{display:flex;height:22px;gap:2px;margin:6px 0 4px}
+.bar i{display:block;height:100%;min-width:3px}
+.bar i:first-child{border-radius:4px 0 0 4px}.bar i:last-child{border-radius:0 4px 4px 0}
+.lu{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:4px 10px;font-size:13px;align-items:center}
+.lu i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* checks */
+.checks{display:grid;gap:8px}
+.check{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;padding:10px 12px;border:1px solid var(--line);border-left-width:4px;background:var(--sheet)}
+.check.good{border-left-color:var(--good)}.check.warn{border-left-color:var(--warn)}.check.crit{border-left-color:var(--crit)}
+.check b{font-weight:600}
+.check .ic{font-family:var(--mono);font-size:12px;font-weight:600;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:var(--sheet)}
+.check.good .ic{background:var(--good)}.check.warn .ic{background:var(--warn)}.check.crit .ic{background:var(--crit)}
+.check p{margin:0;grid-column:2;font-size:13px;color:var(--ink2)}
+
+/* programme */
+.gantt{display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:4px 10px;font-size:13px;align-items:center}
+.gantt .track{position:relative;height:18px;background:repeating-linear-gradient(90deg,var(--hair) 0 1px,transparent 1px calc(100%/12))}
+.gantt .track i{position:absolute;top:3px;bottom:3px;border-radius:3px;background:var(--accent)}
+.gantt .track i.crit{background:var(--s2)}
+.gantt .months{display:grid;grid-template-columns:repeat(12,1fr);font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+
+/* cost */
+.cost td input{width:7.5em;min-width:80px;text-align:right;font-family:var(--mono);border:1px solid var(--line);background:var(--paper);border-radius:3px;padding:3px 6px}
+.cost .tot{font-size:18px}
+.tip{position:fixed;z-index:10;pointer-events:none;background:var(--ink);color:var(--paper);font-size:12px;padding:5px 8px;border-radius:4px;max-width:240px;font-family:var(--mono)}
+.room{cursor:pointer}
+@media (max-width:600px){.gantt{grid-template-columns:minmax(100px,130px) minmax(0,1fr);font-size:12px}.gantt .months span:not(:nth-child(3n+1)){visibility:hidden}#room-table th:nth-child(5),#room-table td:nth-child(5){display:none}.cost td input{width:5.6em;min-width:0}#cost-table th:nth-child(2),#cost-table td:nth-child(2){display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="tblock" aria-label="Title block">
+    <div><div class="k">Project · concept design</div><h1>Palm Garden House</h1>
+      <div class="muted">Style E · Andalusian Patio Villa, joined to the existing 10 × 8 m pebble building</div>
+      <div class="actions"><a class="btn" href="https://claude.ai/artifact/DAWwNEqH81ijiH1fp7B5bE" target="_blank" rel="noopener">Open 3D model &amp; photoreal views</a></div></div>
+    <div><div class="k">Plot</div><div class="v num">34 × 33 m</div><div class="muted num">1,122 m²</div></div>
+    <div><div class="k">Storeys</div><div class="v">1 · ground</div><div class="muted">single level</div></div>
+    <div><div class="k">Sheets</div><div class="v num">A-101 → A-201</div><div class="muted">site, plan, elevation</div></div>
+    <div><div class="k">Status</div><div class="v">Concept</div><div class="muted">not for construction</div></div>
+  </section>
+
+  <section class="kpis" aria-label="Key figures" id="kpis"></section>
+
+  <div class="row">
+    <article class="sheet" id="sheet-site">
+      <header><h2>Site plan</h2><span class="no">A-101 · 1:200</span></header>
+      <div class="body">
+        <svg class="draw" id="site" viewBox="-2 -2.5 41 44" role="img" aria-label="Site plan of the 34 by 33 metre plot"></svg>
+        <div class="legend" id="site-legend"></div>
+      </div>
+    </article>
+    <article class="sheet" id="land-use">
+      <header><h2>Land use</h2><span class="no">area schedule</span></header>
+      <div class="body" style="display:grid;gap:12px">
+        <div class="bar" id="lu-bar" role="img" aria-label="Share of the plot by land use"></div>
+        <div class="lu" id="lu-list"></div>
+        <p class="note">Areas measured from the 3D model to wall faces, rounded to 0.1 m². The covered arcade (loggia) is outdoor space and is not counted in floor area.</p>
+        <h3>Coordination checks</h3>
+        <div class="checks" id="checks"></div>
+      </div>
+    </article>
+  </div>
+
+  <div class="row">
+    <article class="sheet" id="sheet-plan">
+      <header><h2>Ground floor plan</h2><span class="no">A-102 · 1:100</span></header>
+      <div class="body">
+        <svg class="draw" id="plan" viewBox="-.7 1.1 35 21.2" role="img" aria-label="Ground floor plan of the house, the glazed link and the existing building"></svg>
+        <p class="note">Tap a room to find it in the schedule. Room sizes are to wall centre lines. The red dashed square is the existing water tank, which clashes with rooms 07 and 09.</p>
+      </div>
+    </article>
+    <article class="sheet" id="rooms">
+      <header><h2>Room schedule</h2><span class="no">new house</span></header>
+      <div class="body tablewrap">
+        <table id="room-table"><thead><tr><th>No.</th><th>Room</th><th class="n">Size m</th><th class="n">Area m²</th><th>Floor</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+      </div>
+    </article>
+  </div>
+
+  <article class="sheet" id="sheet-elev">
+    <header><h2>South elevation</h2><span class="no">A-201 · 1:100 · from the garden, looking north</span></header>
+    <div class="body"><svg class="draw" id="elev" viewBox="-1.5 -6.3 43 8.2" role="img" aria-label="South elevation of the existing building, glazed link, house and arcade"></svg></div>
+  </article>
+
+  <div class="row">
+    <article class="sheet" id="programme">
+      <header><h2>Build programme</h2><span class="no">indicative · 12 months</span></header>
+      <div class="body"><div class="gantt" id="gantt"></div>
+        <p class="note" style="margin-top:10px">Orange bars are on the critical path. Durations are typical for a single-storey masonry house with a pool; your contractor's programme replaces this.</p></div>
+    </article>
+    <article class="sheet cost" id="cost">
+      <header><h2>Cost estimate</h2><span class="no">EGP · edit the rates</span></header>
+      <div class="body tablewrap">
+        <table id="cost-table"><thead><tr><th>Item</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Amount</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+        <p class="note" style="margin-top:8px">The rates are example figures. Replace them with your contractor's quotes; your changes are kept in this browser.</p>
+      </div>
+    </article>
+  </div>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+(function(){
+/* ---------- geometry, plan metres: x east 0–34, y south 0–33; taken from the 3D model (style E) ---------- */
+const PLOT={w:34,d:33};
+const ANNEX={x0:1,y0:3,x1:11,y1:11,eave:3.0,ridge:5.6};
+const LINK={x0:11,y0:4.25,x1:14.02,y1:6.75,h:3.2};
+const HOUSE=[[14.02,3],[31.98,3],[31.98,9],[17.8,9],[17.8,15],[14.02,15]];
+const LOGGIA={x0:17.8,y0:9,x1:31.98,y1:11.17};
+const TERRACE={x0:16.86,y0:11,x1:31.98,y1:20};
+const POOL={x0:19.22,y0:14.5,x1:30.56,y1:19.5,inset:.5};
+const DRIVE=[[.6,11],[11,11],[11,18],[6.6,18],[6.6,33],[.6,33]];
+const PALMS=[[11.4,29.2],[17.4,29.6],[23.6,29.1],[29.7,29.6]];
+const TANK={x0:30.4,y0:3,x1:32.8,y1:5.4};
+const ROOMS=[
+ {no:'01',name:'Entrance hall',r:[14.02,3,17.8,7],floor:'Terracotta tile'},
+ {no:'02',name:'Guest WC',r:[14.02,7,15.8,9],floor:'Zellige tile'},
+ {no:'03',name:'Passage',r:[15.8,7,17.8,9],floor:'Terracotta tile'},
+ {no:'04',name:'Kitchen',r:[14.02,9,17.8,15],floor:'Encaustic tile'},
+ {no:'05',name:'Living & dining',r:[17.8,3,25,9],floor:'Terracotta tile'},
+ {no:'06',name:'Lobby',r:[25,3,29.3,4.4],floor:'Terracotta tile'},
+ {no:'07',name:'Bathroom',r:[29.3,3,31.98,5.4],floor:'Zellige tile'},
+ {no:'08',name:'Bedroom 2',r:[25,4.4,28.4,9],floor:'Timber'},
+ {no:'09',name:'Main bedroom',poly:[[28.4,4.4],[29.3,4.4],[29.3,5.4],[31.98,5.4],[31.98,9],[28.4,9]],floor:'Timber'}
+];
+const polyArea=p=>Math.abs(p.reduce((s,[x,y],i)=>{const [a,b]=p[(i+1)%p.length];return s+x*b-a*y},0))/2;
+ROOMS.forEach(r=>{if(!r.poly){const [a,b,c,d]=r.r;r.poly=[[a,b],[c,b],[c,d],[a,d]];r.size=`${(c-a).toFixed(2)} × ${(d-b).toFixed(2)}`}else r.size='L-shaped';r.area=polyArea(r.poly)});
+const A={
+  plot:PLOT.w*PLOT.d,annex:(ANNEX.x1-ANNEX.x0)*(ANNEX.y1-ANNEX.y0),link:(LINK.x1-LINK.x0)*(LINK.y1-LINK.y0),house:polyArea(HOUSE),
+  loggia:(LOGGIA.x1-LOGGIA.x0)*(LOGGIA.y1-LOGGIA.y0),poolGross:(POOL.x1-POOL.x0)*(POOL.y1-POOL.y0),
+  water:(POOL.x1-POOL.x0-2*POOL.inset)*(POOL.y1-POOL.y0-2*POOL.inset),drive:polyArea(DRIVE)};
+A.terrace=(TERRACE.x1-TERRACE.x0)*(TERRACE.y1-TERRACE.y0)-A.poolGross;
+A.footprint=A.annex+A.link+A.house;A.gfa=A.footprint;
+A.green=A.plot-A.footprint-A.loggia-A.poolGross-A.terrace-A.drive;
+const f1=v=>v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}),f0=v=>Math.round(v).toLocaleString('en-US');
+const $=id=>document.getElementById(id);
+const tip=$('tip');function showTip(e,t){tip.textContent=t;tip.hidden=false;const x=Math.min(innerWidth-250,e.clientX+12);tip.style.left=x+'px';tip.style.top=(e.clientY+14)+'px'}function hideTip(){tip.hidden=true}
+
+/* ---------- key figures ---------- */
+const eastSetback=PLOT.w-HOUSE[1][0],northSetback=HOUSE[0][1];
+const K=[
+ ['Plot area',f0(A.plot)+' m²','34 × 33 m'],
+ ['Floor area',f1(A.gfa)+' m²',`new ${f1(A.house)} · existing ${f0(A.annex)} · link ${f1(A.link)}`],
+ ['Site coverage',(A.footprint/A.plot*100).toFixed(1)+' %','built footprint ÷ plot'],
+ ['Floor area ratio',(A.gfa/A.plot).toFixed(2),'single storey'],
+ ['Pool water',f1(A.water)+' m²',`${(POOL.x1-POOL.x0-1).toFixed(1)} × ${(POOL.y1-POOL.y0-1).toFixed(1)} m`],
+ ['Garden & farming',(A.green/A.plot*100).toFixed(0)+' %',f0(A.green)+' m² of soil'],
+ ['Rooms','9','2 bedrooms · bath + guest WC'],
+ ['Smallest setback',f1(Math.min(eastSetback,northSetback))+' m',`east ${f1(eastSetback)} · north ${f1(northSetback)}`]
+];
+$('kpis').innerHTML=K.map(([k,v,s])=>`<div class="kpi"><span class="k">${k}</span><span class="v">${v}</span><span class="s">${s}</span></div>`).join('');
+
+/* ---------- svg helpers ---------- */
+const NS='http://www.w3.org/2000/svg';
+function el(parent,tag,attrs,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;parent.appendChild(e);return e}
+const pts=p=>p.map(q=>q.join(',')).join(' ');
+function defs(svg,id){const d=el(svg,'defs',{});
+  const h=el(d,'pattern',{id:id+'-hatch',width:.6,height:.6,patternUnits:'userSpaceOnUse',patternTransform:'rotate(45)'});el(h,'line',{x1:0,y1:0,x2:0,y2:.6,stroke:'var(--hatch)','stroke-width':.08});
+  const g=el(d,'pattern',{id:id+'-grid',width:1,height:1,patternUnits:'userSpaceOnUse'});el(g,'path',{d:'M1 0H0V1',fill:'none',stroke:'var(--hair)','stroke-width':.03});
+  const t=el(d,'pattern',{id:id+'-tile',width:.5,height:.5,patternUnits:'userSpaceOnUse'});el(t,'rect',{width:.5,height:.5,fill:'var(--pave)'});el(t,'path',{d:'M.5 0H0V.5',fill:'none',stroke:'var(--line)','stroke-width':.03});
+  return d}
+function dimH(svg,x0,x1,y,label,off=-.9){const yy=y+off;el(svg,'line',{x1:x0,y1:y,x2:x0,y2:yy-.2*Math.sign(off),stroke:'var(--ink2)','stroke-width':.04});el(svg,'line',{x1:x1,y1:y,x2:x1,y2:yy-.2*Math.sign(off),stroke:'var(--ink2)','stroke-width':.04});
+  el(svg,'line',{x1:x0,y1:yy,x2:x1,y2:yy,stroke:'var(--ink2)','stroke-width':.05});for(const x of[x0,x1])el(svg,'line',{x1:x-.15,y1:yy+.15,x2:x+.15,y2:yy-.15,stroke:'var(--ink)','stroke-width':.08});
+  el(svg,'text',{x:(x0+x1)/2,y:yy-.15,'font-size':.5,'text-anchor':'middle'},label)}
+function dimV(svg,y0,y1,x,label,off=-.9){const xx=x+off;el(svg,'line',{x1:x,y1:y0,x2:xx-.2*Math.sign(off),y2:y0,stroke:'var(--ink2)','stroke-width':.04});el(svg,'line',{x1:x,y1:y1,x2:xx-.2*Math.sign(off),y2:y1,stroke:'var(--ink2)','stroke-width':.04});
+  el(svg,'line',{x1:xx,y1:y0,x2:xx,y2:y1,stroke:'var(--ink2)','stroke-width':.05});for(const y of[y0,y1])el(svg,'line',{x1:xx-.15,y1:y+.15,x2:xx+.15,y2:y-.15,stroke:'var(--ink)','stroke-width':.08});
+  const t=el(svg,'text',{x:xx-.15,y:(y0+y1)/2,'font-size':.5,'text-anchor':'middle',transform:`rotate(-90 ${xx-.15} ${(y0+y1)/2})`},label)}
+function north(svg,x,y,s=1){const g=el(svg,'g',{transform:`translate(${x} ${y}) scale(${s})`});el(g,'circle',{r:.9,fill:'none',stroke:'var(--ink)','stroke-width':.06});el(g,'path',{d:'M0 -1.25 L.45 .55 L0 .25 L-.45 .55Z',fill:'var(--ink)'});el(g,'text',{y:-1.45,'font-size':.6,'text-anchor':'middle','font-weight':600},'N')}
+function scalebar(svg,x,y,len,step,h=.25){for(let i=0;i<len;i+=step)el(svg,'rect',{x:x+i,y,width:step,height:h,fill:(i/step)%2?'var(--sheet)':'var(--ink)',stroke:'var(--ink)','stroke-width':.04});
+  for(let i=0;i<=len;i+=step*(len/step>5?2:1))el(svg,'text',{x:x+i,y:y+h+.6,'font-size':.45,'text-anchor':'middle'},i);el(svg,'text',{x:x+len+.4,y:y+h+.6,'font-size':.45},'m')}
+
+/* ---------- A-101 site plan ---------- */
+{const s=$('site');defs(s,'s');
+  el(s,'rect',{x:-2,y:33.35,width:41,height:6,fill:'var(--pave)'});el(s,'text',{x:20,y:37.4,'font-size':.8,'text-anchor':'middle','letter-spacing':.3,fill:'var(--ink2)'},'STREET');
+  el(s,'rect',{x:36,y:5.5,width:3,height:17,fill:'var(--white)',stroke:'var(--ink2)','stroke-width':.06,'stroke-dasharray':'.3 .2'});el(s,'text',{x:37.5,y:14,'font-size':.5,'text-anchor':'middle',transform:'rotate(90 37.5 14)',fill:'var(--ink2)'},"NEIGHBOUR'S VILLA");
+  el(s,'rect',{x:0,y:0,width:34,height:33,fill:'var(--grass)'});el(s,'rect',{x:0,y:0,width:34,height:33,fill:'url(#s-grid)'});
+  // walls with the gate gap
+  for(const r of[[-.35,-.35,34.7,.35],[-.35,0,.35,33],[34,0,.35,33],[-.35,33,.95,.35],[6.6,33,27.75,.35]])el(s,'rect',{x:r[0],y:r[1],width:r[2],height:r[3],fill:'var(--poche)'});
+  el(s,'rect',{x:.2,y:32.9,width:.6,height:.6,fill:'var(--poche)'});el(s,'rect',{x:6.4,y:32.9,width:.6,height:.6,fill:'var(--poche)'});
+  el(s,'path',{d:'M.8 33.2 A2.8 2.8 0 0 1 3.6 30.4 M6.4 33.2 A2.8 2.8 0 0 0 3.6 30.4',fill:'none',stroke:'var(--ink2)','stroke-width':.05,'stroke-dasharray':'.15 .1'});
+  el(s,'text',{x:3.6,y:34.7,'font-size':.55,'text-anchor':'middle','font-weight':600},'GATE');
+  el(s,'rect',{x:.4,y:.4,width:33.2,height:2,fill:'var(--s6)','fill-opacity':.35});el(s,'rect',{x:7,y:31.4,width:26.6,height:1.3,fill:'var(--s6)','fill-opacity':.35});
+  el(s,'polygon',{points:pts(DRIVE),fill:'url(#s-tile)',stroke:'var(--ink2)','stroke-width':.05});el(s,'text',{x:3.6,y:26,'font-size':.55,'text-anchor':'middle',transform:'rotate(-90 3.6 26)',fill:'var(--ink2)'},'DRIVEWAY · 6.0 m');
+  el(s,'rect',{x:TERRACE.x0,y:TERRACE.y0,width:TERRACE.x1-TERRACE.x0,height:TERRACE.y1-TERRACE.y0,fill:'url(#s-tile)',stroke:'var(--ink2)','stroke-width':.05});
+  el(s,'rect',{x:POOL.x0,y:POOL.y0,width:POOL.x1-POOL.x0,height:POOL.y1-POOL.y0,fill:'var(--roof)','fill-opacity':.55});
+  el(s,'rect',{x:POOL.x0+.5,y:POOL.y0+.5,width:POOL.x1-POOL.x0-1,height:POOL.y1-POOL.y0-1,fill:'var(--water)'});el(s,'text',{x:(POOL.x0+POOL.x1)/2,y:17.2,'font-size':.6,'text-anchor':'middle'},'POOL');
+  // buildings: roofs drawn as hip lines
+  el(s,'rect',{x:ANNEX.x0,y:ANNEX.y0,width:10,height:8,fill:'var(--wall)',stroke:'var(--poche)','stroke-width':.12});
+  el(s,'path',{d:`M${ANNEX.x0} ${ANNEX.y0}L6 7L${ANNEX.x1} ${ANNEX.y0}M${ANNEX.x0} ${ANNEX.y1}L6 7L${ANNEX.x1} ${ANNEX.y1}`,stroke:'var(--poche)','stroke-width':.05,fill:'none'});
+  el(s,'text',{x:6,y:4.4,'font-size':.5,'text-anchor':'middle'},'EXISTING · 80 m²');
+  el(s,'rect',{x:LINK.x0,y:LINK.y0,width:LINK.x1-LINK.x0,height:LINK.y1-LINK.y0,fill:'var(--glass)',stroke:'var(--poche)','stroke-width':.08});
+  el(s,'polygon',{points:pts(HOUSE),fill:'var(--white)',stroke:'var(--poche)','stroke-width':.14});
+  el(s,'path',{d:'M13.5 2.45L17.05 6L28.95 6L32.5 2.45M13.5 9.55L17.05 6M32.5 9.55L28.95 6',stroke:'var(--roof)','stroke-width':.07,fill:'none'});
+  el(s,'path',{d:'M13.55 8.5L15.91 12M18.27 8.5L15.91 12M13.55 15.5L15.91 12M18.27 15.5L15.91 12',stroke:'var(--roof)','stroke-width':.07,fill:'none'});
+  el(s,'rect',{x:LOGGIA.x0,y:LOGGIA.y0,width:LOGGIA.x1-LOGGIA.x0,height:LOGGIA.y1-LOGGIA.y0,fill:'url(#s-hatch)',stroke:'var(--poche)','stroke-width':.05});
+  el(s,'text',{x:24,y:6.3,'font-size':.6,'text-anchor':'middle','font-weight':600},'NEW HOUSE');
+  // tank (clash marker)
+  el(s,'rect',{x:TANK.x0,y:TANK.y0,width:2.4,height:2.4,fill:'none',stroke:'var(--crit)','stroke-width':.12,'stroke-dasharray':'.25 .15'});
+  el(s,'text',{x:31.6,y:6.3,'font-size':.42,'text-anchor':'middle',fill:'var(--crit)','font-weight':600},'TANK');
+  // farming & energy
+  for(const [x,y,w,h,c] of[[6.98,19,1.22,4,'var(--s6)'],[8.8,19,1.2,4,'var(--s6)'],[10.6,19,1.2,4,'var(--s6)'],[12.4,19,1.2,4,'var(--s6)'],[8.27,25.27,4.06,6.06,'var(--glass)'],[25.55,26.05,4.05,1.9,'var(--wall)'],[13.13,29.9,2.94,1,'var(--wall)']])el(s,'rect',{x,y,width:w,height:h,fill:c,'fill-opacity':.6,stroke:'var(--ink2)','stroke-width':.04});
+  for(const [x,y,w,h] of[[1.3,16.81,4.6,5.38],[19.75,24.64,4.5,1.92],[3.75,9.06,4.5,1.88]])el(s,'rect',{x,y,width:w,height:h,fill:'var(--s1)','fill-opacity':.35,stroke:'var(--s1)','stroke-width':.06});
+  el(s,'text',{x:10.3,y:28.5,'font-size':.42,'text-anchor':'middle'},'GREENHOUSE');el(s,'text',{x:10.3,y:18.6,'font-size':.42,'text-anchor':'middle'},'BEDS');el(s,'text',{x:3.6,y:22.9,'font-size':.4,'text-anchor':'middle',fill:'var(--ink2)'},'SOLAR CARPORT');
+  for(const [x,y] of PALMS){el(s,'circle',{cx:x,cy:y,r:3,fill:'var(--s6)','fill-opacity':.18,stroke:'var(--s6)','stroke-width':.05});el(s,'circle',{cx:x,cy:y,r:.35,fill:'var(--trunk,#8a6a45)'})}
+  dimH(s,0,34,0,'34.00',-1.3);dimV(s,0,33,0,'33.00',-1.3);
+  dimH(s,31.98,34,9.6,f1(eastSetback),.9);
+  north(s,36.8,30.3,.9);scalebar(s,26,40.2,10,2);
+  // viewpoints (same spots as the photoreal views in the 3D model)
+  const VPS=[['1',3.4,31.4,'Inside the gate'],['2',25,22.6,'By the pool'],['3',14,28.5,'In the garden'],['4',16,23,'From above, 9 m']];
+  for(const [n,x,y,t] of VPS){const g=el(s,'g',{class:'room',tabindex:0,role:'link','aria-label':'Photoreal view '+n+': '+t});
+    el(g,'circle',{cx:x,cy:y,r:.65,fill:'var(--accent)',stroke:'var(--sheet)','stroke-width':.12});el(g,'text',{x,y:y+.22,'font-size':.6,'text-anchor':'middle',fill:'var(--accent-ink)','font-weight':600},n);
+    g.addEventListener('pointermove',e=>showTip(e,`Photoreal view ${n}: ${t}. Open it in the 3D model.`));g.addEventListener('pointerleave',hideTip);
+    const go=()=>{const a=document.querySelector(".tblock .btn");a.click()};g.addEventListener('click',go);g.addEventListener('keydown',e=>{if(e.key==='Enter')go()})}
+  $('site-legend').innerHTML=[['var(--white)','New house'],['var(--wall)','Existing building'],['var(--glass)','Glazed link / greenhouse'],['var(--water)','Pool'],['var(--pave)','Paving'],['var(--s1)','Solar'],['var(--s6)','Hedges, beds, palms']].map(([c,t])=>`<span><i style="background:${c}"></i>${t}</span>`).join('')+'<span><b class="tag">①–④</b>&nbsp;photoreal viewpoints</span>';
+}
+
+/* ---------- land use ---------- */
+{const LU=[['Buildings','var(--s1)',A.footprint],['Covered arcade','var(--s2)',A.loggia],['Pool','var(--s3)',A.poolGross],['Driveway & court','var(--s4)',A.drive],['Terrace','var(--s5)',A.terrace],['Garden, palms & farming','var(--s6)',A.green]];
+  $('lu-bar').innerHTML=LU.map(([n,c,v])=>`<i style="background:${c};flex:${v}" data-t="${n}: ${f1(v)} m² (${(v/A.plot*100).toFixed(1)} %)"></i>`).join('');
+  $('lu-bar').querySelectorAll('i').forEach(i=>{i.addEventListener('pointermove',e=>showTip(e,i.dataset.t));i.addEventListener('pointerleave',hideTip)});
+  $('lu-list').innerHTML=LU.map(([n,c,v])=>`<i style="background:${c}"></i><span>${n}</span><span class="num">${f1(v)} m²</span><span class="num muted">${(v/A.plot*100).toFixed(1)} %</span>`).join('')+`<span></span><b>Plot</b><b class="num">${f0(A.plot)} m²</b><span class="num muted">100 %</span>`}
+
+/* ---------- coordination checks ---------- */
+{const minPalm=Math.min(...PALMS.map(([x,y])=>Math.hypot(Math.max(POOL.x0-x,0,x-POOL.x1),Math.max(POOL.y0-y,0,y-POOL.y1))));
+ const C=[
+  ['crit','!','Water tank inside the bathroom',`The existing 2.4 × 2.4 m tank at the north-east corner overlaps rooms 07 and 09 by about ${f1((31.98-TANK.x0)*(TANK.y1-TANK.y0))} m². Move the tank to the roof or beside the shed, or shorten the house by 1.6 m.`],
+  ['warn','i','East setback is '+f1(eastSetback)+' m',`Clear of the neighbour's wall by ${f1(eastSetback)} m. Check the local minimum with the municipality before permit drawings.`],
+  ['good','✓','Palms kept clear of the pool',`Nearest palm trunk is ${f1(minPalm)} m from the pool edge (rule: at least 3 m for roots).`],
+  ['good','✓','Driveway runs gate to door','Straight 6 m drive from the gate in the south wall to the existing building, with a turning court for two cars.'],
+  ['good','✓','House joined to the existing building',`Glazed link ${f1(LINK.x1-LINK.x0)} × ${f1(LINK.y1-LINK.y0)} m into the entrance hall.`]];
+ $('checks').innerHTML=C.map(([k,ic,t,p])=>`<div class="check ${k}"><span class="ic" aria-hidden="true">${ic}</span><b>${t} <span class="pill ${k}">${k==='crit'?'Clash':k==='warn'?'Check':'OK'}</span></b><p>${p}</p></div>`).join('')}
+
+/* ---------- A-102 floor plan ---------- */
+{const s=$('plan');defs(s,'p');
+  el(s,'rect',{x:TERRACE.x0,y:TERRACE.y0,width:TERRACE.x1-TERRACE.x0,height:TERRACE.y1-TERRACE.y0,fill:'url(#p-tile)'});
+  el(s,'rect',{x:POOL.x0+.5,y:POOL.y0+.5,width:POOL.x1-POOL.x0-1,height:POOL.y1-POOL.y0-1,fill:'var(--water)',stroke:'var(--ink2)','stroke-width':.04});
+  el(s,'rect',{x:POOL.x0,y:POOL.y0,width:POOL.x1-POOL.x0,height:POOL.y1-POOL.y0,fill:'none',stroke:'var(--ink2)','stroke-width':.04});
+  el(s,'text',{x:24.9,y:17.2,'font-size':.45,'text-anchor':'middle'},`POOL ${(POOL.x1-POOL.x0-1).toFixed(2)} × ${(POOL.y1-POOL.y0-1).toFixed(2)}`);
+  el(s,'rect',{x:14.97,y:16.5,width:1.89,height:2,fill:'var(--s3)','fill-opacity':.35,stroke:'var(--ink2)','stroke-width':.04});el(s,'text',{x:15.9,y:19.1,'font-size':.35,'text-anchor':'middle'},'FOUNTAIN');
+  el(s,'rect',{x:LOGGIA.x0,y:LOGGIA.y0,width:LOGGIA.x1-LOGGIA.x0,height:LOGGIA.y1-LOGGIA.y0,fill:'url(#p-hatch)'});
+  el(s,'text',{x:24.9,y:10.35,'font-size':.4,'text-anchor':'middle'},`ARCADE (LOGGIA) · ${f1(A.loggia)} m²`);
+  // arcade piers
+  const step=(LOGGIA.x1-LOGGIA.x0)/6;for(let i=0;i<=6;i++){const x=LOGGIA.x0+i*step;el(s,'rect',{x:x-(i===0?0:i===6?.4:.2),y:10.82,width:i===0||i===6?.4:.4,height:.35,fill:'var(--poche)'})}
+  // existing building
+  el(s,'rect',{x:ANNEX.x0,y:ANNEX.y0,width:10,height:8,fill:'url(#p-hatch)',stroke:'var(--poche)','stroke-width':.3});
+  el(s,'text',{x:6,y:6.8,'font-size':.5,'text-anchor':'middle','font-weight':600},'EXISTING BUILDING');el(s,'text',{x:6,y:7.5,'font-size':.4,'text-anchor':'middle'},'10.00 × 8.00 · 80 m² · kept');
+  // link
+  el(s,'rect',{x:LINK.x0,y:LINK.y0,width:LINK.x1-LINK.x0,height:LINK.y1-LINK.y0,fill:'var(--glass)','fill-opacity':.5});
+  for(const y of[LINK.y0,LINK.y1])el(s,'line',{x1:LINK.x0,y1:y,x2:LINK.x1,y2:y,stroke:'var(--accent)','stroke-width':.1});
+  el(s,'text',{x:12.5,y:5.7,'font-size':.35,'text-anchor':'middle'},'LINK');
+  // rooms
+  const roomEls={};
+  for(const r of ROOMS){const g=el(s,'g',{class:'room',tabindex:0,role:'button','aria-label':`${r.no} ${r.name}, ${f1(r.area)} square metres`});
+    const p=el(g,'polygon',{points:pts(r.poly),fill:'var(--white)',stroke:'var(--poche)','stroke-width':.12});roomEls[r.no]=p;
+    const cx=r.poly.reduce((a,q)=>a+q[0],0)/r.poly.length,cy=r.poly.reduce((a,q)=>a+q[1],0)/r.poly.length+(r.no==='09'?.5:0);
+    const xs=r.poly.map(q=>q[0]),wid=Math.max(...xs)-Math.min(...xs),small=r.area<7,nm=r.name.toUpperCase(),fs=Math.min(.4,(wid-.4)/(nm.length*.62));
+    el(g,'text',{x:cx,y:cy-(small?.05:.35),'font-size':small?.32:.36,'text-anchor':'middle','font-weight':600,fill:'var(--accent)'},r.no);
+    if(!small)el(g,'text',{x:cx,y:cy+.1,'font-size':fs,'text-anchor':'middle','font-weight':600},nm);
+    el(g,'text',{x:cx,y:cy+(small?.4:.55),'font-size':small?.28:.32,'text-anchor':'middle',fill:'var(--ink2)'},f1(r.area)+' m²');
+    const pick=()=>select(r.no);g.addEventListener('click',pick);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}});
+    g.addEventListener('pointermove',e=>showTip(e,`${r.no} ${r.name} · ${r.size} m · ${f1(r.area)} m²`));g.addEventListener('pointerleave',hideTip)}
+  // external walls on top
+  el(s,'polygon',{points:pts(HOUSE),fill:'none',stroke:'var(--poche)','stroke-width':.3,'pointer-events':'none'});
+  // openings: gaps in walls, then door leaves and swings
+  const paper='var(--white)';
+  function gap(x0,y0,x1,y1,w=.34){const horiz=y0===y1;el(s,'rect',horiz?{x:x0,y:y0-w/2,width:x1-x0,height:w,fill:paper}:{x:x0-w/2,y:y0,width:w,height:y1-y0,fill:paper,'pointer-events':'none'})}
+  function door(x0,y0,x1,y1,dir){gap(x0,y0,x1,y1);const horiz=y0===y1,len=horiz?x1-x0:y1-y0;
+    if(horiz){const ty=y0+dir*len;el(s,'line',{x1:x0,y1:y0,x2:x0,y2:ty,stroke:'var(--ink)','stroke-width':.05});el(s,'path',{d:`M${x0} ${ty}A${len} ${len} 0 0 ${dir>0?0:1} ${x1} ${y0}`,fill:'none',stroke:'var(--ink2)','stroke-width':.03,'stroke-dasharray':'.1 .07'})}
+    else{const tx=x0+dir*len;el(s,'line',{x1:x0,y1:y0,x2:tx,y2:y0,stroke:'var(--ink)','stroke-width':.05});el(s,'path',{d:`M${tx} ${y0}A${len} ${len} 0 0 ${dir>0?1:0} ${x0} ${y1}`,fill:'none',stroke:'var(--ink2)','stroke-width':.03,'stroke-dasharray':'.1 .07'})}}
+  function glazed(x0,y0,x1,y1){gap(x0,y0,x1,y1,.36);const horiz=y0===y1;el(s,'line',horiz?{x1:x0,y1:y0,x2:x1,y2:y0,stroke:'var(--accent)','stroke-width':.08}:{x1:x0,y1:y0,x2:x0,y2:y1,stroke:'var(--accent)','stroke-width':.08})}
+  glazed(14.02,4.45,14.02,6.55);                          // link into hall
+  for(const x of[19.58,21.94,24.3,26.67,29.03])glazed(x,9,x+1.17,9); // shuttered doors to the arcade
+  door(15.23,15,16.59,15,1);                               // kitchen to patio
+  gap(17.8,4.2,17.8,5.6);                                  // hall to living, open arch
+  gap(15.9,7,17.7,7);gap(15.9,9,17.7,9);                   // passage open both ends
+  door(15.8,7.4,15.8,8.2,-1);                              // WC
+  door(25,3.3,25,4.2,1);                                   // living to lobby
+  door(29.3,3.4,29.3,4.2,1);                               // bathroom
+  door(25.4,4.4,26.2,4.4,1);door(28.45,4.4,29.25,4.4,1);   // bedrooms
+  for(const [x0,x1] of[[19,21.5],[27,29.5]])glazed(x0,3,x1,3); // north windows
+  glazed(14.02,10.5,14.02,13.5);                           // kitchen west window
+  // tank clash overlay
+  el(s,'rect',{x:TANK.x0,y:TANK.y0,width:2.4,height:2.4,fill:'var(--crit)','fill-opacity':.12,stroke:'var(--crit)','stroke-width':.08,'stroke-dasharray':'.2 .12','pointer-events':'none'});
+  // dimensions
+  dimH(s,14.02,31.98,3,'17.96',-1);dimH(s,1,11,3,'10.00',-1);dimH(s,11,14.02,3,'3.02',-1);
+  dimV(s,3,9,31.98,'6.00',1.1);dimV(s,9,15,14.02,'6.00',-1.1);dimV(s,3,11,1,'8.00',-.6);
+  north(s,32.8,19.6,.7);scalebar(s,1,20.6,5,1,.2);
+  window.__rooms=roomEls;
+}
+
+/* ---------- room schedule ---------- */
+const tb=$('room-table').tBodies[0];
+for(const r of ROOMS){const tr=document.createElement('tr');tr.dataset.no=r.no;
+  for(const [v,c] of[[r.no,'tag'],[r.name,''],[r.size,'n'],[f1(r.area),'n'],[r.floor,'']]){const td=document.createElement('td');td.textContent=v;if(c==='n')td.className='n';if(c==='tag')td.innerHTML=`<span class="tag">${v}</span>`;tr.appendChild(td)}
+  tr.addEventListener('click',()=>select(r.no));tb.appendChild(tr)}
+const roomSum=ROOMS.reduce((a,r)=>a+r.area,0);
+$('room-table').tFoot.innerHTML=`<tr><td></td><td>New house, total</td><td></td><td class="n">${f1(roomSum)}</td><td></td></tr><tr><td></td><td class="muted" style="font-weight:400">+ glazed link ${f1(A.link)} · arcade ${f1(A.loggia)} (outdoor) · existing ${f0(A.annex)}</td><td></td><td></td><td></td></tr>`;
+function select(no){for(const tr of tb.rows)tr.classList.toggle('hl',tr.dataset.no===no);
+  for(const k in window.__rooms)window.__rooms[k].setAttribute('fill',k===no?'color-mix(in srgb, var(--accent) 22%, var(--white))':'var(--white)');
+  const row=[...tb.rows].find(r=>r.dataset.no===no);if(row&&innerWidth<=980)row.scrollIntoView({block:'nearest',behavior:'smooth'})}
+
+/* ---------- A-201 south elevation (x along plan, z up; SVG y = -z) ---------- */
+{const s=$('elev');defs(s,'e');const Z=z=>-z;
+  el(s,'line',{x1:-1.5,y1:0,x2:36,y2:0,stroke:'var(--ink)','stroke-width':.08});
+  el(s,'rect',{x:-.35,y:Z(3),width:.35,height:3,fill:'var(--poche)','fill-opacity':.25});el(s,'rect',{x:34,y:Z(3),width:.35,height:3,fill:'var(--poche)','fill-opacity':.25});
+  // existing building: walls + pyramid roof
+  el(s,'rect',{x:1,y:Z(3),width:10,height:3,fill:'var(--wall)',stroke:'var(--poche)','stroke-width':.05});
+  el(s,'rect',{x:1,y:Z(.9),width:10,height:.9,fill:'var(--hatch)','fill-opacity':.5});
+  el(s,'polygon',{points:`.5,${Z(3)} 11.5,${Z(3)} 6,${Z(5.6)}`,fill:'var(--roof)',stroke:'var(--poche)','stroke-width':.05});
+  el(s,'path',{d:`M5.3 0V${Z(2.2)}A.7 .7 0 0 1 6.7 ${Z(2.2)}V0`,fill:'var(--poche)','fill-opacity':.55});
+  // link
+  el(s,'rect',{x:11,y:Z(3.2),width:3.02,height:3.2,fill:'var(--glass)',stroke:'var(--accent)','stroke-width':.05});for(const x of[12,13])el(s,'line',{x1:x,y1:0,x2:x,y2:Z(3.2),stroke:'var(--accent)','stroke-width':.03});
+  // main bar behind
+  el(s,'rect',{x:14.02,y:Z(3.5),width:17.96,height:3.5,fill:'var(--white)',stroke:'var(--poche)','stroke-width':.05});
+  el(s,'polygon',{points:`13.5,${Z(3.5)} 32.5,${Z(3.5)} 28.95,${Z(5.2)} 17.05,${Z(5.2)}`,fill:'var(--roof)',stroke:'var(--poche)','stroke-width':.05});
+  // arcade in front
+  const step=(LOGGIA.x1-LOGGIA.x0)/6,rad=.756;let d=`M${LOGGIA.x0} 0V${Z(3)}H${LOGGIA.x1}V0Z`;
+  for(let i=0;i<6;i++){const cx=LOGGIA.x0+step*(i+.5);d+=`M${cx-rad} 0V${Z(2.4-rad)}A${rad} ${rad} 0 0 1 ${cx+rad} ${Z(2.4-rad)}V0Z`}
+  el(s,'path',{d,fill:'var(--white)','fill-rule':'evenodd',stroke:'var(--poche)','stroke-width':.05});
+  for(let i=0;i<6;i++){const cx=LOGGIA.x0+step*(i+.5);el(s,'rect',{x:cx-.45,y:Z(1.8),width:.9,height:1.7,fill:'var(--poche)','fill-opacity':.35})}
+  el(s,'polygon',{points:`17.61,${Z(3.05)} 32.17,${Z(3.05)} 32.17,${Z(3.45)} 17.61,${Z(3.45)}`,fill:'var(--roof)',stroke:'var(--poche)','stroke-width':.04});
+  // kitchen wing in front with pyramid roof
+  el(s,'rect',{x:14.02,y:Z(3.3),width:3.78,height:3.3,fill:'var(--white)',stroke:'var(--poche)','stroke-width':.06});
+  el(s,'polygon',{points:`13.55,${Z(3.3)} 18.27,${Z(3.3)} 15.91,${Z(4.8)}`,fill:'var(--roof)',stroke:'var(--poche)','stroke-width':.05});
+  el(s,'path',{d:`M15.23 0V${Z(1.72)}A.68 .68 0 0 1 16.59 ${Z(1.72)}V0Z`,fill:'var(--poche)','fill-opacity':.6});
+  // levels
+  for(const [z,t] of[[0,'±0.00 GROUND'],[3,'+3.00 EAVES, EXISTING'],[3.5,'+3.50 EAVES, HOUSE'],[5.2,'+5.20 RIDGE'],[5.6,'+5.60 APEX, EXISTING']]){el(s,'line',{x1:34.6,y1:Z(z),x2:35.2,y2:Z(z),stroke:'var(--ink2)','stroke-width':.03});el(s,'text',{x:35.3,y:Z(z)+(z===3?.32:.13),'font-size':.3},t)}
+  el(s,'text',{x:6,y:.6,'font-size':.38,'text-anchor':'middle',fill:'var(--ink2)'},'EXISTING');el(s,'text',{x:12.5,y:.6,'font-size':.38,'text-anchor':'middle',fill:'var(--ink2)'},'LINK');el(s,'text',{x:15.9,y:.6,'font-size':.38,'text-anchor':'middle',fill:'var(--ink2)'},'KITCHEN');el(s,'text',{x:24.9,y:.6,'font-size':.38,'text-anchor':'middle',fill:'var(--ink2)'},'ARCADE · LIVING · BEDROOMS');
+  scalebar(s,0,1.05,5,1,.15);
+}
+
+/* ---------- programme ---------- */
+{const P=[['Permits & working drawings',0,2,1],['Site clearing & set-out',2,2.6,1],['Foundations',2.6,4,1],['Walls & arcade',4,6,1],['Roofs',6,7,1],['Pool shell',4.5,6.5,0],['Plumbing & electrics',6,8,0],['Finishes & joinery',7.5,10,1],['Solar, battery & water',8.5,10,0],['Garden & paving',9,11.2,0],['Snagging & handover',11.2,12,1]];
+ const g=$('gantt');g.innerHTML=`<span></span><div class="months">${Array.from({length:12},(_,i)=>`<span>M${i+1}</span>`).join('')}</div>`+P.map(([n,a,b,c])=>`<span>${n}</span><div class="track"><i class="${c?'crit':''}" style="left:${a/12*100}%;width:${(b-a)/12*100}%" data-t="${n}: month ${f1(a)} to ${f1(b)}"></i></div>`).join('');
+ g.querySelectorAll('i').forEach(i=>{i.addEventListener('pointermove',e=>showTip(e,i.dataset.t));i.addEventListener('pointerleave',hideTip)})}
+
+/* ---------- cost estimate ---------- */
+{const KEY='pg-plan-rates-v1';let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
+ const items=[
+  ['house','New house, finished',A.house,'m²',22000],['link','Glazed link',A.link,'m²',30000],['loggia','Arcade (covered loggia)',A.loggia,'m²',9000],
+  ['pool','Pool with plant and lighting',A.water,'m² water',35000],['terrace','Terrace paving',A.terrace,'m²',2500],
+  ['solar','Solar 12.6 kWp + 10 kWh battery',1,'lump sum',530000],['garden','Garden, irrigation, beds',1,'lump sum',250000]];
+ const tb=$('cost-table').tBodies[0];
+ tb.innerHTML=items.map(([k,n,q,u,r])=>`<tr><td>${n}</td><td class="n">${u==='lump sum'?'1':f1(q)} <span class="muted">${u}</span></td><td class="n"><input id="rate-${k}" type="number" min="0" step="500" value="${saved[k]??r}" aria-label="Rate for ${n}"></td><td class="n" id="amt-${k}"></td></tr>`).join('');
+ function calc(){let sub=0;const store={};for(const [k,,q] of items){const v=Math.max(0,+$('rate-'+k).value||0);store[k]=v;const a=v*q;sub+=a;$('amt-'+k).textContent=f0(a)}
+  const cont=sub*.1;$('cost-table').tFoot.innerHTML=`<tr><td style="font-weight:400">Contingency 10 %</td><td></td><td></td><td class="n" style="font-weight:400">${f0(cont)}</td></tr><tr><td>Total</td><td></td><td></td><td class="n tot">${f0(sub+cont)}</td></tr><tr><td class="muted" style="font-weight:400" colspan="4">≈ ${f0((sub+cont)/(A.house+A.link))} EGP per m² of new floor area, all items included</td></tr>`;
+  try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}}
+ tb.addEventListener('input',calc);calc()}
+})();
+</script>
+</body>
+</html>

@@ -1212,7 +1212,7 @@ function show(id){cur=id;$('ptitle').textContent='360° · '+SPOTS.find(s=>s[0]=
   const done=t=>{if(cur!==id)return;mesh.material.map=t;mesh.material.color.set(0xffffff);mesh.material.needsUpdate=true;$('pload').hidden=true;draw()};
   if(cache[id])return done(cache[id]);$('pload').hidden=false;$('pload').textContent='Loading 360° view…';
   loader.load('renders/360/E-'+id+'.jpg',t=>{t.encoding=THREE.sRGBEncoding;t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;cache[id]=t;done(t)},undefined,()=>{$('pload').textContent='Could not load this view.'})}
-function open(id){if(!R)init();box.hidden=false;lon=180;lat=id==='roof'?-20:0;cam.fov=75;draw();show(id);$('pclose').focus()}
+function open(id){if(!R)init();box.hidden=false;lon=180;lat=id==='roof'?-20:0;cam.fov=innerWidth<innerHeight?95:75;draw();show(id);$('pclose').focus()}
 function close(){box.hidden=true}
 for(const [id,name,sub] of SPOTS){const b=document.createElement('button');b.innerHTML=name+'<small>'+sub+'</small>';b.onclick=()=>open(id);list.appendChild(b);
   const c=document.createElement('button');c.textContent=name;c.dataset.id=id;c.onclick=()=>show(id);bar.appendChild(c)}

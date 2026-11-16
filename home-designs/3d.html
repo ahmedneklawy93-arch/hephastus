@@ -1199,7 +1199,7 @@ requestAnimationFrame(loop);
 <script>
 (function(){
 if(!window.THREE)return;
-const SPOTS=[['pool','By the pool','Lawn south of the pool, facing the arcade'],['gate','Inside the gate','Where the driveway starts'],['garden','In the garden','Among the palms and beds'],['roof','From above','9 m up over the lawn']];
+const READY=['pool','gate'];const SPOTS=[['pool','By the pool','Lawn south of the pool, facing the arcade'],['gate','Inside the gate','Where the driveway starts'],['garden','In the garden','Among the palms and beds'],['roof','From above','9 m up over the lawn']].filter(s=>READY.includes(s[0]));
 const $=id=>document.getElementById(id),box=$('pano'),cv=$('pc'),list=$('pspotlist'),bar=$('pspots');
 let R=null,scene,cam,mesh,lon=180,lat=0,cur=null,last=null;const loader=new THREE.TextureLoader(),cache={};
 function init(){R=new THREE.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(2,devicePixelRatio||1));R.outputEncoding=THREE.sRGBEncoding;

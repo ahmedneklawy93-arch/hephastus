@@ -1,4 +1,5 @@
 import XLSX from "xlsx";
+import { plGroup, isIncome, plTotals, NO_COST_CENTRE } from "./classify.js";
 
 // Reads the daily ledger (دفتر اليومية) exported from the company's accounting
 // system as .xls/.xlsx and boils it down to the figures Hephastus shows on the
@@ -18,12 +19,8 @@ const ENTRY_TOTAL = "مجموع القيد";
 const APPROVED = "مؤيد";
 const UNAPPROVED = "غير مؤيد";
 
-// Chart-of-accounts groups, by account code prefix.
+// Balance-sheet account groups, by account code prefix. Income and expenses are grouped by plGroup.
 export const GROUPS = {
-  revenue: "6",
-  purchases: "3",
-  directCosts: "504",
-  expenses: "5",
   customers: "1020201",
   suppliers: "2020101",
   banks: "1020102",
@@ -106,28 +103,16 @@ function markLeaves(lines) {
 }
 
 function bucket() {
-  return { revenue: 0, directCosts: 0, expenses: 0, purchases: 0 };
+  return { revenue: 0, otherIncome: 0, directCosts: 0, overheads: 0 };
 }
 
 // Adds one leaf line's effect to a profit-and-loss bucket.
 function addToResult(target, line) {
-  const { code, debit, credit } = line;
-  if (code.startsWith(GROUPS.revenue)) target.revenue += credit - debit;
-  else if (code.startsWith(GROUPS.directCosts)) target.directCosts += debit - credit;
-  else if (code.startsWith(GROUPS.expenses)) target.expenses += debit - credit;
-  else if (code.startsWith(GROUPS.purchases)) target.purchases += debit - credit;
+  const group = plGroup(line.code);
+  if (group) target[group] += isIncome(group) ? line.credit - line.debit : line.debit - line.credit;
 }
 
-function finish(b) {
-  const out = {
-    revenue: round(b.revenue),
-    directCosts: round(b.directCosts),
-    expenses: round(b.expenses),
-    purchases: round(b.purchases),
-  };
-  out.result = round(out.revenue - out.directCosts - out.expenses - out.purchases);
-  return out;
-}
+const finish = plTotals;
 
 export function summarizeLedger(lines, { fileName = "", importedBy = "", now = new Date() } = {}) {
   const leaves = lines.filter((line) => line.leaf);
@@ -156,9 +141,10 @@ export function summarizeLedger(lines, { fileName = "", importedBy = "", now = n
     if (!months.has(month)) months.set(month, bucket());
     addToResult(months.get(month), line);
 
-    if (line.costCentre) {
-      if (!centres.has(line.costCentre)) centres.set(line.costCentre, { ...bucket(), lines: 0 });
-      const centre = centres.get(line.costCentre);
+    if (plGroup(line.code)) {
+      const name = line.costCentre || NO_COST_CENTRE;
+      if (!centres.has(name)) centres.set(name, { ...bucket(), lines: 0 });
+      const centre = centres.get(name);
       centre.lines++;
       addToResult(centre, line);
     }
@@ -179,10 +165,11 @@ export function summarizeLedger(lines, { fileName = "", importedBy = "", now = n
     accountList.filter((a) => a.code.startsWith(prefix)).sort((a, b) => b.debit + b.credit - (a.debit + a.credit));
 
   // The P&L broken down by the account one level under each group, e.g. 601001 contracting revenue.
-  const breakdown = (prefix, sign) => {
+  const breakdown = (group) => {
+    const sign = isIncome(group) ? -1 : 1;
     const rows = new Map();
     for (const a of accountList) {
-      if (!a.code.startsWith(prefix)) continue;
+      if (plGroup(a.code) !== group) continue;
       // Group under the nearest named parent: 6 digits (e.g. 601001), else 5 (e.g. 50402 mechanical works).
       const key = [6, 5].map((n) => a.code.slice(0, n)).find((k) => names.has(k)) ?? a.code;
       const name = names.get(key) || a.name;
@@ -210,15 +197,15 @@ export function summarizeLedger(lines, { fileName = "", importedBy = "", now = n
       .map((e) => ({ ...e, difference: round(e.difference) })),
     result: finish(total),
     breakdown: {
-      revenue: breakdown(GROUPS.revenue, -1),
-      directCosts: breakdown(GROUPS.directCosts, 1),
-      expenses: breakdown(GROUPS.expenses, 1).filter((r) => !r.code.startsWith(GROUPS.directCosts)),
-      purchases: breakdown(GROUPS.purchases, 1),
+      revenue: breakdown("revenue"),
+      otherIncome: breakdown("otherIncome"),
+      directCosts: breakdown("directCosts"),
+      overheads: breakdown("overheads"),
     },
     months: [...months.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([month, b]) => ({ month, ...finish(b) })),
     costCentres: [...centres.entries()]
       .map(([name, c]) => ({ name, lines: c.lines, ...finish(c) }))
-      .sort((a, b) => b.revenue + b.directCosts + b.expenses - (a.revenue + a.directCosts + a.expenses)),
+      .sort((a, b) => b.revenue + b.directCosts + b.overheads - (a.revenue + a.directCosts + a.overheads)),
     customers: group(GROUPS.customers),
     suppliers: group(GROUPS.suppliers),
     banks: group(GROUPS.banks),

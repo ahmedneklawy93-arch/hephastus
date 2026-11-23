@@ -461,7 +461,7 @@ test("ledger import counts only leaf lines and works out the result per cost cen
   assert.equal(ledger.entries, 3);
   assert.equal(ledger.debit, 1650);
   assert.equal(ledger.credit, 1625);
-  assert.deepEqual(ledger.result, { revenue: 1000, directCosts: 400, expenses: 250, purchases: 0, result: 350 });
+  assert.deepEqual(ledger.result, { revenue: 1000, otherIncome: 0, directCosts: 400, overheads: 250, grossProfit: 600, result: 350 });
   assert.deepEqual(ledger.unbalancedEntries, [{ entry: "3", date: "2026-02-10", source: "سند قيد يومية", difference: 25 }]);
   assert.equal(ledger.approvedLines, 1);
   const hospital = ledger.costCentres.find((c) => c.name === "مركز المستشفى");
@@ -470,6 +470,23 @@ test("ledger import counts only leaf lines and works out the result per cost cen
   assert.equal(ledger.customers[0].debit, 1000);
   assert.equal(ledger.banks[0].credit, 500);
   assert.equal(ledger.breakdown.revenue[0].name, "إيرادات المقاولات");
+});
+
+test("ledger summary keeps other income out of revenue, counts purchases as direct costs and keeps lines with no cost centre", async () => {
+  const { summarizeLedger } = await import("../src/ledger.js");
+  const l = (code, debit, credit, costCentre = null) => ({ date: "2026-03-01", code, name: "", debit, credit, entry: "9", costCentre, approval: null, leaf: true });
+  const ledger = summarizeLedger([
+    l("601001", 0, 1000, "Site"), l("602001", 0, 40), l("602003", 0, 10, "Site"), // contracting revenue, deposit interest, scrap sales
+    l("504020002", 300, 0, "Site"), l("301001", 100, 0, "Site"), // site materials and purchases
+    l("501016", 200, 0, "Office"), l("502010", 30, 0), // bank interest, partner distribution with no cost centre
+    l("1020102001", 1080, 0), l("1020101001", 0, 1710),
+  ]);
+  assert.deepEqual(ledger.result, { revenue: 1000, otherIncome: 50, directCosts: 400, overheads: 230, grossProfit: 600, result: 420 });
+  const centres = Object.fromEntries(ledger.costCentres.map((c) => [c.name, c.result]));
+  assert.deepEqual(centres, { Site: 610, Office: -200, "بدون مركز تكلفة": 10 });
+  assert.equal(Object.values(centres).reduce((a, b) => a + b, 0), ledger.result.result);
+  assert.deepEqual(ledger.breakdown.otherIncome.map((r) => r.code), ["602001", "602003"]);
+  assert.deepEqual(ledger.breakdown.directCosts.map((r) => r.code), ["504020002", "301001"]);
 });
 
 test("ledger import rejects files that aren't the ledger export", async () => {

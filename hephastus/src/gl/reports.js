@@ -1,7 +1,10 @@
 // Financial statements from posted entries only.
+import { PL_GROUPS, NO_COST_CENTRE, plGroup, isIncome, plTotals } from "../classify.js";
 const num = (v) => Math.round(Number(v ?? 0) * 100) / 100;
 const isDate = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
 const fail = (m) => Object.assign(new Error(m), { status: 400 });
+// Accounts outside the usual code ranges fall back on their type.
+const groupOf = (a) => plGroup(a.code) ?? (a.type === "revenue" ? "otherIncome" : "overheads");
 
 export function createReports(db) {
   const posted = "JOIN gl_entries e ON e.id = l.entry_id AND e.status = 'posted'";
@@ -22,7 +25,7 @@ export function createReports(db) {
     return { from, to, accounts, totals: { opening: sum("opening"), debit: sum("debit"), credit: sum("credit"), closing: sum("closing") } };
   }
 
-  // Revenue and expenses by account, with months as columns; optional cost centre.
+  // Income statement by account, grouped as operating revenue, other income, direct costs and overheads, with months as columns; optional cost centre.
   async function incomeStatement({ from, to, costCentreId }) {
     if (!isDate(from) || !isDate(to)) throw fail("Choose a from and to date.");
     const params = [from, to];
@@ -38,16 +41,19 @@ export function createReports(db) {
     for (const r of rows) {
       if (!accounts.has(r.code)) accounts.set(r.code, { code: r.code, nameAr: r.name_ar, nameEn: r.name_en, type: r.type, months: {}, total: 0 });
       const a = accounts.get(r.code);
-      // Revenue shows as positive income, expenses as positive cost.
-      const v = r.type === "revenue" ? Number(r.amount) : -Number(r.amount);
+      // Income shows as positive income, costs as positive cost.
+      const v = isIncome(groupOf(r)) ? Number(r.amount) : -Number(r.amount);
       a.months[r.month] = num(v); a.total = num(a.total + v);
     }
-    const list = [...accounts.values()];
-    const total = (type) => num(list.filter((a) => a.type === type).reduce((s, a) => s + a.total, 0));
-    const byMonth = (type) => Object.fromEntries(months.map((m) => [m, num(list.filter((a) => a.type === type).reduce((s, a) => s + (a.months[m] ?? 0), 0))]));
-    return { from, to, months, revenue: list.filter((a) => a.type === "revenue"), expenses: list.filter((a) => a.type === "expense"),
-      totals: { revenue: total("revenue"), expenses: total("expense"), result: num(total("revenue") - total("expense")),
-        revenueByMonth: byMonth("revenue"), expensesByMonth: byMonth("expense") } };
+    const list = [...accounts.values()].map((a) => ({ ...a, group: groupOf(a) }));
+    const sumOf = (group, pick) => num(list.filter((a) => a.group === group).reduce((s, a) => s + pick(a), 0));
+    const totalsFor = (pick) => {
+      const t = plTotals(Object.fromEntries(PL_GROUPS.map((g) => [g, sumOf(g, pick)])));
+      return { ...t, expenses: num(t.directCosts + t.overheads) };
+    };
+    const byMonth = Object.fromEntries(months.map((m) => [m, totalsFor((a) => a.months[m] ?? 0)]));
+    return { from, to, months, ...Object.fromEntries(PL_GROUPS.map((g) => [g, list.filter((a) => a.group === g)])),
+      totals: totalsFor((a) => a.total), byMonth };
   }
 
   // Balances at a date. This year's result so far is shown under equity until it is closed.
@@ -85,17 +91,23 @@ export function createReports(db) {
     return { code, from, to, opening: num(open.b), closing: num(run), lines };
   }
 
+  // Every income and expense line, including lines with no cost centre, so the centres add up to the income statement.
   async function costCentres({ from, to }) {
     if (!isDate(from) || !isDate(to)) throw fail("Choose a from and to date.");
     const rows = await db.query(`
-      SELECT c.id, c.name, c.project_code,
-        COALESCE(SUM(CASE WHEN a.type = 'revenue' THEN l.credit - l.debit END),0) AS revenue,
-        COALESCE(SUM(CASE WHEN a.type = 'expense' AND a.code LIKE '504%' THEN l.debit - l.credit END),0) AS direct_costs,
-        COALESCE(SUM(CASE WHEN a.type = 'expense' AND a.code NOT LIKE '504%' THEN l.debit - l.credit END),0) AS overheads
-      FROM gl_cost_centres c JOIN gl_lines l ON l.cost_centre_id = c.id ${posted} JOIN gl_accounts a ON a.code = l.account_code
-      WHERE e.date BETWEEN $1 AND $2 GROUP BY c.id ORDER BY c.name`, [from, to]);
-    return { from, to, costCentres: rows.map((r) => ({ id: r.id, name: r.name, projectCode: r.project_code, revenue: num(r.revenue),
-      directCosts: num(r.direct_costs), overheads: num(r.overheads), result: num(Number(r.revenue) - Number(r.direct_costs) - Number(r.overheads)) })) };
+      SELECT c.id, c.name, c.project_code, a.code, a.type, SUM(l.credit - l.debit) AS amount
+      FROM gl_lines l ${posted} JOIN gl_accounts a ON a.code = l.account_code LEFT JOIN gl_cost_centres c ON c.id = l.cost_centre_id
+      WHERE e.date BETWEEN $1 AND $2 AND a.type IN ('revenue','expense') GROUP BY c.id, c.name, c.project_code, a.code, a.type`, [from, to]);
+    const centres = new Map();
+    for (const r of rows) {
+      const key = r.id ?? "none";
+      if (!centres.has(key)) centres.set(key, { id: r.id ?? null, name: r.name ?? NO_COST_CENTRE, projectCode: r.project_code ?? null, revenue: 0, otherIncome: 0, directCosts: 0, overheads: 0 });
+      const c = centres.get(key), g = groupOf(r);
+      c[g] += isIncome(g) ? Number(r.amount) : -Number(r.amount);
+    }
+    const list = [...centres.values()].map((c) => ({ id: c.id, name: c.name, projectCode: c.projectCode, ...plTotals(c) }))
+      .sort((a, b) => (a.id === null) - (b.id === null) || a.name.localeCompare(b.name));
+    return { from, to, costCentres: list };
   }
 
   return { trialBalance, incomeStatement, balanceSheet, accountStatement, costCentres };

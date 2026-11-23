@@ -48,26 +48,37 @@ test("posting needs balanced lines on detail accounts in an open month", async (
 
 test("reports balance: trial balance, income statement, balance sheet, statement and cost centres", async () => {
   const { ledger, reports, site, db } = await books();
+  for (const [code, nameEn, parent] of [["601001", "Contracting revenue", "6"], ["602001", "Deposit interest", "6"], ["504001", "Site materials", "5"]]) {
+    await ledger.saveAccount({ code, nameEn, parent }, owner, { create: true });
+  }
   const post = async (date, lines) => ledger.post((await ledger.saveDraft(entry(date, lines), owner)).id, owner);
-  await post("2026-01-10", [line("1001", 1000, 0), line("6001", 0, 1000, site)]);
+  await post("2026-01-10", [line("1001", 1000, 0), line("601001", 0, 1000, site)]);
   await post("2026-02-05", [line("5001", 300, 0, site), line("2001", 0, 300)]);
   await post("2026-02-20", [line("2001", 300, 0), line("1001", 0, 300)]);
+  await post("2026-02-25", [line("1001", 50, 0), line("602001", 0, 50)]); // other income, no cost centre
+  await post("2026-02-26", [line("504001", 200, 0, site), line("1001", 0, 200)]);
   await ledger.saveDraft(entry("2026-02-21", [line("5001", 999, 0), line("1001", 0, 999)]), owner); // drafts never count
   const tb = await reports.trialBalance({ from: "2026-02-01", to: "2026-02-28" });
   assert.equal(tb.totals.debit, tb.totals.credit);
   assert.equal(tb.accounts.find((a) => a.code === "1001").opening, 1000);
-  assert.equal(tb.accounts.find((a) => a.code === "1001").closing, 700);
+  assert.equal(tb.accounts.find((a) => a.code === "1001").closing, 550);
+  // Other income stays out of operating revenue and gross profit; it still counts in the result.
   const is = await reports.incomeStatement({ from: "2026-01-01", to: "2026-12-31" });
-  assert.deepEqual([is.totals.revenue, is.totals.expenses, is.totals.result], [1000, 300, 700]);
+  assert.deepEqual(is.totals, { revenue: 1000, otherIncome: 50, directCosts: 200, overheads: 300, grossProfit: 800, result: 550, expenses: 500 });
+  assert.deepEqual([is.revenue, is.otherIncome, is.directCosts, is.overheads].map((l) => l.map((a) => a.code)), [["601001"], ["602001"], ["504001"], ["5001"]]);
   assert.deepEqual(is.months, ["2026-01", "2026-02"]);
+  assert.equal(is.byMonth["2026-02"].result, -450);
   const bs = await reports.balanceSheet({ at: "2026-12-31" });
-  assert.deepEqual([bs.totals.assets, bs.totals.liabilities, bs.totals.result, bs.totals.difference], [700, 0, 700, 0]);
+  assert.deepEqual([bs.totals.assets, bs.totals.liabilities, bs.totals.result, bs.totals.difference], [550, 0, 550, 0]);
   const st = await reports.accountStatement({ code: "1001", from: "2026-02-01", to: "2026-12-31" });
-  assert.deepEqual([st.opening, st.closing, st.lines.length], [1000, 700, 1]);
+  assert.deepEqual([st.opening, st.closing, st.lines.length], [1000, 550, 3]);
+  // Cost centres include lines with no cost centre, so they add up to the income statement.
   const cc = await reports.costCentres({ from: "2026-01-01", to: "2026-12-31" });
-  assert.deepEqual([cc.costCentres[0].revenue, cc.costCentres[0].overheads, cc.costCentres[0].result], [1000, 300, 700]);
+  assert.deepEqual(cc.costCentres.map((c) => [c.name, c.revenue, c.otherIncome, c.directCosts, c.overheads, c.result]),
+    [["Hospital", 1000, 0, 200, 300, 500], ["بدون مركز تكلفة", 0, 50, 0, 0, 50]]);
+  assert.equal(cc.costCentres.reduce((s, c) => s + c.result, 0), is.totals.result);
   const accounts = await ledger.listAccounts();
-  assert.equal(accounts.find((a) => a.code === "1").balance, 700); // parents roll up their sub-accounts
+  assert.equal(accounts.find((a) => a.code === "1").balance, 550); // parents roll up their sub-accounts
   await db.close();
 });
 

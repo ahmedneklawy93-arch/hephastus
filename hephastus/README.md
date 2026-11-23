@@ -61,14 +61,14 @@ Hephastus also runs your MEP contracting work. All amounts are in Egyptian pound
 
 Once a week, export the daily ledger (دفتر اليومية) for the year to date from your accounting system as an Excel file (.xls or .xlsx) and upload it on the **Finance** screen. Each upload replaces the previous one. Hephastus reads it and shows:
 
-- revenue booked, direct project costs, overheads and the result, overall and by month;
+- operating revenue, other income, direct project costs, gross profit, overheads and the result, overall and by month;
 - every cost centre's revenue, costs, result and margin. To tie a cost centre to a project, type its name (exactly as in the ledger) in the project's **Cost centre in the accounting ledger** field; the project page then shows its ledger figures too;
 - money in and out for customers, suppliers, subcontractors, banks and cash;
 - how many lines are still unapproved (غير مؤيد), and any entry whose debits and credits don't match.
 
 The ledger export has no opening balances, so customer, supplier and bank figures are movements over the period, not balances. Only the summary is stored; the uploaded file itself is not kept. Finance is visible to the admin and managers only, in the app and in the chat ("What's our result this year?", "Which projects are losing money?").
 
-Account groups are read from the account code: 6… revenue, 504… direct project costs, other 5… expenses, 3… purchases, 1020201… customers, 2020101… suppliers and subcontractors, 1020102… banks, 1020101… cash. If your chart of accounts changes, update `GROUPS` in `src/ledger.js`.
+Income and expense accounts are grouped by code, the same way on the Finance screen and in Accounting reports: 601… operating revenue; other 6… other income (deposit interest, scrap sales), kept out of revenue and gross profit; 504… and 3… (purchases of site materials) direct project costs; other 5… overheads, including finance costs and partner payments. Lines with no cost centre are reported under «بدون مركز تكلفة» so cost centres add up to the total. Other groups: 1020201… customers, 2020101… suppliers and subcontractors, 1020102… banks, 1020101… cash. If your chart of accounts changes, update `src/classify.js` (income and expenses) or `GROUPS` in `src/ledger.js`. A ledger uploaded before this grouping keeps its old figures until it is uploaded again.
 
 ### Accounting (replacing the old ERP)
 

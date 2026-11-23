@@ -18,7 +18,7 @@
       code: "Code", nameAr: "Arabic name", nameEn: "English name", parent: "Parent account", addAccount: "Add account", group: "Group",
       costCentres: "Cost centres", project: "Project code", addCostCentre: "Add cost centre", save: "Save",
       trialBalance: "Trial balance", income: "Income statement", balanceSheet: "Balance sheet", statement: "Account statement", ccReport: "Cost centres",
-      run: "Run", at: "At", opening_b: "Opening", closing: "Closing", revenue: "Revenue", expenses: "Expenses", result: "Result",
+      run: "Run", at: "At", opening_b: "Opening", closing: "Closing", revenue: "Operating revenue", otherIncome: "Other income", grossProfit: "Gross profit", expenses: "Expenses", result: "Result",
       assets: "Assets", liabilities: "Liabilities", equity: "Equity", yearResult: "Result for the year so far", checkBalances: "Assets − liabilities − equity",
       directCosts: "Direct costs", overheads: "Overheads", month: "Month", locked: "Locked", open: "Open", lock: "Lock", unlock: "Unlock",
       importHelp: "Upload the daily ledger export from the old ERP. You can upload it every week until you switch over: new and changed entries are brought in, nothing is deleted, and entries that vanished from the ERP are listed.",
@@ -45,7 +45,7 @@
       code: "الكود", nameAr: "الاسم بالعربية", nameEn: "الاسم بالإنجليزية", parent: "الحساب الرئيسي", addAccount: "إضافة حساب", group: "حساب رئيسي",
       costCentres: "مراكز التكلفة", project: "كود المشروع", addCostCentre: "إضافة مركز تكلفة", save: "حفظ",
       trialBalance: "ميزان المراجعة", income: "قائمة الدخل", balanceSheet: "الميزانية", statement: "كشف حساب", ccReport: "مراكز التكلفة",
-      run: "عرض", at: "في", opening_b: "رصيد أول المدة", closing: "رصيد آخر المدة", revenue: "الإيرادات", expenses: "المصروفات", result: "صافي الربح / الخسارة",
+      run: "عرض", at: "في", opening_b: "رصيد أول المدة", closing: "رصيد آخر المدة", revenue: "إيرادات النشاط", otherIncome: "إيرادات أخرى", grossProfit: "مجمل الربح", expenses: "المصروفات", result: "صافي الربح / الخسارة",
       assets: "الأصول", liabilities: "الالتزامات", equity: "حقوق الملكية", yearResult: "نتيجة العام حتى تاريخه", checkBalances: "الأصول − الالتزامات − حقوق الملكية",
       directCosts: "تكاليف مباشرة", overheads: "مصروفات عمومية", month: "الشهر", locked: "مغلق", open: "مفتوح", lock: "إغلاق الشهر", unlock: "فتح الشهر",
       importHelp: "ارفع ملف دفتر اليومية من النظام القديم. يمكنك رفعه كل أسبوع حتى الانتقال: تُضاف القيود الجديدة والمعدلة، ولا يُحذف شيء، وتُعرض القيود التي اختفت من النظام القديم.",
@@ -313,12 +313,12 @@
     if (rep.kind === "income") {
       const r = await api(`/api/gl/reports/income?${q({ from: rep.from, to: rep.to, costCentreId: rep.costCentreId })}`);
       const rows = (list) => list.map((a) => h("tr", {}, nm(a), ...r.months.map((m) => num(h("td", {}, amount(a.months[m])))), num(h("td", {}, signed(a.total)))));
-      const tot = (label, byMonth, total) => h("tr", { class: "total-row" }, h("td", {}, label), ...r.months.map((m) => num(h("td", {}, signed(byMonth[m])))), num(h("td", {}, signed(total))));
-      const result = Object.fromEntries(r.months.map((m) => [m, r.totals.revenueByMonth[m] - r.totals.expensesByMonth[m]]));
+      const tot = (label, key) => h("tr", { class: "total-row" }, h("td", {}, label), ...r.months.map((m) => num(h("td", {}, signed(r.byMonth[m][key])))), num(h("td", {}, signed(r.totals[key]))));
+      const head = (label) => h("tr", { class: "group-row" }, h("td", { colspan: String(r.months.length + 2) }, label));
+      const block = (key) => [head(t(key)), ...rows(r[key]), tot(`${t("total")} ${t(key)}`, key)];
       return card(`${t("income")} ${r.from} → ${r.to}`, null, table([t("account"), ...r.months, t("total")], [
-        ...rows(r.revenue), tot(t("revenue"), r.totals.revenueByMonth, r.totals.revenue),
-        ...rows(r.expenses), tot(t("expenses"), r.totals.expensesByMonth, r.totals.expenses),
-        tot(t("result"), result, r.totals.result)]));
+        ...block("revenue"), ...block("directCosts"), tot(t("grossProfit"), "grossProfit"),
+        ...block("overheads"), ...block("otherIncome"), tot(t("result"), "result")]));
     }
     if (rep.kind === "balance-sheet") {
       const r = await api(`/api/gl/reports/balance-sheet?${q({ at: rep.at })}`);
@@ -339,8 +339,8 @@
         h("tr", { class: "total-row" }, h("td", { colspan: "6" }, t("closing")), num(h("td", {}, signed(r.closing))))]));
     }
     const r = await api(`/api/gl/reports/cost-centres?${q({ from: rep.from, to: rep.to })}`);
-    return card(`${t("ccReport")} ${r.from} → ${r.to}`, null, table([t("costCentre"), t("project"), t("revenue"), t("directCosts"), t("overheads"), t("result")],
-      r.costCentres.map((c) => h("tr", {}, h("td", { dir: "auto" }, c.name), h("td", {}, c.projectCode ?? ""), num(h("td", {}, signed(c.revenue))), num(h("td", {}, signed(c.directCosts))), num(h("td", {}, signed(c.overheads))), num(h("td", { class: c.result < 0 ? "late" : "" }, signed(c.result)))))));
+    return card(`${t("ccReport")} ${r.from} → ${r.to}`, null, table([t("costCentre"), t("project"), t("revenue"), t("otherIncome"), t("directCosts"), t("overheads"), t("result")],
+      r.costCentres.map((c) => h("tr", {}, h("td", { dir: "auto" }, c.name), h("td", {}, c.projectCode ?? ""), num(h("td", {}, signed(c.revenue))), num(h("td", {}, signed(c.otherIncome))), num(h("td", {}, signed(c.directCosts))), num(h("td", {}, signed(c.overheads))), num(h("td", { class: c.result < 0 ? "late" : "" }, signed(c.result)))))));
   }
 
   // ---------- Periods, import, audit ----------

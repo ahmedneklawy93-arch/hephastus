@@ -4,6 +4,11 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const money = new Intl.NumberFormat("en-EG", { style: "currency", currency: "EGP", maximumFractionDigits: 0 });
+  // Profit-and-loss figures from a ledger upload. Uploads made before other income and purchases were
+  // reclassified (Nov 2026) have expenses/purchases instead of overheads, and other income inside revenue.
+  const pl = (x) => ({ revenue: x.revenue, otherIncome: x.otherIncome ?? 0, directCosts: x.directCosts,
+    overheads: x.overheads ?? (x.expenses ?? 0) + (x.purchases ?? 0), result: x.result });
+  const oldLedger = (ledger) => ledger.result.overheads === undefined;
   const MANPOWER = ["engineers", "foremen", "technicians", "labourers", "subcontractors"];
   let me = null;
   let schema = null;
@@ -286,9 +291,10 @@
     if (centre) {
       wrap.append(section(`From the accounting ledger (${ledger.from} to ${ledger.to})`, null,
         h("div", { class: "tiles" },
-          tile("Revenue booked", money.format(centre.revenue)),
-          tile("Direct costs", money.format(centre.directCosts)),
-          tile("Overheads charged", money.format(centre.expenses + centre.purchases)),
+          tile("Operating revenue", money.format(pl(centre).revenue)),
+          tile("Other income", money.format(pl(centre).otherIncome)),
+          tile("Direct costs", money.format(pl(centre).directCosts)),
+          tile("Overheads charged", money.format(pl(centre).overheads)),
           tile("Result", money.format(centre.result), centre.result < 0 ? "bad" : ""))));
     }
 
@@ -376,44 +382,48 @@
       h("button", { class: "primary small", type: "button", onclick: () => picker.click() }, ledger ? "Upload this week's ledger" : "Upload ledger")));
     if (!ledger) return;
 
-    const r = ledger.result;
-    const overheads = r.expenses + r.purchases;
+    const r = pl(ledger.result);
+    if (oldLedger(ledger)) root.append(h("p", { class: "late small" }, "This ledger was uploaded before the November 2026 correction: its revenue still includes other income (deposit interest, scrap sales) and site-material purchases are counted as overheads, and lines with no cost centre are missing from the cost-centre table. Upload the ledger again to correct these figures."));
     root.append(h("div", { class: "tiles" },
-      tile("Revenue booked", money.format(r.revenue)),
-      tile("Direct project costs", money.format(r.directCosts)),
-      tile("Overheads & admin", money.format(overheads)),
-      tile("Result", money.format(r.result), r.result < 0 ? "bad" : ""),
+      tile("Operating revenue", money.format(r.revenue)),
+      tile("Direct project costs incl. site materials", money.format(r.directCosts)),
+      tile("Gross profit", `${money.format(r.revenue - r.directCosts)}${r.revenue > 0 ? ` (${pct(r.revenue - r.directCosts, r.revenue)})` : ""}`),
+      tile("Overheads, finance & partner payments", money.format(r.overheads)),
+      tile("Other income (deposit interest, scrap)", money.format(r.otherIncome)),
+      tile("Net result as booked", money.format(r.result), r.result < 0 ? "bad" : ""),
       tile("Unapproved lines", `${ledger.unapprovedLines.toLocaleString()} of ${ledger.lines.toLocaleString()}`, ledger.unapprovedLines ? "warn" : ""),
       tile("Unbalanced entries", ledger.unbalancedEntries.length, ledger.unbalancedEntries.length ? "bad" : "")));
-    root.append(h("p", { class: "muted small" }, "Figures are what was booked between the first and last date of the ledger. The export has no opening balances, so customer, supplier and bank figures are money in and out over the period, not balances."));
+    root.append(h("p", { class: "muted small" }, "Figures are what was booked between the first and last date of the ledger. Operating revenue is accounts 601; other income (602) is kept out of revenue and the gross margin. Direct costs are 504 plus purchases (3), which are site materials. Overheads are every other expense, including bank interest and partner payments. The export has no opening balances, so customer, supplier and bank figures are money in and out over the period, not balances."));
 
     const linked = (name) => data.projects.find((p) => p.costCentre === name);
     root.append(section("Projects (by cost centre)", null,
       h("p", { class: "muted small" }, "Link a cost centre to a project by entering it in the project's “Cost centre in the accounting ledger” field."),
-      table(["Cost centre", "Project", "Revenue", "Direct costs", "Overheads", "Result", "Margin"],
-        ledger.costCentres.map((c) => {
-          const p = linked(c.name);
+      table(["Cost centre", "Project", "Revenue", "Other income", "Direct costs", "Overheads", "Result", "Margin"],
+        ledger.costCentres.map((row) => {
+          const c = pl(row), p = linked(row.name);
           return h("tr", {},
-            h("td", {}, ar(c.name)),
+            h("td", {}, ar(row.name)),
             h("td", {}, p ? h("button", { class: "link", type: "button", onclick: () => { openProjectId = p.id; show("projects"); } }, p.code) : h("span", { class: "muted" }, "—")),
             h("td", { class: "num" }, money.format(c.revenue)),
+            h("td", { class: "num" }, money.format(c.otherIncome)),
             h("td", { class: "num" }, money.format(c.directCosts)),
-            h("td", { class: "num" }, money.format(c.expenses + c.purchases)),
+            h("td", { class: "num" }, money.format(c.overheads)),
             h("td", { class: `num ${c.result < 0 ? "late" : ""}` }, money.format(c.result)),
             h("td", { class: "num" }, c.revenue > 0 && c.result > -c.revenue ? pct(c.result, c.revenue) : "—"));
         }))));
 
-    const peak = Math.max(1, ...ledger.months.map((m) => Math.max(m.revenue, m.directCosts + m.expenses + m.purchases)));
+    const months = ledger.months.map((m) => ({ month: m.month, ...pl(m) }));
+    const peak = Math.max(1, ...months.map((m) => Math.max(m.revenue + m.otherIncome, m.directCosts + m.overheads)));
     root.append(section("By month", null,
-      h("div", { class: "legend small muted" }, h("i", { class: "sw rev" }), "Revenue ", h("i", { class: "sw cost" }), "All costs"),
-      table(["Month", "", "Revenue", "Costs", "Result"], ledger.months.map((m) => {
-        const costs = m.directCosts + m.expenses + m.purchases;
+      h("div", { class: "legend small muted" }, h("i", { class: "sw rev" }), "Revenue and other income ", h("i", { class: "sw cost" }), "All costs"),
+      table(["Month", "", "Revenue and other income", "Costs", "Result"], months.map((m) => {
+        const income = m.revenue + m.otherIncome, costs = m.directCosts + m.overheads;
         return h("tr", {},
           h("td", {}, m.month),
           h("td", { class: "bars" },
-            h("div", { class: "hbar rev", style: `width:${(m.revenue / peak) * 100}%` }),
+            h("div", { class: "hbar rev", style: `width:${(Math.max(0, income) / peak) * 100}%` }),
             h("div", { class: "hbar cost", style: `width:${(Math.max(0, costs) / peak) * 100}%` })),
-          h("td", { class: "num" }, money.format(m.revenue)),
+          h("td", { class: "num" }, money.format(income)),
           h("td", { class: "num" }, money.format(costs)),
           h("td", { class: `num ${m.result < 0 ? "late" : ""}` }, money.format(m.result)));
       }))));
@@ -421,9 +431,10 @@
     const lines = (rows) => table(["Account", "Amount"], rows.slice(0, 15).map((row) =>
       h("tr", {}, h("td", {}, ar(row.name || row.code), h("div", { class: "muted small" }, row.code)), h("td", { class: "num" }, money.format(row.amount)))));
     root.append(h("div", { class: "grid-2" },
-      section("Revenue", null, lines(ledger.breakdown.revenue)),
+      section("Operating revenue", null, lines(ledger.breakdown.revenue)),
       section("Direct project costs", null, lines(ledger.breakdown.directCosts)),
-      section("Overheads & admin", null, lines([...ledger.breakdown.expenses, ...ledger.breakdown.purchases].sort((a, b) => b.amount - a.amount))),
+      section("Overheads, finance & partner payments", null, lines(ledger.breakdown.overheads ?? [...ledger.breakdown.expenses, ...ledger.breakdown.purchases].sort((a, b) => b.amount - a.amount))),
+      ledger.breakdown.otherIncome ? section("Other income", null, lines(ledger.breakdown.otherIncome)) : null,
       section("Banks and cash", null, table(["Account", "In", "Out"], [...ledger.cash, ...ledger.banks].map((a) =>
         h("tr", {}, h("td", {}, ar(a.name)), h("td", { class: "num" }, money.format(a.debit)), h("td", { class: "num" }, money.format(a.credit))))))));
 

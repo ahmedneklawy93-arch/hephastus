@@ -6,11 +6,13 @@ import { loadConfig } from "./config.js";
 import { createStore } from "./store.js";
 import { createAssistant } from "./assistant.js";
 import { SCHEMA, createOps } from "./ops.js";
+import { importLedger } from "./ledger.js";
 import { ADMIN_USERNAME, hashPassword, normalizeUsername, publicUser, validateUser, verifyPassword } from "./users.js";
 
 const SESSION_DAYS = 30;
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_MESSAGE_CHARS = 20000;
+const MAX_LEDGER_BYTES = 25 * 1024 * 1024;
 // After this many wrong passwords, logins pause for the rest of the window.
 const MAX_FAILED_LOGINS = 10;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
@@ -72,6 +74,19 @@ async function readJson(req) {
   } catch {
     throw Object.assign(new Error("Invalid JSON"), { status: 400 });
   }
+}
+
+// Reads an uploaded file sent as the raw request body.
+async function readFile(req, limit) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > limit) throw Object.assign(new Error("That file is too large (25 MB at most)."), { status: 413 });
+    chunks.push(chunk);
+  }
+  if (!size) throw Object.assign(new Error("The file is empty."), { status: 400 });
+  return Buffer.concat(chunks);
 }
 
 function sendJson(res, status, body, headers = {}) {
@@ -218,6 +233,12 @@ export function createServer({ password, sessionSecret, assistant, store, ops = 
       return;
     }
 
+    if (url.pathname.startsWith("/api/finance")) {
+      if (!office) throw forbidden("Only the admin and managers can see the finances.");
+      await routeFinance(req, res, url, user);
+      return;
+    }
+
     if (url.pathname.startsWith("/api/ops")) {
       await routeOps(req, res, url, user);
       return;
@@ -258,6 +279,23 @@ export function createServer({ password, sessionSecret, assistant, store, ops = 
     } else {
       sendJson(res, 405, { error: "Not allowed." });
     }
+  }
+
+  async function routeFinance(req, res, url, user) {
+    if (req.method === "GET" && url.pathname === "/api/finance") {
+      const [ledger] = await store.getCollection("ledger");
+      sendJson(res, 200, { ledger: ledger ?? null });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/finance/ledger") {
+      const fileName = String(url.searchParams.get("name") ?? "").slice(0, 200);
+      const ledger = importLedger(await readFile(req, MAX_LEDGER_BYTES), { fileName, importedBy: user.username });
+      // Each weekly export covers the year to date, so the newest upload replaces the previous one.
+      await store.setCollection("ledger", [ledger]);
+      sendJson(res, 200, { ledger });
+      return;
+    }
+    sendJson(res, 404, { error: "Not found." });
   }
 
   async function routeUsers(req, res, url) {

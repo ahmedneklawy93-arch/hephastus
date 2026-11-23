@@ -4,12 +4,15 @@
   "description": "Hephastus: a personal AI assistant in your browser, powered by Claude",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.6.0"
+    "@anthropic-ai/sdk": "^1.6.0",
+    "xlsx": "0.18.5"
   }
 }

@@ -10,6 +10,7 @@
   let data = null;
   let openProjectId = null;
   let siteProjectId = "";
+  let ledger = null;
 
   const office = () => me && (me.role === "admin" || me.role === "manager");
 
@@ -86,13 +87,17 @@
           field.options.map((o) => h("label", {}, h("input", { type: "checkbox", name: key, value: o, checked: (values[key] ?? []).includes(o) }), o)));
       } else {
         const type = { date: "date", money: "number", number: "number", integer: "number" }[field.type] ?? "text";
+        const list = key === "costCentre" && ledger ? "cost-centres" : undefined;
         input = h("input", {
           id, name: key, type, value,
           step: field.type === "integer" ? 1 : "any",
           min: field.min, max: type === "number" ? field.max : undefined,
           maxlength: type === "text" ? field.max : undefined,
           inputmode: field.type === "money" ? "decimal" : undefined,
+          list, dir: list ? "auto" : undefined,
         });
+        if (list) input = h("span", { class: "field-with-list" }, input,
+          h("datalist", { id: list }, ledger.costCentres.map((c) => h("option", { value: c.name }))));
       }
       if (field.required && field.type !== "multi") input.required = true;
       const wide = ["longtext", "multi"].includes(field.type) || key === "name" || key === "title";
@@ -277,6 +282,16 @@
       h("dl", { class: "facts-list" }, facts.map(([k, v]) => [h("dt", {}, k), h("dd", {}, v)])),
       project.notes ? h("p", {}, project.notes) : null));
 
+    const centre = office() && ledger && project.costCentre ? ledger.costCentres.find((c) => c.name === project.costCentre) : null;
+    if (centre) {
+      wrap.append(section(`From the accounting ledger (${ledger.from} to ${ledger.to})`, null,
+        h("div", { class: "tiles" },
+          tile("Revenue booked", money.format(centre.revenue)),
+          tile("Direct costs", money.format(centre.directCosts)),
+          tile("Overheads charged", money.format(centre.expenses + centre.purchases)),
+          tile("Result", money.format(centre.result), centre.result < 0 ? "bad" : ""))));
+    }
+
     const variations = data.variations.filter((v) => v.projectId === id).sort((a, b) => b.date.localeCompare(a.date));
     wrap.append(section("Variations", addButton("variations", "Add variation", { projectId: id }),
       variations.length ? table(["No.", "Description", "Discipline", "Amount", "Status", "Date"], variations.map((v) => h("tr", {},
@@ -321,6 +336,112 @@
       tasks.length ? table(["Task", "Discipline", "Assigned to", "Due", "Priority", "Status"], taskRows(tasks, !siteProjectId)) : empty("No open tasks.")));
     const reports = mine(data.reports).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 20);
     root.append(section("Daily reports", null, reports.length ? reports.map((r) => reportCard(r, !siteProjectId)) : empty("No daily reports yet.")));
+  }
+
+  // ---------- Finance view (admin and managers) ----------
+
+  const pct = (part, whole) => (whole ? `${Math.round((part / whole) * 100)}%` : "—");
+  const ar = (value) => h("span", { dir: "auto" }, value);
+
+  async function uploadLedger(file) {
+    const status = $("ledger-status");
+    status.textContent = `Reading ${file.name}…`;
+    try {
+      const response = await fetch(`/api/finance/ledger?name=${encodeURIComponent(file.name)}`, {
+        method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: file,
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || "Upload failed.");
+      ledger = body.ledger;
+      renderFinance();
+    } catch (e) {
+      status.textContent = e.message;
+      status.className = "error";
+    }
+  }
+
+  function renderFinance() {
+    const root = $("view-finance");
+    root.replaceChildren();
+    const picker = h("input", { type: "file", accept: ".xls,.xlsx", id: "ledger-file", hidden: true });
+    picker.onchange = () => picker.files[0] && uploadLedger(picker.files[0]);
+    root.append(h("div", { class: "toolbar" },
+      h("div", {},
+        h("strong", {}, "Accounting ledger"),
+        h("div", { class: "muted small", id: "ledger-status" }, ledger
+          ? `${ledger.from} to ${ledger.to} · ${ledger.entries.toLocaleString()} entries · uploaded ${ledger.importedAt.slice(0, 10)} by ${ledger.importedBy}${ledger.fileName ? ` (${ledger.fileName})` : ""}`
+          : "Export the daily ledger (دفتر اليومية) for the year to date from your accounting system and upload it here each week.")),
+      h("span", { class: "spacer" }),
+      picker,
+      h("button", { class: "primary small", type: "button", onclick: () => picker.click() }, ledger ? "Upload this week's ledger" : "Upload ledger")));
+    if (!ledger) return;
+
+    const r = ledger.result;
+    const overheads = r.expenses + r.purchases;
+    root.append(h("div", { class: "tiles" },
+      tile("Revenue booked", money.format(r.revenue)),
+      tile("Direct project costs", money.format(r.directCosts)),
+      tile("Overheads & admin", money.format(overheads)),
+      tile("Result", money.format(r.result), r.result < 0 ? "bad" : ""),
+      tile("Unapproved lines", `${ledger.unapprovedLines.toLocaleString()} of ${ledger.lines.toLocaleString()}`, ledger.unapprovedLines ? "warn" : ""),
+      tile("Unbalanced entries", ledger.unbalancedEntries.length, ledger.unbalancedEntries.length ? "bad" : "")));
+    root.append(h("p", { class: "muted small" }, "Figures are what was booked between the first and last date of the ledger. The export has no opening balances, so customer, supplier and bank figures are money in and out over the period, not balances."));
+
+    const linked = (name) => data.projects.find((p) => p.costCentre === name);
+    root.append(section("Projects (by cost centre)", null,
+      h("p", { class: "muted small" }, "Link a cost centre to a project by entering it in the project's “Cost centre in the accounting ledger” field."),
+      table(["Cost centre", "Project", "Revenue", "Direct costs", "Overheads", "Result", "Margin"],
+        ledger.costCentres.map((c) => {
+          const p = linked(c.name);
+          return h("tr", {},
+            h("td", {}, ar(c.name)),
+            h("td", {}, p ? h("button", { class: "link", type: "button", onclick: () => { openProjectId = p.id; show("projects"); } }, p.code) : h("span", { class: "muted" }, "—")),
+            h("td", { class: "num" }, money.format(c.revenue)),
+            h("td", { class: "num" }, money.format(c.directCosts)),
+            h("td", { class: "num" }, money.format(c.expenses + c.purchases)),
+            h("td", { class: `num ${c.result < 0 ? "late" : ""}` }, money.format(c.result)),
+            h("td", { class: "num" }, c.revenue > 0 && c.result > -c.revenue ? pct(c.result, c.revenue) : "—"));
+        }))));
+
+    const peak = Math.max(1, ...ledger.months.map((m) => Math.max(m.revenue, m.directCosts + m.expenses + m.purchases)));
+    root.append(section("By month", null,
+      h("div", { class: "legend small muted" }, h("i", { class: "sw rev" }), "Revenue ", h("i", { class: "sw cost" }), "All costs"),
+      table(["Month", "", "Revenue", "Costs", "Result"], ledger.months.map((m) => {
+        const costs = m.directCosts + m.expenses + m.purchases;
+        return h("tr", {},
+          h("td", {}, m.month),
+          h("td", { class: "bars" },
+            h("div", { class: "hbar rev", style: `width:${(m.revenue / peak) * 100}%` }),
+            h("div", { class: "hbar cost", style: `width:${(Math.max(0, costs) / peak) * 100}%` })),
+          h("td", { class: "num" }, money.format(m.revenue)),
+          h("td", { class: "num" }, money.format(costs)),
+          h("td", { class: `num ${m.result < 0 ? "late" : ""}` }, money.format(m.result)));
+      }))));
+
+    const lines = (rows) => table(["Account", "Amount"], rows.slice(0, 15).map((row) =>
+      h("tr", {}, h("td", {}, ar(row.name || row.code), h("div", { class: "muted small" }, row.code)), h("td", { class: "num" }, money.format(row.amount)))));
+    root.append(h("div", { class: "grid-2" },
+      section("Revenue", null, lines(ledger.breakdown.revenue)),
+      section("Direct project costs", null, lines(ledger.breakdown.directCosts)),
+      section("Overheads & admin", null, lines([...ledger.breakdown.expenses, ...ledger.breakdown.purchases].sort((a, b) => b.amount - a.amount))),
+      section("Banks and cash", null, table(["Account", "In", "Out"], [...ledger.cash, ...ledger.banks].map((a) =>
+        h("tr", {}, h("td", {}, ar(a.name)), h("td", { class: "num" }, money.format(a.debit)), h("td", { class: "num" }, money.format(a.credit))))))));
+
+    const parties = (rows, inLabel, outLabel, inKey, outKey) => table(["Name", inLabel, outLabel, "Difference"], rows.slice(0, 25).map((a) =>
+      h("tr", {}, h("td", {}, ar(a.name)), h("td", { class: "num" }, money.format(a[inKey])), h("td", { class: "num" }, money.format(a[outKey])),
+        h("td", { class: "num" }, money.format(a[inKey] - a[outKey])))));
+    root.append(h("div", { class: "grid-2" },
+      section("Customers", null, parties(ledger.customers, "Invoiced", "Collected", "debit", "credit")),
+      section("Suppliers & subcontractors", null, parties(ledger.suppliers, "Billed", "Paid", "credit", "debit"))));
+
+    if (ledger.unbalancedEntries.length) {
+      root.append(section("Entries that don't balance", null, table(["Entry no.", "Date", "Document", "Debit − credit"],
+        ledger.unbalancedEntries.map((e) => h("tr", {}, h("td", {}, e.entry), h("td", {}, e.date), h("td", {}, ar(e.source)), h("td", { class: "num late" }, money.format(e.difference)))))));
+    }
+  }
+
+  async function loadFinance() {
+    ledger = (await api("/api/finance")).ledger;
   }
 
   // ---------- Team view (admin) ----------
@@ -377,6 +498,7 @@
   function render() {
     if (current === "projects") renderProjects();
     if (current === "site") renderSite();
+    if (current === "finance") renderFinance();
   }
 
   async function show(view) {
@@ -384,7 +506,8 @@
     for (const button of document.querySelectorAll(".tabs button")) button.setAttribute("aria-current", button.dataset.view === view ? "page" : "false");
     for (const el of document.querySelectorAll(".view")) el.hidden = el.id !== `view-${view}`;
     try {
-      if (view === "projects" || view === "site") await refresh();
+      if (office() && ["projects", "finance"].includes(view)) await loadFinance();
+      if (view === "projects" || view === "site" || view === "finance") await refresh();
       if (view === "team") await renderTeam();
     } catch (e) {
       $(`view-${view}`)?.replaceChildren(h("p", { class: "error" }, e.message));
@@ -395,6 +518,7 @@
     init(user) {
       me = user;
       $("tab-team").hidden = me.role !== "admin";
+      $("tab-finance").hidden = !office();
       $("who").textContent = `${me.displayName} · ${me.role}`;
       show(current);
     },

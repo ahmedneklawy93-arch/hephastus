@@ -28,6 +28,7 @@ export const SCHEMA = {
       endDate: { label: "Planned completion", type: "date" },
       status: { label: "Status", type: "select", options: ["Tender", "Active", "On hold", "Handed over", "Closed"], required: true },
       progress: { label: "Progress %", type: "number", min: 0, max: 100 },
+      costCentre: { label: "Cost centre in the accounting ledger", type: "text", max: 120 },
       notes: { label: "Notes", type: "longtext", max: 4000 },
     },
   },

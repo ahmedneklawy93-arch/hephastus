@@ -416,3 +416,99 @@ test("team members log in with their own role and see only what the role allows"
     assert.equal((await fetch(`${base}/api/state`, { headers: { Cookie: engineer } })).status, 401);
   });
 });
+
+// A small ledger in the accounting system's export layout. Parent accounts
+// repeat their children's amounts, sometimes before and sometimes after them.
+async function sampleLedger() {
+  const XLSX = (await import("xlsx")).default;
+  const header = [null, "التاريخ", "الحساب", "مدين", "دائن", "الشرح", "الرقم", "الأصل", "رقمه", "مركز التكلفة", "مؤيد", "مراجع"];
+  const line = (account, debit, credit, entry, centre = null, approval = "غير مؤيد") =>
+    [null, null, account, debit, credit, "desc", entry, "سند قيد يومية", null, centre, approval, null];
+  const day = (date, total) => [null, new Date(`${date}T00:00:00Z`), "مجموع اليوم", total, total];
+  const rows = [
+    header, [],
+    day("2026-01-05", 1000),
+    // Invoice: customer debit, contracting revenue credit (parent listed first).
+    line("102020101-العملاء", 1000, 0, 1),
+    line("10202010101011-عميل م المستشفى الجامعي", 1000, 0, 1),
+    line("601-إيرادات النشاط الرئيسي", 0, 1000, 1),
+    line("601001-إيرادات المقاولات", 0, 1000, 1, "مركز المستشفى", "مؤيد"),
+    [null, null, "مجموع القيد", 1000, 1000],
+    day("2026-02-10", 650),
+    // Costs paid from the bank (parent listed after its children).
+    line("504020001-أعمال ميكانيكا مواسير", 400, 0, 2, "مركز المستشفى"),
+    line("501014-مصاريف و رسوم بنكية", 100, 0, 2, "الإدارة"),
+    line("501-مصاريف عمومية وادارية", 100, 0, 2),
+    line("102010201001-البنك العربي", 0, 500, 2),
+    line("1020102-البنوك", 0, 500, 2),
+    // An entry that is out by 25.
+    line("501014-مصاريف و رسوم بنكية", 150, 0, 3, "الإدارة"),
+    line("1020101001-الخزينة", 0, 125, 3),
+  ];
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet(rows), "Sheet1");
+  return XLSX.write(book, { type: "buffer", bookType: "biff8" });
+}
+
+test("ledger import counts only leaf lines and works out the result per cost centre", async () => {
+  const { importLedger } = await import("../src/ledger.js");
+  const ledger = importLedger(await sampleLedger(), { fileName: "daily.xls", importedBy: "omar" });
+  assert.equal(ledger.from, "2026-01-05");
+  assert.equal(ledger.to, "2026-02-10");
+  assert.equal(ledger.entries, 3);
+  assert.equal(ledger.debit, 1650);
+  assert.equal(ledger.credit, 1625);
+  assert.deepEqual(ledger.result, { revenue: 1000, directCosts: 400, expenses: 250, purchases: 0, result: 350 });
+  assert.deepEqual(ledger.unbalancedEntries, [{ entry: "3", date: "2026-02-10", source: "سند قيد يومية", difference: 25 }]);
+  assert.equal(ledger.approvedLines, 1);
+  const hospital = ledger.costCentres.find((c) => c.name === "مركز المستشفى");
+  assert.equal(hospital.result, 600);
+  assert.deepEqual(ledger.months.map((m) => [m.month, m.result]), [["2026-01", 1000], ["2026-02", -650]]);
+  assert.equal(ledger.customers[0].debit, 1000);
+  assert.equal(ledger.banks[0].credit, 500);
+  assert.equal(ledger.breakdown.revenue[0].name, "إيرادات المقاولات");
+});
+
+test("ledger import rejects files that aren't the ledger export", async () => {
+  const { importLedger } = await import("../src/ledger.js");
+  const XLSX = (await import("xlsx")).default;
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet([["Name", "Amount"], ["x", 1]]), "S");
+  assert.throws(() => importLedger(XLSX.write(book, { type: "buffer", bookType: "xlsx" })), /doesn't look like the daily ledger/);
+  assert.throws(() => importLedger(Buffer.from("not a spreadsheet at all")), /ledger|Excel/);
+});
+
+test("managers upload the ledger; engineers can't see finances, in the app or the chat", async () => {
+  const store = memoryStore();
+  const file = await sampleLedger();
+  await withServer({ store, assistant: {} }, async (base) => {
+    const admin = await login(base);
+    await fetch(`${base}/api/users`, json({ username: "sara", displayName: "Sara", role: "engineer", password: "site-pass-123" }, admin));
+    const engineer = await login(base, "sara", "site-pass-123");
+    const upload = (cookie, body = file) => fetch(`${base}/api/finance/ledger?name=daily.xls`, {
+      method: "POST", headers: { Cookie: cookie, "Content-Type": "application/octet-stream" }, body,
+    });
+    assert.equal((await upload(engineer)).status, 403);
+    assert.equal((await fetch(`${base}/api/finance`, { headers: { Cookie: engineer } })).status, 403);
+    assert.deepEqual(await (await fetch(`${base}/api/finance`, { headers: { Cookie: admin } })).json(), { ledger: null });
+    assert.equal((await upload(admin, Buffer.from("junk"))).status, 400);
+    const ok = await upload(admin);
+    assert.equal(ok.status, 200);
+    const { ledger } = await (await fetch(`${base}/api/finance`, { headers: { Cookie: admin } })).json();
+    assert.equal(ledger.result.result, 350);
+    assert.equal(ledger.importedBy, "admin");
+    assert.equal(ledger.fileName, "daily.xls");
+  });
+
+  const claude = fakeClaude([
+    { stop_reason: "tool_use", content: [{ type: "tool_use", id: "f1", name: "mep_data", input: { view: "finance", project_code: "" } }] },
+    { stop_reason: "end_turn", content: [{ type: "text", text: "ok" }] },
+    { stop_reason: "tool_use", content: [{ type: "tool_use", id: "f2", name: "mep_data", input: { view: "finance", project_code: "" } }] },
+    { stop_reason: "end_turn", content: [{ type: "text", text: "ok" }] },
+  ]);
+  const assistant = createAssistant({ model: "claude-opus-5-5", effort: "medium", historyLimit: 40 }, store, claude, createOps(store));
+  await assistant.reply("profit?", { username: "omar", displayName: "Omar", role: "manager" });
+  assert.equal(JSON.parse(claude.requests[1].messages.at(-1).content[0].content).result.revenue, 1000);
+  await assistant.reply("profit?", { username: "sara", displayName: "Sara", role: "engineer" });
+  assert.equal(claude.requests[3].messages.at(-1).content[0].is_error, true);
+});

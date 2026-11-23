@@ -57,6 +57,19 @@ Hephastus also runs your MEP contracting work. All amounts are in Egyptian pound
 - **Site**: **daily reports** (manpower by trade, work done, materials received, issues) and **tasks** (discipline, who it's assigned to, due date, priority, status).
 - **Chat**: ask things like "Which projects are behind?", "Total pending variations?" or "What happened on P-101 this week?". Hephastus reads the data to answer; it never changes it.
 
+### Finance (the accounting ledger)
+
+Once a week, export the daily ledger (دفتر اليومية) for the year to date from your accounting system as an Excel file (.xls or .xlsx) and upload it on the **Finance** screen. Each upload replaces the previous one. Hephastus reads it and shows:
+
+- revenue booked, direct project costs, overheads and the result, overall and by month;
+- every cost centre's revenue, costs, result and margin. To tie a cost centre to a project, type its name (exactly as in the ledger) in the project's **Cost centre in the accounting ledger** field; the project page then shows its ledger figures too;
+- money in and out for customers, suppliers, subcontractors, banks and cash;
+- how many lines are still unapproved (غير مؤيد), and any entry whose debits and credits don't match.
+
+The ledger export has no opening balances, so customer, supplier and bank figures are movements over the period, not balances. Only the summary is stored; the uploaded file itself is not kept. Finance is visible to the admin and managers only, in the app and in the chat ("What's our result this year?", "Which projects are losing money?").
+
+Account groups are read from the account code: 6… revenue, 504… direct project costs, other 5… expenses, 3… purchases, 1020201… customers, 2020101… suppliers and subcontractors, 1020102… banks, 1020101… cash. If your chart of accounts changes, update `GROUPS` in `src/ledger.js`.
+
 ### Your team
 
 Log in as `admin` with your `APP_PASSWORD`, open **Team** and add people:
@@ -64,7 +77,7 @@ Log in as `admin` with your `APP_PASSWORD`, open **Team** and add people:
 | Role | Can do |
 |---|---|
 | Admin (you) | Everything, including adding and removing people |
-| Manager | Add and edit projects, variations, tasks and any daily report |
+| Manager | Add and edit projects, variations, tasks and any daily report; see and upload finances |
 | Site engineer | Read projects, write daily reports (and correct their own), add and update tasks |
 
 Everyone has their own chat; the memory is shared by the team. Removing someone logs them out at once.

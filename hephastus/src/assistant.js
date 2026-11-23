@@ -14,7 +14,7 @@ const FALLBACK_MODELS = ["claude-opus-5-5", "claude-opus-5", "claude-fable-5-1",
 
 const SYSTEM_PROMPT = `You are Hephastus, the AI assistant of an MEP (mechanical, electrical and plumbing) contracting company. You talk with members of the company's team in a private chat page in their web browser.
 
-The company tracks its projects, contracts, variations (change orders), daily site reports with manpower, and site tasks in Hephastus. Use the mep_data tool to answer questions about them; never guess figures. Amounts are in Egyptian pounds (EGP); write them like "EGP 1,250,000". You can only read this data: if someone asks you to add or change a record, tell them which screen to use (Projects or Site).
+The company tracks its projects, contracts, variations (change orders), daily site reports with manpower, and site tasks in Hephastus. Use the mep_data tool to answer questions about them; never guess figures. The finance view holds the latest upload of the accounting ledger (دفتر اليومية): booked revenue, costs and result by month and by cost centre, customers, suppliers and banks. Its figures are movements over the ledger's period, not balances, because the export has no opening balances; say so when it matters. Account and cost centre names are in Arabic; answer in the language you were asked in. Amounts are in Egyptian pounds (EGP); write them like "EGP 1,250,000". You can only read this data: if someone asks you to add or change a record, tell them which screen to use (Projects or Site).
 
 Reply clearly and to the point, like a helpful friend. You can use simple Markdown: **bold**, *italic*, \`code\`, links, and "- " or "1. " lists. Avoid tables and headings.
 
@@ -38,12 +38,12 @@ export const CUSTOM_TOOLS = [
   {
     name: "mep_data",
     description:
-      "Read the company's MEP project data. view 'summary' gives every project's contract value, approved and pending variations, revised value, progress, earned value, retention held, task and report status, plus company totals. view 'project' gives one project's full record with its variations, tasks and the latest 10 daily reports.",
+      "Read the company's MEP project data. view 'summary' gives every project's contract value, approved and pending variations, revised value, progress, earned value, retention held, task and report status, plus company totals. view 'project' gives one project's full record with its variations, tasks and the latest 10 daily reports. view 'finance' gives the latest accounting ledger summary (admin and managers only).",
     strict: true,
     input_schema: {
       type: "object",
       properties: {
-        view: { type: "string", enum: ["summary", "project"] },
+        view: { type: "string", enum: ["summary", "project", "finance"] },
         project_code: { type: "string", description: "The project code, for view 'project'. Use an empty string for 'summary'." },
       },
       required: ["view", "project_code"],
@@ -103,7 +103,27 @@ function textOf(content) {
     .trim();
 }
 
-async function readMepData(input, ops) {
+// Keeps the finance answer small: the biggest customers, suppliers and banks only.
+async function readFinance(store, user) {
+  if (user && !["admin", "manager"].includes(user.role)) {
+    return { content: "Finance figures are only available to the admin and managers.", is_error: true };
+  }
+  const [ledger] = await store.getCollection("ledger");
+  if (!ledger) return { content: "No accounting ledger has been uploaded yet. It is uploaded on the Finance screen.", is_error: true };
+  const top = (items) => items.slice(0, 25);
+  return {
+    content: JSON.stringify({
+      ...ledger,
+      customers: top(ledger.customers),
+      suppliers: top(ledger.suppliers),
+      banks: top(ledger.banks),
+      note: "Debit/credit are movements in the period from..to, not balances.",
+    }),
+  };
+}
+
+async function readMepData(input, ops, store, user) {
+  if (input.view === "finance") return readFinance(store, user);
   if (!ops) return { content: "Project data isn't available.", is_error: true };
   if (input.view === "summary") return { content: JSON.stringify(await ops.summary()) };
   const data = await ops.loadAll();
@@ -125,8 +145,8 @@ async function readMepData(input, ops) {
 }
 
 // Runs a tool call and returns the text Claude sees as the result.
-async function runTool(name, input, store, ops) {
-  if (name === "mep_data") return readMepData(input, ops);
+async function runTool(name, input, store, ops, user) {
+  if (name === "mep_data") return readMepData(input, ops, store, user);
   const facts = await store.getFacts();
   if (name === "remember") {
     const fact = String(input.fact ?? "").trim();
@@ -177,7 +197,7 @@ export function createAssistant({ model, effort, historyLimit }, store, client =
           const results = [];
           for (const block of response.content) {
             if (block.type !== "tool_use") continue;
-            const result = await runTool(block.name, block.input, store, ops);
+            const result = await runTool(block.name, block.input, store, ops, user);
             results.push({ type: "tool_result", tool_use_id: block.id, ...result });
           }
           messages.push({ role: "user", content: results });

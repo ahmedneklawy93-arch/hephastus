@@ -163,7 +163,7 @@
   .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
   .tile { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
   .tile span { display: block; font-size: 13px; color: var(--muted); }
-  .tile strong { font-size: 19px; font-variant-numeric: tabular-nums; }
+  .tile strong { font-size: 19px; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .tile.warn strong { color: #b54708; }
   .tile.bad strong { color: var(--error); }
   .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
@@ -216,6 +216,14 @@
   .checks label { display: flex; gap: 6px; align-items: center; font-size: 14px; }
   .primary.small { width: auto; margin: 0; padding: 8px 14px; }
   .ghost.danger { color: var(--error); }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 0 14px; }
+  .bars { width: 40%; min-width: 120px; }
+  .hbar { height: 7px; border-radius: 4px; margin: 2px 0; min-width: 1px; }
+  .hbar.rev, .sw.rev { background: var(--accent); }
+  .hbar.cost, .sw.cost { background: var(--muted); }
+  .legend { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+  .field-with-list input { width: 100%; }
   @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } .who { display: none; } }
 </style>
 </head>
@@ -245,10 +253,12 @@
     <button type="button" data-view="chat" aria-current="page">Chat</button>
     <button type="button" data-view="projects">Projects</button>
     <button type="button" data-view="site">Site</button>
+    <button type="button" data-view="finance" id="tab-finance" hidden>Finance</button>
     <button type="button" data-view="team" id="tab-team" hidden>Team</button>
   </nav>
   <div class="view ops" id="view-projects" hidden></div>
   <div class="view ops" id="view-site" hidden></div>
+  <div class="view ops" id="view-finance" hidden></div>
   <div class="view ops" id="view-team" hidden></div>
   <div class="view chat-view" id="view-chat">
   <div class="chat-tools">

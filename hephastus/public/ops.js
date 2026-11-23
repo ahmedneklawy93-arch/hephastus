@@ -509,6 +509,7 @@
       if (office() && ["projects", "finance"].includes(view)) await loadFinance();
       if (view === "projects" || view === "site" || view === "finance") await refresh();
       if (view === "team") await renderTeam();
+      if (view === "accounting") window.GL?.render();
     } catch (e) {
       $(`view-${view}`)?.replaceChildren(h("p", { class: "error" }, e.message));
     }

@@ -7,6 +7,13 @@ import { createStore } from "./store.js";
 import { createAssistant } from "./assistant.js";
 import { SCHEMA, createOps } from "./ops.js";
 import { importLedger } from "./ledger.js";
+import { connectPostgres } from "./gl/db.js";
+import { createLedger } from "./gl/service.js";
+import { createReports } from "./gl/reports.js";
+import { importErpLedger } from "./gl/import.js";
+
+// Who may use the accounting books. For now only the owner; add "manager" to open it to managers.
+export const GL_ROLES = ["admin"];
 import { ADMIN_USERNAME, hashPassword, normalizeUsername, publicUser, validateUser, verifyPassword } from "./users.js";
 
 const SESSION_DAYS = 30;
@@ -19,6 +26,7 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 
 const PAGE = new URL("../public/index.html", import.meta.url);
 const OPS_SCRIPT = new URL("../public/ops.js", import.meta.url);
+const GL_SCRIPT = new URL("../public/gl.js", import.meta.url);
 const ADMIN = { username: ADMIN_USERNAME, displayName: "Admin", role: "admin" };
 
 function sign(value, secret) {
@@ -98,7 +106,7 @@ function forbidden(message = "Your role can't do this.") {
   return Object.assign(new Error(message), { status: 403 });
 }
 
-export function createServer({ password, sessionSecret, assistant, store, ops = createOps(store), log = console }) {
+export function createServer({ password, sessionSecret, assistant, store, ops = createOps(store), gl = null, log = console }) {
   const failedLogins = [];
   // Account changes are applied one at a time.
   let userQueue = Promise.resolve();
@@ -142,9 +150,9 @@ export function createServer({ password, sessionSecret, assistant, store, ops = 
       return;
     }
 
-    if (req.method === "GET" && url.pathname === "/ops.js") {
+    if (req.method === "GET" && (url.pathname === "/ops.js" || url.pathname === "/gl.js")) {
       res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-cache" });
-      res.end(await fs.readFile(OPS_SCRIPT));
+      res.end(await fs.readFile(url.pathname === "/ops.js" ? OPS_SCRIPT : GL_SCRIPT));
       return;
     }
 
@@ -192,7 +200,7 @@ export function createServer({ password, sessionSecret, assistant, store, ops = 
     }
 
     if (req.method === "GET" && url.pathname === "/api/state") {
-      sendJson(res, 200, { me: user, messages: await store.getHistory(user.username), facts: await store.getFacts() });
+      sendJson(res, 200, { me: { ...user, accounting: GL_ROLES.includes(user.role) ? (gl ? "ready" : "not-set-up") : null }, messages: await store.getHistory(user.username), facts: await store.getFacts() });
       return;
     }
 
@@ -230,6 +238,13 @@ export function createServer({ password, sessionSecret, assistant, store, ops = 
       facts.splice(index, 1);
       await store.setFacts(facts);
       sendJson(res, 200, { facts });
+      return;
+    }
+
+    if (url.pathname.startsWith("/api/gl/")) {
+      if (!GL_ROLES.includes(user.role)) throw forbidden("Accounting is open to the owner only for now.");
+      if (!gl) throw Object.assign(new Error("The accounting database isn't set up. Add DATABASE_URL (see the README)."), { status: 503 });
+      await routeGl(req, res, url, user);
       return;
     }
 
@@ -298,6 +313,50 @@ export function createServer({ password, sessionSecret, assistant, store, ops = 
     sendJson(res, 404, { error: "Not found." });
   }
 
+  async function routeGl(req, res, url, user) {
+    const p = url.pathname.slice("/api/gl/".length).split("/").map(decodeURIComponent);
+    const qs = Object.fromEntries(url.searchParams);
+    const m = req.method;
+    const body = async () => readJson(req);
+    const ok = (value, status = 200) => sendJson(res, status, value ?? { ok: true });
+    const { ledger, reports } = gl;
+    if (p[0] === "accounts") {
+      if (m === "GET" && p.length === 1) return ok({ accounts: await ledger.listAccounts() });
+      if (m === "POST" && p.length === 1) return ok({ code: await ledger.saveAccount(await body(), user, { create: true }) }, 201);
+      if (m === "PUT" && p.length === 2) return ok({ code: await ledger.saveAccount({ ...(await body()), code: p[1] }, user, { create: false }) });
+    }
+    if (p[0] === "cost-centres") {
+      if (m === "GET" && p.length === 1) return ok({ costCentres: await ledger.listCostCentres() });
+      if (m === "POST" && p.length === 1) return ok({ id: await ledger.saveCostCentre(await body(), user) }, 201);
+      if (m === "PUT" && p.length === 2) return ok({ id: await ledger.saveCostCentre({ ...(await body()), id: p[1] }, user) });
+    }
+    if (p[0] === "entries") {
+      if (m === "GET" && p.length === 1) return ok(await ledger.listEntries(qs));
+      if (m === "POST" && p.length === 1) return ok({ entry: await ledger.saveDraft(await body(), user) }, 201);
+      if (m === "GET" && p.length === 2) return ok({ entry: await ledger.getEntry(p[1]) });
+      if (m === "PUT" && p.length === 2) return ok({ entry: await ledger.saveDraft(await body(), user, p[1]) });
+      if (m === "POST" && p.length === 3) {
+        const b = await body();
+        if (p[2] === "post") return ok({ entry: await ledger.post(p[1], user) });
+        if (p[2] === "approve") return ok({ entry: await ledger.approve(p[1], user) });
+        if (p[2] === "void") return ok({ entry: await ledger.voidEntry(p[1], b.reason, user) });
+        if (p[2] === "reverse") return ok({ entry: await ledger.reverse(p[1], b.date, user) });
+      }
+    }
+    if (p[0] === "periods") {
+      if (m === "GET" && p.length === 1) return ok({ periods: await ledger.listPeriods() });
+      if (m === "POST" && p.length === 3 && ["lock", "unlock"].includes(p[2])) { await ledger.setLock(p[1], p[2] === "lock", user); return ok(); }
+    }
+    if (p[0] === "reports" && m === "GET") {
+      const run = { "trial-balance": reports.trialBalance, income: reports.incomeStatement, "balance-sheet": reports.balanceSheet,
+        statement: reports.accountStatement, "cost-centres": reports.costCentres }[p[1]];
+      if (run) return ok(await run(qs));
+    }
+    if (p[0] === "import" && m === "POST") return ok({ report: await importErpLedger(ledger, await readFile(req, MAX_LEDGER_BYTES), user) });
+    if (p[0] === "audit" && m === "GET") return ok({ audit: await ledger.auditLog(qs) });
+    sendJson(res, 404, { error: "Not found." });
+  }
+
   async function routeUsers(req, res, url) {
     const target = url.pathname === "/api/users" ? null : normalizeUsername(decodeURIComponent(url.pathname.slice(11)));
     if (req.method === "GET" && !target) {
@@ -363,12 +422,20 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const store = createStore(config);
   const ops = createOps(store);
   const assistant = createAssistant(config, store, undefined, ops);
+  let gl = null;
+  if (config.databaseUrl) {
+    const db = await connectPostgres(config.databaseUrl);
+    gl = { ledger: createLedger(db), reports: createReports(db) };
+  } else {
+    console.warn("DATABASE_URL is not set: the Accounting screens are off.");
+  }
   const server = createServer({
     password: config.password,
     sessionSecret: config.sessionSecret,
     assistant,
     store,
     ops,
+    gl,
   });
   // Claude can take a while on hard questions; don't let Node cut the request off.
   server.requestTimeout = 0;

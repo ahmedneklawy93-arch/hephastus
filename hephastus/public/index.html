@@ -224,6 +224,25 @@
   .legend { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
   .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
   .field-with-list input { width: 100%; }
+  /* Accounting */
+  .subtabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .subtabs button { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; color: var(--muted); font-size: 14px; }
+  .subtabs button[aria-current="page"] { color: var(--accent-text); background: var(--accent); border-color: var(--accent); }
+  .gl-filters { align-items: flex-end; }
+  .gl-filters .field { min-width: 120px; }
+  .gl-filters input, .gl-filters select, .gl-lines input, .gl-lines select, .card .toolbar input {
+    padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); max-width: 100%;
+  }
+  .gl-lines td { padding: 4px; }
+  .gl-lines .acc { min-width: 220px; width: 100%; }
+  .gl-lines .num-in { width: 120px; text-align: end; }
+  .gl-lines .cc { max-width: 180px; }
+  .wrap-text { white-space: normal; min-width: 18ch; }
+  #view-accounting td:first-child { min-width: 22ch; }
+  .total-row td { font-weight: 600; border-top: 2px solid var(--border); }
+  .group-row td { font-weight: 600; background: var(--bg); }
+  [dir="rtl"] th, [dir="rtl"] .num { text-align: left; }
+  [dir="rtl"] th:first-child { text-align: right; }
   @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } .who { display: none; } }
 </style>
 </head>
@@ -247,18 +266,21 @@
   <header>
     <div class="logo" aria-hidden="true">H</div>
     <h1>Hephastus <span class="who" id="who"></span></h1>
-    <button class="ghost" id="logout-btn" type="button">Log out</button>
+    <button class="ghost" id="lang-btn" type="button" lang="ar">عربي</button>
+    <button class="ghost" id="logout-btn" type="button" data-i18n="logout">Log out</button>
   </header>
   <nav class="tabs" aria-label="Sections">
-    <button type="button" data-view="chat" aria-current="page">Chat</button>
-    <button type="button" data-view="projects">Projects</button>
-    <button type="button" data-view="site">Site</button>
-    <button type="button" data-view="finance" id="tab-finance" hidden>Finance</button>
-    <button type="button" data-view="team" id="tab-team" hidden>Team</button>
+    <button type="button" data-view="chat" aria-current="page" data-i18n="chat">Chat</button>
+    <button type="button" data-view="projects" data-i18n="projects">Projects</button>
+    <button type="button" data-view="site" data-i18n="site">Site</button>
+    <button type="button" data-view="finance" id="tab-finance" hidden data-i18n="finance">Finance</button>
+    <button type="button" data-view="accounting" id="tab-accounting" hidden data-i18n="accounting">Accounting</button>
+    <button type="button" data-view="team" id="tab-team" hidden data-i18n="team">Team</button>
   </nav>
   <div class="view ops" id="view-projects" hidden></div>
   <div class="view ops" id="view-site" hidden></div>
   <div class="view ops" id="view-finance" hidden></div>
+  <div class="view ops" id="view-accounting" hidden></div>
   <div class="view ops" id="view-team" hidden></div>
   <div class="view chat-view" id="view-chat">
   <div class="chat-tools">
@@ -291,6 +313,7 @@
   <button class="ghost" type="button" id="memory-close">Close</button>
 </dialog>
 
+<script src="/gl.js" defer></script>
 <script src="/ops.js" defer></script>
 <script>
 const $ = (id) => document.getElementById(id);
@@ -427,6 +450,7 @@ async function showApp() {
   renderThread(state.messages);
   $("login").hidden = true;
   $("app").hidden = false;
+  window.GL.init(state.me);
   window.Ops.init(state.me);
 }
 

@@ -23,3 +23,15 @@ services:
         sync: false
       - key: MODEL
         value: claude-opus-5-5
+      # The accounting books (general ledger) live in this Postgres database.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hephastus-db
+          property: connectionString
+
+databases:
+  # A paid plan: Render deletes free databases after 30 days, which is not safe for books.
+  - name: hephastus-db
+    plan: basic-256mb
+    databaseName: hephastus
+    user: hephastus

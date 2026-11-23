@@ -70,6 +70,23 @@ The ledger export has no opening balances, so customer, supplier and bank figure
 
 Account groups are read from the account code: 6… revenue, 504… direct project costs, other 5… expenses, 3… purchases, 1020201… customers, 2020101… suppliers and subcontractors, 1020102… banks, 1020101… cash. If your chart of accounts changes, update `GROUPS` in `src/ledger.js`.
 
+### Accounting (replacing the old ERP)
+
+The **Accounting** tab is Hephastus's own general ledger: the company's books, kept in a Postgres database. For now only the owner (`admin`) sees it.
+
+- **Journal**: every entry with its lines, debit, credit and cost centre. Entries are saved as drafts, then posted. A posted entry can't be edited: void it (with a reason) or reverse it on a later date. Entries can be approved, and the journal can list posted entries that aren't approved yet.
+- **Accounts**: the chart of accounts as a tree with balances, and the cost centres. Only detail accounts take postings; group accounts add up their sub-accounts. Link a cost centre to a project code.
+- **Reports**: trial balance, income statement by month (for the company or one cost centre), balance sheet, account statement with running balance, and results by cost centre.
+- **Periods**: lock a month once it is closed. Nothing in a locked month can be added, changed or voided.
+- **Import from ERP**: upload the old ERP's daily ledger export. It builds the chart of accounts and cost centres and loads every entry under its ERP number. Upload it again each week until you switch over: new and changed entries come in, nothing is deleted, and entries that vanished from the ERP are listed. Entries whose debits and credits don't match come in as drafts to fix.
+- **Audit log**: who did what and when, for every change.
+
+The screens switch between English and Arabic with the button at the top.
+
+**Database.** `render.yaml` creates a Render Postgres database on the paid `basic-256mb` plan and passes its address to Hephastus as `DATABASE_URL`. Render's free databases are deleted after 30 days, so they aren't used. Check backups and the current price on Render's Postgres page. Without `DATABASE_URL` everything else works and the Accounting tab says the database isn't set up.
+
+**Opening balances.** The ERP's daily ledger has no opening balances. Before relying on the balance sheet, post one entry of type *Opening balance* dated 1 January with every balance-sheet account's balance at 31 December (from the ERP's trial balance), or send that trial balance export to be imported.
+
 ### Your team
 
 Log in as `admin` with your `APP_PASSWORD`, open **Team** and add people:

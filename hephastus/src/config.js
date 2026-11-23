@@ -18,5 +18,6 @@ export function loadConfig(env = process.env) {
       ? { url: env.UPSTASH_REDIS_REST_URL, token: env.UPSTASH_REDIS_REST_TOKEN }
       : null,
     dataDir: env.DATA_DIR || "./data",
+    databaseUrl: env.DATABASE_URL || null,
   };
 }

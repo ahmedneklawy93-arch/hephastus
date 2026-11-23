@@ -208,7 +208,7 @@ test("server serves the chat page and keeps the API behind the password", async 
 
     const cookie = await login(base);
     const state = await fetch(`${base}/api/state`, { headers: { Cookie: cookie } });
-    assert.deepEqual(await state.json(), { me: { username: "admin", displayName: "Admin", role: "admin" }, messages: [], facts: [] });
+    assert.deepEqual(await state.json(), { me: { username: "admin", displayName: "Admin", role: "admin", accounting: "not-set-up" }, messages: [], facts: [] });
   });
 });
 
@@ -383,7 +383,7 @@ test("team members log in with their own role and see only what the role allows"
     const engineer = await login(base, "SARA.ENG", "site-pass-123");
     const manager = await login(base, "omar", "office-pass-1");
     const me = await (await fetch(`${base}/api/state`, { headers: { Cookie: engineer } })).json();
-    assert.deepEqual(me.me, { username: "sara.eng", displayName: "Sara", role: "engineer" });
+    assert.deepEqual(me.me, { username: "sara.eng", displayName: "Sara", role: "engineer", accounting: null });
     assert.equal((await fetch(`${base}/api/users`, { headers: { Cookie: manager } })).status, 403);
 
     // Managers create projects and variations; engineers can't.

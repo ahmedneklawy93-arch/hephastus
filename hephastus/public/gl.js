@@ -28,6 +28,10 @@
       notSetUp: "The accounting database isn't connected yet. Once DATABASE_URL is set on Render, this screen opens.",
       confirmVoid: "Void", line: "Line", lines: "lines", entries: "entries", none: "Nothing yet.", prev: "Previous", next: "Next",
       createdBy: "Entered by", erp: "From ERP",
+      checkStatement: "Check an ERP account statement",
+      checkHelp: "Upload an account statement (كشف حساب) from the old ERP. Each line is matched with the same entry, account and amount in these books. Nothing is changed.",
+      matched: "Match the books", newer: "Newer than the books (will come with the next ledger import)", notInBooks: "Not in the books",
+      reviewedLines: "Marked reviewed in the ERP", approvedLines: "Approved in the ERP", carried: "Expense or purchase accounts carrying balances from before this period (the old ERP hasn't closed the year)",
     },
     ar: {
       chat: "المحادثة", projects: "المشروعات", site: "الموقع", finance: "المالية", accounting: "الحسابات", team: "الفريق", logout: "خروج",
@@ -51,6 +55,10 @@
       notSetUp: "قاعدة بيانات الحسابات غير متصلة بعد. ستفتح هذه الشاشة بعد ضبط DATABASE_URL على Render.",
       confirmVoid: "إلغاء", line: "سطر", lines: "أسطر", entries: "قيود", none: "لا يوجد شيء بعد.", prev: "السابق", next: "التالي",
       createdBy: "أدخله", erp: "من النظام القديم",
+      checkStatement: "مطابقة كشف حساب من النظام القديم",
+      checkHelp: "ارفع كشف حساب من النظام القديم. يُطابق كل سطر بنفس القيد والحساب والمبلغ في هذه الدفاتر. لا يتغير شيء.",
+      matched: "مطابقة للدفاتر", newer: "أحدث من الدفاتر (ستأتي مع استيراد دفتر اليومية القادم)", notInBooks: "غير موجودة في الدفاتر",
+      reviewedLines: "مُعلّمة مراجعة في النظام القديم", approvedLines: "مؤيدة في النظام القديم", carried: "حسابات مصروفات أو مشتريات تحمل أرصدة من قبل الفترة (لم يُقفل النظام القديم السنة)",
     },
   };
   let lang = "en";
@@ -344,7 +352,7 @@
         try { await api(`/api/gl/periods/${p.month}/${p.locked ? "unlock" : "lock"}`, { method: "POST", body: "{}" }); render(); } catch (x) { alert(x.message); }
       } }, p.locked ? t("unlock") : t("lock"))))))));
   }
-  let lastImport = null;
+  let lastImport = null, lastCheck = null;
   function renderImport(root) {
     const file = h("input", { type: "file", accept: ".xls,.xlsx", id: "gl-import-file" });
     const status = h("p", { class: "muted" });
@@ -359,6 +367,30 @@
       } catch (x) { status.textContent = x.message; status.className = "error"; }
     };
     root.append(card(t("import"), null, h("p", { class: "muted" }, t("importHelp")), field(t("chooseFile"), file), status));
+    const sfile = h("input", { type: "file", accept: ".xls,.xlsx", id: "gl-statement-file" });
+    const sstatus = h("p", { class: "muted" });
+    sfile.onchange = async () => {
+      if (!sfile.files[0]) return;
+      sstatus.textContent = "…";
+      try {
+        const res = await fetch("/api/gl/check-statement", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: sfile.files[0] });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error || "Check failed.");
+        lastCheck = body.check; render();
+      } catch (x) { sstatus.textContent = x.message; sstatus.className = "error"; }
+    };
+    root.append(card(t("checkStatement"), null, h("p", { class: "muted" }, t("checkHelp")), field(t("chooseFile"), sfile), sstatus));
+    if (lastCheck) {
+      const c = lastCheck;
+      const rows = (list) => table([t("date"), t("number"), t("account"), t("description"), t("debit"), t("credit")], list.map((l) => h("tr", {},
+        h("td", {}, l.date), h("td", {}, l.entry), h("td", { dir: "auto" }, `${l.code} · ${l.name}`), h("td", { dir: "auto", class: "wrap-text" }, l.description),
+        num(h("td", {}, amount(l.debit))), num(h("td", {}, amount(l.credit))))));
+      root.append(card(`${t("checkStatement")} · ${c.from} → ${c.to}`, null,
+        h("p", {}, `${t("matched")}: ${c.matched} / ${c.lines} · ${t("reviewedLines")}: ${c.reviewed} · ${t("approvedLines")}: ${c.approved}`),
+        c.newer.count ? [h("h4", {}, `${t("newer")}: ${c.newer.count} · ${signed(c.newer.amount)}`), rows(c.newer.lines)] : null,
+        c.missing.count ? [h("h4", { class: "late" }, `${t("notInBooks")}: ${c.missing.count} · ${signed(c.missing.amount)}`), rows(c.missing.lines)] : null,
+        c.carriedForward.length ? [h("h4", {}, t("carried")), table([t("account"), t("balance")], c.carriedForward.map((a) => h("tr", {}, h("td", { dir: "auto" }, `${a.code} · ${a.name}`), num(h("td", {}, signed(a.previous))))))] : null));
+    }
     if (lastImport) {
       const r = lastImport;
       const list = (title, items, fmt) => items.length ? h("div", {}, h("h4", {}, `${title}: ${items.length}`), h("p", { class: "small muted" }, items.slice(0, 100).map(fmt).join(" · "))) : null;

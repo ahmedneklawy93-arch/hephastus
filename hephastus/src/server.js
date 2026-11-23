@@ -11,6 +11,7 @@ import { connectPostgres } from "./gl/db.js";
 import { createLedger } from "./gl/service.js";
 import { createReports } from "./gl/reports.js";
 import { importErpLedger } from "./gl/import.js";
+import { reconcileStatement } from "./gl/statement.js";
 
 // Who may use the accounting books. For now only the owner; add "manager" to open it to managers.
 export const GL_ROLES = ["admin"];
@@ -353,6 +354,7 @@ export function createServer({ password, sessionSecret, assistant, store, ops = 
       if (run) return ok(await run(qs));
     }
     if (p[0] === "import" && m === "POST") return ok({ report: await importErpLedger(ledger, await readFile(req, MAX_LEDGER_BYTES), user) });
+    if (p[0] === "check-statement" && m === "POST") return ok({ check: await reconcileStatement(ledger, await readFile(req, MAX_LEDGER_BYTES)) });
     if (p[0] === "audit" && m === "GET") return ok({ audit: await ledger.auditLog(qs) });
     sendJson(res, 404, { error: "Not found." });
   }

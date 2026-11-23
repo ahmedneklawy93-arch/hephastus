@@ -152,3 +152,27 @@ test("only the owner reaches accounting, and it says so when no database is set"
   });
   await db.close();
 });
+
+test("an ERP account statement is checked line by line against the books", async () => {
+  const { reconcileStatement } = await import("../src/gl/statement.js");
+  const db = await connectMemory();
+  const ledger = createLedger(db);
+  await importErpLedger(ledger, erpExport([["2026-01-05", [payment, invoice]]]), owner);
+  const head = [null, "التاريخ", "الحساب", "الشرح", "مدين", "دائن", "الرصيد", "الرقم", "الأصل", "رقمه", "العملة الأصلية", "الحساب المقابل", "مركز التكلفة", "مؤيد", "مراجع", "مرحل"];
+  const day = (d) => new Date(`${d}T00:00:00Z`);
+  const rows = [head,
+    [null, null, "5001-مواسير", "الرصيد الحالي", 1700, 0, 1700],
+    [null, null, null, "الرصيد السابق", 1000, 0, 1000],
+    [null, day("2026-01-05"), null, "شراء", 500, 0, 1500, 2440, "سند صرف نقدية", 7, "جنيه مصري", null, "مستشفى", "مؤيد", "لم يراجع", "مرحل"],
+    [null, day("2026-01-05"), null, "مكرر؟", 150, 0, 1650, 2441, "سند قيد يومية", null, "جنيه مصري", null, null, "غير مؤيد", null, "مرحل"],
+    [null, day("2026-02-01"), null, "جديد", 50, 0, 1700, 2500, "سند صرف نقدية", 8, "جنيه مصري", null, null, "مؤيد", "مراجع", "مرحل"]];
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet(rows), "Sheet1");
+  const check = await reconcileStatement(ledger, XLSX.write(book, { type: "buffer", bookType: "biff8" }));
+  assert.deepEqual([check.lines, check.matched, check.reviewed, check.approved], [3, 1, 1, 2]);
+  assert.deepEqual([check.newer.count, check.newer.amount], [1, 50]);
+  assert.deepEqual([check.missing.count, check.missing.lines[0].entry], [1, "2441"]);
+  assert.deepEqual(check.carriedForward, [{ code: "5001", name: "مواسير", previous: 1000 }]);
+  await assert.rejects(reconcileStatement(ledger, erpExport([["2026-01-05", [payment]]])), /account statement/);
+  await db.close();
+});

@@ -198,7 +198,10 @@ test("server serves the chat page and keeps the API behind the password", async 
   await withServer({ store: memoryStore(), assistant: {} }, async (base) => {
     const page = await fetch(base);
     assert.equal(page.status, 200);
-    assert.match(await page.text(), /<title>Hephastus<\/title>/);
+    assert.match(await page.text(), /<title>Hephastus · Falcon Power Systems<\/title>/);
+    const mark = await fetch(`${base}/falcon-mark.png`);
+    assert.equal(mark.headers.get("content-type"), "image/png");
+    assert.ok((await mark.arrayBuffer()).byteLength > 1000);
     assert.match(page.headers.get("content-security-policy"), /default-src 'self'/);
 
     assert.equal((await fetch(`${base}/api/state`)).status, 401);

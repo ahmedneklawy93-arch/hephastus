@@ -28,6 +28,7 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const PAGE = new URL("../public/index.html", import.meta.url);
 const OPS_SCRIPT = new URL("../public/ops.js", import.meta.url);
 const GL_SCRIPT = new URL("../public/gl.js", import.meta.url);
+const FALCON_MARK = new URL("../public/falcon-mark.png", import.meta.url);
 const ADMIN = { username: ADMIN_USERNAME, displayName: "Admin", role: "admin" };
 
 function sign(value, secret) {
@@ -143,11 +144,17 @@ export function createServer({ password, sessionSecret, assistant, store, ops = 
     if (req.method === "GET" && url.pathname === "/") {
       res.writeHead(200, {
         "Content-Type": "text/html; charset=utf-8",
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:",
         "X-Frame-Options": "DENY",
         "Referrer-Policy": "no-referrer",
       });
       res.end(await fs.readFile(PAGE));
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/falcon-mark.png") {
+      res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" });
+      res.end(await fs.readFile(FALCON_MARK));
       return;
     }
 

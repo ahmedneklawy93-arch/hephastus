@@ -4,32 +4,41 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Hephastus</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c2410c'/%3E%3Cpath d='M10 8v16M22 8v16M10 16h12' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<title>Hephastus · Falcon Power Systems</title>
+<link rel="icon" type="image/png" href="/falcon-mark.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@700;800&display=swap">
 <style>
   :root {
-    --bg: #f6f5f2;
+    /* Falcon Power Systems design system */
+    --bg: #eef1f5;
     --panel: #ffffff;
-    --text: #1f1d1a;
-    --muted: #6b6760;
-    --border: #e4e1da;
-    --accent: #c2410c;
+    --text: #0f1b2d;
+    --muted: #5b677a;
+    --border: #d3d9e3;
+    --accent: #2e3191;
     --accent-text: #ffffff;
-    --mine: #fbe9df;
-    --error: #b42318;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 4px 16px rgba(0, 0, 0, .04);
+    --brand-red: #ec1b24;
+    --band: #22267a;
+    --on-band: #ffffff;
+    --mine: #e7e8f6;
+    --error: #c8141d;
+    --shadow: 0 1px 2px rgba(15, 27, 45, .06), 0 4px 16px rgba(15, 27, 45, .04);
+    --font-text: "IBM Plex Sans Arabic", "IBM Plex Sans", "Segoe UI", Tahoma, system-ui, sans-serif;
+    --font-display: "Noto Kufi Arabic", "IBM Plex Sans Arabic", Tahoma, system-ui, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #161513;
-      --panel: #201f1c;
-      --text: #ecebe7;
-      --muted: #a29e96;
-      --border: #34322d;
-      --accent: #ea6a35;
-      --accent-text: #1a0d06;
-      --mine: #3a261b;
-      --error: #f97066;
+      --bg: #0b1122;
+      --panel: #141c33;
+      --text: #f2f5f9;
+      --muted: #a3afc2;
+      --border: #2a3658;
+      --accent: #a3a6ff;
+      --accent-text: #0b1122;
+      --brand-red: #ff5c63;
+      --band: #151b45;
+      --mine: #23285e;
+      --error: #ff6b70;
       --shadow: none;
     }
   }
@@ -38,7 +47,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 16px/1.55 var(--font-text);
   }
   button, textarea, input { font: inherit; color: inherit; }
   button { cursor: pointer; }
@@ -61,15 +70,15 @@
     box-shadow: var(--shadow);
   }
   .logo {
-    width: 44px; height: 44px; border-radius: 12px;
-    background: var(--accent); color: var(--accent-text);
-    display: grid; place-items: center; font-weight: 700; font-size: 20px;
-    margin-bottom: 16px;
+    width: 52px; height: 52px; border-radius: 8px; background: #ffffff;
+    display: grid; place-items: center; margin-bottom: 16px; padding: 4px;
   }
+  .logo img { max-width: 100%; max-height: 100%; display: block; }
+  h1, h2, .login h1 { font-family: var(--font-display); }
   .login h1 { margin: 0 0 4px; font-size: 22px; }
   .login p { margin: 0 0 20px; color: var(--muted); }
   .login input {
-    width: 100%; padding: 12px 14px; border-radius: 10px;
+    width: 100%; margin-bottom: 10px; padding: 12px 14px; border-radius: 10px;
     border: 1px solid var(--border); background: var(--bg);
   }
   .login input:focus, .composer textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -84,10 +93,14 @@
   .app { height: 100%; display: flex; flex-direction: column; }
   header {
     display: flex; align-items: center; gap: 12px;
-    padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--panel);
+    padding: 8px 16px; background: var(--band); color: var(--on-band);
+    border-bottom: 3px solid #2e3191; box-shadow: 0 2px 0 var(--brand-red);
   }
-  header .logo { width: 32px; height: 32px; border-radius: 9px; font-size: 15px; margin: 0; }
-  header h1 { font-size: 17px; margin: 0; flex: 1; }
+  header .logo { width: 40px; height: 40px; margin: 0; padding: 3px; }
+  header h1 { font-size: 17px; margin: 0; flex: 1; color: var(--on-band); }
+  header .who { color: rgba(255, 255, 255, .75); }
+  header .ghost { color: var(--on-band); border-color: rgba(255, 255, 255, .35); }
+  header .ghost:hover { color: var(--on-band); border-color: var(--on-band); }
   .ghost {
     background: none; border: 1px solid var(--border); border-radius: 8px;
     padding: 6px 10px; font-size: 14px; color: var(--muted);
@@ -150,17 +163,113 @@
   .facts li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--border); }
   .facts li span { flex: 1; }
   .facts li button { flex: none; }
+
+  /* Sections */
+  .who { font-weight: 400; font-size: 13px; color: var(--muted); margin-left: 6px; }
+  .tabs { display: flex; gap: 4px; padding: 0 12px; background: var(--panel); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+  .tabs button[aria-current="page"] { color: var(--text); border-bottom-color: var(--accent); }
+  .chat-view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .chat-tools { display: flex; justify-content: flex-end; gap: 6px; max-width: 760px; width: 100%; margin: 0 auto; padding: 8px 16px 0; }
+  .ops { flex: 1; overflow-y: auto; padding: 16px; }
+  .ops > * { max-width: 1100px; margin-left: auto; margin-right: auto; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .tile { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+  .tile span { display: block; font-size: 13px; color: var(--muted); }
+  .tile strong { font-size: 19px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tile.warn strong { color: #b54708; }
+  .tile.bad strong { color: var(--error); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .card-head h3 { margin: 0; font-size: 16px; flex: 1; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  tr.done td { opacity: .55; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .muted { color: var(--muted); }
+  .small { font-size: 12.5px; }
+  .late { color: var(--error); }
+  .link { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 600; text-align: left; }
+  .badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); white-space: nowrap; }
+  .b-active, .b-approved, .b-done { background: #dcfae6; border-color: #abefc6; color: #067647; }
+  .b-submitted, .b-in-progress, .b-on-hold, .b-high { background: #fef0c7; border-color: #fedf89; color: #93370d; }
+  .b-rejected { background: #fee4e2; border-color: #fecdca; color: #b42318; }
+  @media (prefers-color-scheme: dark) {
+    .b-active, .b-approved, .b-done { background: #053321; border-color: #085d3a; color: #75e0a7; }
+    .b-submitted, .b-in-progress, .b-on-hold, .b-high { background: #4e1d09; border-color: #93370d; color: #fec84b; }
+    .b-rejected { background: #55160c; border-color: #912018; color: #fda29b; }
+    .tile.warn strong { color: #fec84b; }
+  }
+  .bar { width: 90px; height: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .detail-head, .toolbar, .report-head, .form-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .detail-head h2 { margin: 0; font-size: 20px; }
+  .spacer { flex: 1; }
+  .toolbar select, .inline-select, .form-grid input, .form-grid select, .form-grid textarea {
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); max-width: 100%;
+  }
+  .inline-select { padding: 4px 6px; font-size: 13px; }
+  .facts-list { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; font-size: 14px; }
+  .facts-list dt { color: var(--muted); }
+  .facts-list dd { margin: 0; }
+  .report { border-top: 1px solid var(--border); padding: 10px 0; }
+  .report:first-of-type { border-top: 0; }
+  .report-head { margin-bottom: 2px; }
+  .report p { margin: 6px 0; white-space: pre-wrap; }
+  .report .issue { color: var(--error); }
+  .wide-dialog { width: min(720px, calc(100% - 24px)); max-height: calc(100% - 24px); overflow-y: auto; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .field.wide { grid-column: 1 / -1; }
+  .field-label { font-size: 13px; color: var(--muted); }
+  .checks { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .checks label { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .primary.small { width: auto; margin: 0; padding: 8px 14px; }
+  .ghost.danger { color: var(--error); }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 0 14px; }
+  .bars { width: 40%; min-width: 120px; }
+  .hbar { height: 7px; border-radius: 4px; margin: 2px 0; min-width: 1px; }
+  .hbar.rev, .sw.rev { background: var(--accent); }
+  .hbar.cost, .sw.cost { background: var(--muted); }
+  .legend { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+  .field-with-list input { width: 100%; }
+  /* Accounting */
+  .subtabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .subtabs button { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; color: var(--muted); font-size: 14px; }
+  .subtabs button[aria-current="page"] { color: var(--accent-text); background: var(--accent); border-color: var(--accent); }
+  .gl-filters { align-items: flex-end; }
+  .gl-filters .field { min-width: 120px; }
+  .gl-filters input, .gl-filters select, .gl-lines input, .gl-lines select, .card .toolbar input {
+    padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); max-width: 100%;
+  }
+  .gl-lines td { padding: 4px; }
+  .gl-lines .acc { min-width: 220px; width: 100%; }
+  .gl-lines .num-in { width: 120px; text-align: end; }
+  .gl-lines .cc { max-width: 180px; }
+  .wrap-text { white-space: normal; min-width: 18ch; }
+  #view-accounting td:first-child { min-width: 22ch; }
+  .total-row td { font-weight: 600; border-top: 2px solid var(--border); }
+  .group-row td { font-weight: 600; background: var(--bg); }
+  [dir="rtl"] th, [dir="rtl"] .num { text-align: left; }
+  [dir="rtl"] th:first-child { text-align: right; }
+  @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } .who { display: none; } }
 </style>
 </head>
 <body>
 
 <section class="login" id="login" hidden>
   <form id="login-form">
-    <div class="logo" aria-hidden="true">H</div>
+    <div class="logo"><img src="/falcon-mark.png" alt="Falcon"></div>
     <h1>Hephastus</h1>
-    <p>Your personal assistant. Enter your password to continue.</p>
+    <p>Projects, site work and your AI assistant. Log in to continue.</p>
+    <label for="username" hidden>Username</label>
+    <input id="username" type="text" autocomplete="username" autocapitalize="none" placeholder="Username" required>
     <label for="password" hidden>Password</label>
-    <input id="password" type="password" autocomplete="current-password" placeholder="Password" required autofocus>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Password" required>
     <button class="primary" type="submit">Log in</button>
     <div class="error" id="login-error" role="alert"></div>
   </form>
@@ -168,12 +277,29 @@
 
 <section class="app" id="app" hidden>
   <header>
-    <div class="logo" aria-hidden="true">H</div>
-    <h1>Hephastus</h1>
+    <div class="logo"><img src="/falcon-mark.png" alt="Falcon"></div>
+    <h1>Hephastus <span class="who" id="who"></span></h1>
+    <button class="ghost" id="lang-btn" type="button" lang="ar">عربي</button>
+    <button class="ghost" id="logout-btn" type="button" data-i18n="logout">Log out</button>
+  </header>
+  <nav class="tabs" aria-label="Sections">
+    <button type="button" data-view="chat" aria-current="page" data-i18n="chat">Chat</button>
+    <button type="button" data-view="projects" data-i18n="projects">Projects</button>
+    <button type="button" data-view="site" data-i18n="site">Site</button>
+    <button type="button" data-view="finance" id="tab-finance" hidden data-i18n="finance">Finance</button>
+    <button type="button" data-view="accounting" id="tab-accounting" hidden data-i18n="accounting">Accounting</button>
+    <button type="button" data-view="team" id="tab-team" hidden data-i18n="team">Team</button>
+  </nav>
+  <div class="view ops" id="view-projects" hidden></div>
+  <div class="view ops" id="view-site" hidden></div>
+  <div class="view ops" id="view-finance" hidden></div>
+  <div class="view ops" id="view-accounting" hidden></div>
+  <div class="view ops" id="view-team" hidden></div>
+  <div class="view chat-view" id="view-chat">
+  <div class="chat-tools">
     <button class="ghost" id="memory-btn" type="button">Memory</button>
     <button class="ghost" id="reset-btn" type="button">New chat</button>
-    <button class="ghost" id="logout-btn" type="button">Log out</button>
-  </header>
+  </div>
   <main id="scroller">
     <div class="thread" id="thread" aria-live="polite"></div>
   </main>
@@ -186,15 +312,22 @@
       </button>
     </form>
   </div>
+  </div>
 </section>
+
+<dialog id="record-dialog" class="wide-dialog">
+  <form id="record-form" novalidate></form>
+</dialog>
 
 <dialog id="memory">
   <h2>What Hephastus remembers</h2>
-  <p class="hint">Tell it "remember that…" in the chat to add something.</p>
+  <p class="hint">Shared by the whole team. Tell it "remember that…" in the chat to add something.</p>
   <ul class="facts" id="facts"></ul>
   <button class="ghost" type="button" id="memory-close">Close</button>
 </dialog>
 
+<script src="/gl.js" defer></script>
+<script src="/ops.js" defer></script>
 <script>
 const $ = (id) => document.getElementById(id);
 let facts = [];
@@ -288,7 +421,7 @@ function addMessage(role, text, { failed = false } = {}) {
 function renderThread(messages) {
   $("thread").innerHTML = "";
   if (!messages.length) {
-    $("thread").innerHTML = '<div class="empty"><strong>Hi, I\'m Hephastus.</strong>Ask me anything, or tell me something to remember.</div>';
+    $("thread").innerHTML = '<div class="empty"><strong>Hi, I\'m Hephastus.</strong>Ask about your projects, e.g. "Which variations are still pending?", or anything else.</div>';
     return;
   }
   for (const message of messages) addMessage(message.role, message.content);
@@ -321,7 +454,7 @@ function renderFacts() {
 function showLogin() {
   $("app").hidden = true;
   $("login").hidden = false;
-  $("password").focus();
+  $("username").focus();
 }
 
 async function showApp() {
@@ -330,7 +463,8 @@ async function showApp() {
   renderThread(state.messages);
   $("login").hidden = true;
   $("app").hidden = false;
-  $("input").focus();
+  window.GL.init(state.me);
+  window.Ops.init(state.me);
 }
 
 function setBusy(value) {
@@ -344,7 +478,7 @@ $("login-form").addEventListener("submit", async (event) => {
   button.disabled = true;
   $("login-error").textContent = "";
   try {
-    await api("/api/login", { method: "POST", body: JSON.stringify({ password: $("password").value }) });
+    await api("/api/login", { method: "POST", body: JSON.stringify({ username: $("username").value, password: $("password").value }) });
     $("password").value = "";
     await showApp();
   } catch (error) {
@@ -404,7 +538,7 @@ $("logout-btn").onclick = async () => {
   showLogin();
 };
 
-showApp().catch(showLogin);
+window.addEventListener("DOMContentLoaded", () => showApp().catch(showLogin));
 </script>
 </body>
 </html>

@@ -49,8 +49,59 @@ Make up a long password for your Hephastus page. This is `APP_PASSWORD`. Anyone 
 
 Bookmark the address. On a phone, use your browser's **Add to Home Screen** to get an app-like icon.
 
+## Projects and site work (MEP contracting)
+
+Hephastus also runs your MEP contracting work. All amounts are in Egyptian pounds (EGP).
+
+- **Projects**: each project's contract (client, consultant, disciplines, contract value, retention %, advance %, dates, status, progress) and its **variations** (change orders with Draft, Submitted, Approved or Rejected status). The dashboard shows revised contract value (contract plus approved variations), work done (revised value × progress), variations still pending, retention held, and overdue tasks.
+- **Site**: **daily reports** (manpower by trade, work done, materials received, issues) and **tasks** (discipline, who it's assigned to, due date, priority, status).
+- **Chat**: ask things like "Which projects are behind?", "Total pending variations?" or "What happened on P-101 this week?". Hephastus reads the data to answer; it never changes it.
+
+### Finance (the accounting ledger)
+
+Once a week, export the daily ledger (دفتر اليومية) for the year to date from your accounting system as an Excel file (.xls or .xlsx) and upload it on the **Finance** screen. Each upload replaces the previous one. Hephastus reads it and shows:
+
+- operating revenue, other income, direct project costs, gross profit, overheads and the result, overall and by month;
+- every cost centre's revenue, costs, result and margin. To tie a cost centre to a project, type its name (exactly as in the ledger) in the project's **Cost centre in the accounting ledger** field; the project page then shows its ledger figures too;
+- money in and out for customers, suppliers, subcontractors, banks and cash;
+- how many lines are still unapproved (غير مؤيد), and any entry whose debits and credits don't match.
+
+The ledger export has no opening balances, so customer, supplier and bank figures are movements over the period, not balances. Only the summary is stored; the uploaded file itself is not kept. Finance is visible to the admin and managers only, in the app and in the chat ("What's our result this year?", "Which projects are losing money?").
+
+Income and expense accounts are grouped by code, the same way on the Finance screen and in Accounting reports: 601… operating revenue; other 6… other income (deposit interest, scrap sales), kept out of revenue and gross profit; 504… and 3… (purchases of site materials) direct project costs; other 5… overheads, including finance costs and partner payments. Lines with no cost centre are reported under «بدون مركز تكلفة» so cost centres add up to the total. Other groups: 1020201… customers, 2020101… suppliers and subcontractors, 1020102… banks, 1020101… cash. If your chart of accounts changes, update `src/classify.js` (income and expenses) or `GROUPS` in `src/ledger.js`. A ledger uploaded before this grouping keeps its old figures until it is uploaded again.
+
+### Accounting (replacing the old ERP)
+
+The **Accounting** tab is Hephastus's own general ledger: the company's books, kept in a Postgres database. For now only the owner (`admin`) sees it.
+
+- **Journal**: every entry with its lines, debit, credit and cost centre. Entries are saved as drafts, then posted. A posted entry can't be edited: void it (with a reason) or reverse it on a later date. Entries can be approved, and the journal can list posted entries that aren't approved yet.
+- **Accounts**: the chart of accounts as a tree with balances, and the cost centres. Only detail accounts take postings; group accounts add up their sub-accounts. Link a cost centre to a project code.
+- **Reports**: trial balance, income statement by month (for the company or one cost centre), balance sheet, account statement with running balance, and results by cost centre.
+- **Periods**: lock a month once it is closed. Nothing in a locked month can be added, changed or voided.
+- **Import from ERP**: upload the old ERP's daily ledger export. It builds the chart of accounts and cost centres and loads every entry under its ERP number. Upload it again each week until you switch over: new and changed entries come in, nothing is deleted, and entries that vanished from the ERP are listed. Entries whose debits and credits don't match come in as drafts to fix.
+- **Audit log**: who did what and when, for every change.
+
+The screens switch between English and Arabic with the button at the top.
+
+**Database.** `render.yaml` creates a Render Postgres database on the paid `basic-256mb` plan and passes its address to Hephastus as `DATABASE_URL`. Render's free databases are deleted after 30 days, so they aren't used. Check backups and the current price on Render's Postgres page. Without `DATABASE_URL` everything else works and the Accounting tab says the database isn't set up.
+
+**Opening balances.** The ERP's daily ledger has no opening balances. Before relying on the balance sheet, post one entry of type *Opening balance* dated 1 January with every balance-sheet account's balance at 31 December (from the ERP's trial balance), or send that trial balance export to be imported.
+
+### Your team
+
+Log in as `admin` with your `APP_PASSWORD`, open **Team** and add people:
+
+| Role | Can do |
+|---|---|
+| Admin (you) | Everything, including adding and removing people |
+| Manager | Add and edit projects, variations, tasks and any daily report; see and upload finances |
+| Site engineer | Read projects, write daily reports (and correct their own), add and update tasks |
+
+Everyone has their own chat; the memory is shared by the team. Removing someone logs them out at once.
+
 ## Using it
 
+- Log in with your username (`admin` for you) and password.
 - Type a message and press **Enter** (on a computer) or the arrow button. **Shift+Enter** adds a new line.
 - Tell it "remember that…" to save something.
 - **Memory** shows everything it remembers; tap **Forget** to remove one.

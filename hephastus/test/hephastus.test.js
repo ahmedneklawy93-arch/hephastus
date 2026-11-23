@@ -7,16 +7,21 @@ import path from "node:path";
 import { loadConfig } from "../src/config.js";
 import { createFileStore, createUpstashStore } from "../src/store.js";
 import { buildRequest, createAssistant, trimHistory } from "../src/assistant.js";
-import { createServer, createSessionToken, isValidSession } from "../src/server.js";
+import { createServer, createSessionToken, isValidSession, readSession } from "../src/server.js";
+import { cleanRecord, createOps, summarize } from "../src/ops.js";
+import { hashPassword, verifyPassword } from "../src/users.js";
 
 const SECRET = "session-secret";
 
 function memoryStore() {
-  let history = [];
+  const histories = {};
+  const collections = {};
   let facts = [];
   return {
-    getHistory: async () => structuredClone(history),
-    setHistory: async (h) => { history = structuredClone(h); },
+    getHistory: async (user = "admin") => structuredClone(histories[user] ?? []),
+    setHistory: async (h, user = "admin") => { histories[user] = structuredClone(h); },
+    getCollection: async (name) => structuredClone(collections[name] ?? []),
+    setCollection: async (name, items) => { collections[name] = structuredClone(items); },
     getFacts: async () => [...facts],
     setFacts: async (f) => { facts = [...f]; },
   };
@@ -157,7 +162,11 @@ test("session tokens expire and can't be forged", () => {
   assert.equal(isValidSession(token, SECRET, now), true);
   assert.equal(isValidSession(token, "other-secret", now), false);
   assert.equal(isValidSession(token, SECRET, now + 31 * 24 * 60 * 60 * 1000), false);
-  assert.equal(isValidSession(token.replace(/^\d/, "9"), SECRET, now), false);
+  assert.equal(readSession(token, SECRET, now), "admin");
+  const [, expires, signature] = token.split(".");
+  const forged = `${Buffer.from("someone").toString("base64url")}.${expires}.${signature}`;
+  assert.equal(isValidSession(forged, SECRET, now), false);
+  assert.equal(readSession(createSessionToken(SECRET, now, "sara.eng"), SECRET, now), "sara.eng");
   assert.equal(isValidSession(null, SECRET, now), false);
   assert.equal(isValidSession("garbage", SECRET, now), false);
 });
@@ -179,8 +188,8 @@ const json = (body, cookie) => ({
   body: JSON.stringify(body),
 });
 
-async function login(base) {
-  const response = await fetch(`${base}/api/login`, json({ password: "pw" }));
+async function login(base, username = "admin", password = "pw") {
+  const response = await fetch(`${base}/api/login`, json({ username, password }));
   assert.equal(response.status, 200);
   return response.headers.get("set-cookie").split(";")[0];
 }
@@ -189,7 +198,10 @@ test("server serves the chat page and keeps the API behind the password", async 
   await withServer({ store: memoryStore(), assistant: {} }, async (base) => {
     const page = await fetch(base);
     assert.equal(page.status, 200);
-    assert.match(await page.text(), /<title>Hephastus<\/title>/);
+    assert.match(await page.text(), /<title>Hephastus · Falcon Power Systems<\/title>/);
+    const mark = await fetch(`${base}/falcon-mark.png`);
+    assert.equal(mark.headers.get("content-type"), "image/png");
+    assert.ok((await mark.arrayBuffer()).byteLength > 1000);
     assert.match(page.headers.get("content-security-policy"), /default-src 'self'/);
 
     assert.equal((await fetch(`${base}/api/state`)).status, 401);
@@ -199,7 +211,7 @@ test("server serves the chat page and keeps the API behind the password", async 
 
     const cookie = await login(base);
     const state = await fetch(`${base}/api/state`, { headers: { Cookie: cookie } });
-    assert.deepEqual(await state.json(), { messages: [], facts: [] });
+    assert.deepEqual(await state.json(), { me: { username: "admin", displayName: "Admin", role: "admin", accounting: "not-set-up" }, messages: [], facts: [] });
   });
 });
 
@@ -262,4 +274,261 @@ test("chat failures return a friendly error instead of crashing", async () => {
     assert.equal(response.status, 500);
     assert.match((await response.json()).error, /Something went wrong/);
   });
+});
+
+const PROJECT = {
+  code: "P-101", name: "Nile Tower MEP", client: "Delta Builders", disciplines: ["Electrical", "HVAC"],
+  contractValue: 10000000, retentionPct: 5, status: "Active", progress: 40,
+  startDate: "2026-01-01", endDate: "2026-06-30",
+};
+
+test("cleanRecord validates required fields, numbers, options and project links", () => {
+  assert.throws(() => cleanRecord("projects", { ...PROJECT, code: "" }, []), /Project code is required/);
+  assert.throws(() => cleanRecord("projects", { ...PROJECT, progress: 120 }, []), /Progress % can't be above 100/);
+  assert.throws(() => cleanRecord("projects", { ...PROJECT, status: "Dreaming" }, []), /unknown value/);
+  assert.throws(() => cleanRecord("projects", { ...PROJECT, endDate: "2025-01-01" }, []), /before the start date/);
+  assert.throws(() => cleanRecord("tasks", { projectId: "nope", title: "x", priority: "Low", status: "Open" }, []), /existing project/);
+  const clean = cleanRecord("projects", { ...PROJECT, contractValue: "1234.567", disciplines: ["HVAC", "Electrical"], extra: "dropped" }, []);
+  assert.equal(clean.contractValue, 1234.57);
+  assert.deepEqual(clean.disciplines, ["HVAC", "Electrical"]);
+  assert.equal(clean.extra, undefined);
+});
+
+test("summarize works out revised value, earned value, retention and overdue items", () => {
+  const data = {
+    projects: [{ id: "p1", ...PROJECT }],
+    variations: [
+      { projectId: "p1", amount: 500000, status: "Approved" },
+      { projectId: "p1", amount: -100000, status: "Approved" },
+      { projectId: "p1", amount: 250000, status: "Submitted" },
+      { projectId: "p1", amount: 999, status: "Rejected" },
+    ],
+    tasks: [
+      { projectId: "p1", status: "Open", dueDate: "2026-07-01" },
+      { projectId: "p1", status: "Done", dueDate: "2026-07-01" },
+      { projectId: "p1", status: "Open", dueDate: "2026-08-01" },
+    ],
+    reports: [{ projectId: "p1", date: "2026-07-15", engineers: 2, technicians: 10, labourers: 8 }],
+  };
+  const { totals, projects: [p] } = summarize(data, "2026-07-15");
+  assert.equal(p.revisedValue, 10400000);
+  assert.equal(p.pendingVariations, 250000);
+  assert.equal(p.earnedValue, 4160000);
+  assert.equal(p.retentionHeld, 208000);
+  assert.equal(p.overdue, true);
+  assert.equal(p.openTasks, 2);
+  assert.equal(p.overdueTasks, 1);
+  assert.equal(totals.manpowerToday, 20);
+});
+
+test("passwords are hashed and checked", () => {
+  const stored = hashPassword("long-enough-pw");
+  assert.doesNotMatch(stored, /long-enough-pw/);
+  assert.equal(verifyPassword("long-enough-pw", stored), true);
+  assert.equal(verifyPassword("wrong", stored), false);
+  assert.equal(verifyPassword("x", "garbage"), false);
+});
+
+test("file store keeps collections and separate chats per person", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "hephastus-"));
+  const store = createFileStore(dir);
+  await store.setHistory([{ role: "user", content: "admin chat" }]);
+  await store.setHistory([{ role: "user", content: "sara chat" }], "sara");
+  await store.setCollection("projects", [{ id: "1" }]);
+  const reopened = createFileStore(dir);
+  assert.equal((await reopened.getHistory())[0].content, "admin chat");
+  assert.equal((await reopened.getHistory("sara"))[0].content, "sara chat");
+  assert.deepEqual(await reopened.getCollection("projects"), [{ id: "1" }]);
+  assert.deepEqual(await reopened.getCollection("tasks"), []);
+});
+
+test("assistant reads project data with the mep_data tool", async () => {
+  const store = memoryStore();
+  const ops = createOps(store);
+  const admin = { username: "admin", displayName: "Admin", role: "admin" };
+  await ops.create("projects", PROJECT, admin);
+  const claude = fakeClaude([
+    { stop_reason: "tool_use", content: [
+      { type: "tool_use", id: "t1", name: "mep_data", input: { view: "summary", project_code: "" } },
+      { type: "tool_use", id: "t2", name: "mep_data", input: { view: "project", project_code: "p-101" } },
+      { type: "tool_use", id: "t3", name: "mep_data", input: { view: "project", project_code: "X" } },
+    ] },
+    { stop_reason: "end_turn", content: [{ type: "text", text: "One active project." }] },
+  ]);
+  const assistant = createAssistant({ model: "claude-opus-5-5", effort: "medium", historyLimit: 40 }, store, claude, ops);
+  const sara = { username: "sara", displayName: "Sara", role: "engineer" };
+  assert.equal(await assistant.reply("How are we doing?", sara), "One active project.");
+  assert.match(claude.requests[0].system, /talking with Sara \(role: engineer\)/);
+  const [summary, detail, missing] = claude.requests[1].messages.at(-1).content;
+  assert.equal(JSON.parse(summary.content).totals.revisedValue, 10000000);
+  assert.equal(JSON.parse(detail.content).project.code, "P-101");
+  assert.equal(missing.is_error, true);
+  assert.match(missing.content, /Known codes: P-101/);
+  assert.equal((await store.getHistory("sara")).length, 2);
+  assert.deepEqual(await store.getHistory(), []);
+});
+
+const put = (body, cookie) => ({ ...json(body, cookie), method: "PUT" });
+
+test("team members log in with their own role and see only what the role allows", async () => {
+  const store = memoryStore();
+  await withServer({ store, assistant: {} }, async (base) => {
+    const admin = await login(base);
+    const add = (body) => fetch(`${base}/api/users`, json(body, admin));
+    assert.equal((await add({ username: "sara.eng", displayName: "Sara", role: "engineer", password: "short" })).status, 400);
+    assert.equal((await add({ username: "admin", displayName: "X", role: "manager", password: "0123456789" })).status, 400);
+    assert.equal((await add({ username: "Sara.Eng", displayName: "Sara", role: "engineer", password: "site-pass-123" })).status, 200);
+    assert.equal((await add({ username: "omar", displayName: "Omar", role: "manager", password: "office-pass-1" })).status, 200);
+    assert.equal((await add({ username: "omar", displayName: "Omar 2", role: "manager", password: "office-pass-1" })).status, 400);
+    assert.doesNotMatch(JSON.stringify(await store.getCollection("users")), /site-pass-123/);
+
+    assert.equal((await fetch(`${base}/api/login`, json({ username: "sara.eng", password: "wrong-password" }))).status, 401);
+    const engineer = await login(base, "SARA.ENG", "site-pass-123");
+    const manager = await login(base, "omar", "office-pass-1");
+    const me = await (await fetch(`${base}/api/state`, { headers: { Cookie: engineer } })).json();
+    assert.deepEqual(me.me, { username: "sara.eng", displayName: "Sara", role: "engineer", accounting: null });
+    assert.equal((await fetch(`${base}/api/users`, { headers: { Cookie: manager } })).status, 403);
+
+    // Managers create projects and variations; engineers can't.
+    assert.equal((await fetch(`${base}/api/ops/projects`, json(PROJECT, engineer))).status, 403);
+    const created = await fetch(`${base}/api/ops/projects`, json(PROJECT, manager));
+    assert.equal(created.status, 201);
+    const project = (await created.json()).record;
+    assert.equal((await fetch(`${base}/api/ops/projects`, json(PROJECT, manager))).status, 400);
+    const variation = { projectId: project.id, ref: "VO-01", description: "Extra AHU", amount: 300000, status: "Approved", date: "2026-03-01" };
+    assert.equal((await fetch(`${base}/api/ops/variations`, json(variation, engineer))).status, 403);
+    assert.equal((await fetch(`${base}/api/ops/variations`, json(variation, manager))).status, 201);
+
+    // Engineers write daily reports and may edit their own, but not others'.
+    const report = { projectId: project.id, date: "2026-03-02", technicians: 12, workDone: "Cable tray level 3" };
+    const mine = (await (await fetch(`${base}/api/ops/reports`, json(report, engineer))).json()).record;
+    const theirs = (await (await fetch(`${base}/api/ops/reports`, json(report, manager))).json()).record;
+    assert.equal((await fetch(`${base}/api/ops/reports/${mine.id}`, put({ ...report, workDone: "Fixed" }, engineer))).status, 200);
+    assert.equal((await fetch(`${base}/api/ops/reports/${theirs.id}`, put(report, engineer))).status, 403);
+    assert.equal((await fetch(`${base}/api/ops/reports/${mine.id}`, { method: "DELETE", headers: { Cookie: engineer } })).status, 403);
+
+    const data = await (await fetch(`${base}/api/ops/data`, { headers: { Cookie: engineer } })).json();
+    assert.equal(data.summary.projects[0].revisedValue, 10300000);
+    assert.equal(data.reports.find((r) => r.id === mine.id).workDone, "Fixed");
+
+    // A project with records can't be deleted by accident.
+    assert.equal((await fetch(`${base}/api/ops/projects/${project.id}`, { method: "DELETE", headers: { Cookie: manager } })).status, 400);
+
+    // Removing an account logs that person out at once.
+    assert.equal((await fetch(`${base}/api/users/sara.eng`, { method: "DELETE", headers: { Cookie: admin } })).status, 200);
+    assert.equal((await fetch(`${base}/api/state`, { headers: { Cookie: engineer } })).status, 401);
+  });
+});
+
+// A small ledger in the accounting system's export layout. Parent accounts
+// repeat their children's amounts, sometimes before and sometimes after them.
+async function sampleLedger() {
+  const XLSX = (await import("xlsx")).default;
+  const header = [null, "التاريخ", "الحساب", "مدين", "دائن", "الشرح", "الرقم", "الأصل", "رقمه", "مركز التكلفة", "مؤيد", "مراجع"];
+  const line = (account, debit, credit, entry, centre = null, approval = "غير مؤيد") =>
+    [null, null, account, debit, credit, "desc", entry, "سند قيد يومية", null, centre, approval, null];
+  const day = (date, total) => [null, new Date(`${date}T00:00:00Z`), "مجموع اليوم", total, total];
+  const rows = [
+    header, [],
+    day("2026-01-05", 1000),
+    // Invoice: customer debit, contracting revenue credit (parent listed first).
+    line("102020101-العملاء", 1000, 0, 1),
+    line("10202010101011-عميل م المستشفى الجامعي", 1000, 0, 1),
+    line("601-إيرادات النشاط الرئيسي", 0, 1000, 1),
+    line("601001-إيرادات المقاولات", 0, 1000, 1, "مركز المستشفى", "مؤيد"),
+    [null, null, "مجموع القيد", 1000, 1000],
+    day("2026-02-10", 650),
+    // Costs paid from the bank (parent listed after its children).
+    line("504020001-أعمال ميكانيكا مواسير", 400, 0, 2, "مركز المستشفى"),
+    line("501014-مصاريف و رسوم بنكية", 100, 0, 2, "الإدارة"),
+    line("501-مصاريف عمومية وادارية", 100, 0, 2),
+    line("102010201001-البنك العربي", 0, 500, 2),
+    line("1020102-البنوك", 0, 500, 2),
+    // An entry that is out by 25.
+    line("501014-مصاريف و رسوم بنكية", 150, 0, 3, "الإدارة"),
+    line("1020101001-الخزينة", 0, 125, 3),
+  ];
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet(rows), "Sheet1");
+  return XLSX.write(book, { type: "buffer", bookType: "biff8" });
+}
+
+test("ledger import counts only leaf lines and works out the result per cost centre", async () => {
+  const { importLedger } = await import("../src/ledger.js");
+  const ledger = importLedger(await sampleLedger(), { fileName: "daily.xls", importedBy: "omar" });
+  assert.equal(ledger.from, "2026-01-05");
+  assert.equal(ledger.to, "2026-02-10");
+  assert.equal(ledger.entries, 3);
+  assert.equal(ledger.debit, 1650);
+  assert.equal(ledger.credit, 1625);
+  assert.deepEqual(ledger.result, { revenue: 1000, otherIncome: 0, directCosts: 400, overheads: 250, grossProfit: 600, result: 350 });
+  assert.deepEqual(ledger.unbalancedEntries, [{ entry: "3", date: "2026-02-10", source: "سند قيد يومية", difference: 25 }]);
+  assert.equal(ledger.approvedLines, 1);
+  const hospital = ledger.costCentres.find((c) => c.name === "مركز المستشفى");
+  assert.equal(hospital.result, 600);
+  assert.deepEqual(ledger.months.map((m) => [m.month, m.result]), [["2026-01", 1000], ["2026-02", -650]]);
+  assert.equal(ledger.customers[0].debit, 1000);
+  assert.equal(ledger.banks[0].credit, 500);
+  assert.equal(ledger.breakdown.revenue[0].name, "إيرادات المقاولات");
+});
+
+test("ledger summary keeps other income out of revenue, counts purchases as direct costs and keeps lines with no cost centre", async () => {
+  const { summarizeLedger } = await import("../src/ledger.js");
+  const l = (code, debit, credit, costCentre = null) => ({ date: "2026-03-01", code, name: "", debit, credit, entry: "9", costCentre, approval: null, leaf: true });
+  const ledger = summarizeLedger([
+    l("601001", 0, 1000, "Site"), l("602001", 0, 40), l("602003", 0, 10, "Site"), // contracting revenue, deposit interest, scrap sales
+    l("504020002", 300, 0, "Site"), l("301001", 100, 0, "Site"), // site materials and purchases
+    l("501016", 200, 0, "Office"), l("502010", 30, 0), // bank interest, partner distribution with no cost centre
+    l("1020102001", 1080, 0), l("1020101001", 0, 1710),
+  ]);
+  assert.deepEqual(ledger.result, { revenue: 1000, otherIncome: 50, directCosts: 400, overheads: 230, grossProfit: 600, result: 420 });
+  const centres = Object.fromEntries(ledger.costCentres.map((c) => [c.name, c.result]));
+  assert.deepEqual(centres, { Site: 610, Office: -200, "بدون مركز تكلفة": 10 });
+  assert.equal(Object.values(centres).reduce((a, b) => a + b, 0), ledger.result.result);
+  assert.deepEqual(ledger.breakdown.otherIncome.map((r) => r.code), ["602001", "602003"]);
+  assert.deepEqual(ledger.breakdown.directCosts.map((r) => r.code), ["504020002", "301001"]);
+});
+
+test("ledger import rejects files that aren't the ledger export", async () => {
+  const { importLedger } = await import("../src/ledger.js");
+  const XLSX = (await import("xlsx")).default;
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet([["Name", "Amount"], ["x", 1]]), "S");
+  assert.throws(() => importLedger(XLSX.write(book, { type: "buffer", bookType: "xlsx" })), /doesn't look like the daily ledger/);
+  assert.throws(() => importLedger(Buffer.from("not a spreadsheet at all")), /ledger|Excel/);
+});
+
+test("managers upload the ledger; engineers can't see finances, in the app or the chat", async () => {
+  const store = memoryStore();
+  const file = await sampleLedger();
+  await withServer({ store, assistant: {} }, async (base) => {
+    const admin = await login(base);
+    await fetch(`${base}/api/users`, json({ username: "sara", displayName: "Sara", role: "engineer", password: "site-pass-123" }, admin));
+    const engineer = await login(base, "sara", "site-pass-123");
+    const upload = (cookie, body = file) => fetch(`${base}/api/finance/ledger?name=daily.xls`, {
+      method: "POST", headers: { Cookie: cookie, "Content-Type": "application/octet-stream" }, body,
+    });
+    assert.equal((await upload(engineer)).status, 403);
+    assert.equal((await fetch(`${base}/api/finance`, { headers: { Cookie: engineer } })).status, 403);
+    assert.deepEqual(await (await fetch(`${base}/api/finance`, { headers: { Cookie: admin } })).json(), { ledger: null });
+    assert.equal((await upload(admin, Buffer.from("junk"))).status, 400);
+    const ok = await upload(admin);
+    assert.equal(ok.status, 200);
+    const { ledger } = await (await fetch(`${base}/api/finance`, { headers: { Cookie: admin } })).json();
+    assert.equal(ledger.result.result, 350);
+    assert.equal(ledger.importedBy, "admin");
+    assert.equal(ledger.fileName, "daily.xls");
+  });
+
+  const claude = fakeClaude([
+    { stop_reason: "tool_use", content: [{ type: "tool_use", id: "f1", name: "mep_data", input: { view: "finance", project_code: "" } }] },
+    { stop_reason: "end_turn", content: [{ type: "text", text: "ok" }] },
+    { stop_reason: "tool_use", content: [{ type: "tool_use", id: "f2", name: "mep_data", input: { view: "finance", project_code: "" } }] },
+    { stop_reason: "end_turn", content: [{ type: "text", text: "ok" }] },
+  ]);
+  const assistant = createAssistant({ model: "claude-opus-5-5", effort: "medium", historyLimit: 40 }, store, claude, createOps(store));
+  await assistant.reply("profit?", { username: "omar", displayName: "Omar", role: "manager" });
+  assert.equal(JSON.parse(claude.requests[1].messages.at(-1).content[0].content).result.revenue, 1000);
+  await assistant.reply("profit?", { username: "sara", displayName: "Sara", role: "engineer" });
+  assert.equal(claude.requests[3].messages.at(-1).content[0].is_error, true);
 });
